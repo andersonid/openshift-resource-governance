@@ -241,21 +241,46 @@
             padding: 1rem 1.5rem;
             cursor: pointer;
             display: flex;
-            justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #ddd;
             transition: all 0.2s;
             position: relative;
+            gap: 1rem;
         }
 
-        .accordion-header:hover {
-            background: #e9ecef;
+        .accordion-title {
+            flex: 0 0 auto;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+            min-width: 0;
+        }
+
+        .accordion-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex: 0 0 auto;
+            margin-left: auto;
+        }
+
+        .accordion-stat {
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            text-align: right;
         }
 
         .accordion-arrow {
             font-size: 1.2rem;
             transition: transform 0.3s ease;
             color: #6c757d;
+            flex: 0 0 auto;
+            margin-left: 0.5rem;
+        }
+
+        .accordion-header:hover {
+            background: #e9ecef;
         }
 
         .accordion-header.active .accordion-arrow {
