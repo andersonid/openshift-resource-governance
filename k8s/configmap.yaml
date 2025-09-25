@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: resource-governance-config
+  namespace: resource-governance
+  labels:
+    app.kubernetes.io/name: resource-governance
+    app.kubernetes.io/component: governance
+data:
+  # Configurações da aplicação
+  CPU_LIMIT_RATIO: "3.0"
+  MEMORY_LIMIT_RATIO: "3.0"
+  MIN_CPU_REQUEST: "10m"
+  MIN_MEMORY_REQUEST: "32Mi"
+  
+  # Namespaces críticos para VPA
+  CRITICAL_NAMESPACES: |
+    openshift-monitoring
+    openshift-ingress
+    openshift-apiserver
+    openshift-controller-manager
+    openshift-sdn
+  
+  # URL do Prometheus
+  PROMETHEUS_URL: "http://prometheus.openshift-monitoring.svc.cluster.local:9090"
+  
+  # Configurações de relatório
+  REPORT_EXPORT_PATH: "/tmp/reports"
+  
+  # Configurações de segurança
+  ENABLE_RBAC: "true"
+  SERVICE_ACCOUNT_NAME: "resource-governance-sa"

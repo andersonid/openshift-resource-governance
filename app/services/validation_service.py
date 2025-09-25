@@ -1,0 +1,345 @@
+"""
+Serviço de validação de recursos seguindo best practices Red Hat
+"""
+import logging
+from typing import List, Dict, Any
+from decimal import Decimal, InvalidOperation
+import re
+
+from app.models.resource_models import PodResource, ResourceValidation, NamespaceResources
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+class ValidationService:
+    """Serviço para validação de recursos"""
+    
+    def __init__(self):
+        self.cpu_ratio = settings.cpu_limit_ratio
+        self.memory_ratio = settings.memory_limit_ratio
+        self.min_cpu_request = settings.min_cpu_request
+        self.min_memory_request = settings.min_memory_request
+    
+    def validate_pod_resources(self, pod: PodResource) -> List[ResourceValidation]:
+        """Validar recursos de um pod"""
+        validations = []
+        
+        for container in pod.containers:
+            container_validations = self._validate_container_resources(
+                pod.name, pod.namespace, container
+            )
+            validations.extend(container_validations)
+        
+        return validations
+    
+    def _validate_container_resources(
+        self, 
+        pod_name: str, 
+        namespace: str, 
+        container: Dict[str, Any]
+    ) -> List[ResourceValidation]:
+        """Validar recursos de um container"""
+        validations = []
+        resources = container.get("resources", {})
+        requests = resources.get("requests", {})
+        limits = resources.get("limits", {})
+        
+        # 1. Verificar se requests estão definidos
+        if not requests:
+            validations.append(ResourceValidation(
+                pod_name=pod_name,
+                namespace=namespace,
+                container_name=container["name"],
+                validation_type="missing_requests",
+                severity="error",
+                message="Container sem requests definidos",
+                recommendation="Definir requests de CPU e memória para garantir QoS"
+            ))
+        
+        # 2. Verificar se limits estão definidos
+        if not limits:
+            validations.append(ResourceValidation(
+                pod_name=pod_name,
+                namespace=namespace,
+                container_name=container["name"],
+                validation_type="missing_limits",
+                severity="warning",
+                message="Container sem limits definidos",
+                recommendation="Definir limits para evitar consumo excessivo de recursos"
+            ))
+        
+        # 3. Validar ratio limit:request
+        if requests and limits:
+            cpu_validation = self._validate_cpu_ratio(
+                pod_name, namespace, container["name"], requests, limits
+            )
+            if cpu_validation:
+                validations.append(cpu_validation)
+            
+            memory_validation = self._validate_memory_ratio(
+                pod_name, namespace, container["name"], requests, limits
+            )
+            if memory_validation:
+                validations.append(memory_validation)
+        
+        # 4. Validar valores mínimos
+        if requests:
+            min_validation = self._validate_minimum_values(
+                pod_name, namespace, container["name"], requests
+            )
+            validations.extend(min_validation)
+        
+        return validations
+    
+    def _validate_cpu_ratio(
+        self, 
+        pod_name: str, 
+        namespace: str, 
+        container_name: str,
+        requests: Dict[str, str], 
+        limits: Dict[str, str]
+    ) -> ResourceValidation:
+        """Validar ratio CPU limit:request"""
+        if "cpu" not in requests or "cpu" not in limits:
+            return None
+        
+        try:
+            request_value = self._parse_cpu_value(requests["cpu"])
+            limit_value = self._parse_cpu_value(limits["cpu"])
+            
+            if request_value > 0:
+                ratio = limit_value / request_value
+                
+                if ratio > self.cpu_ratio * 1.5:  # 50% de tolerância
+                    return ResourceValidation(
+                        pod_name=pod_name,
+                        namespace=namespace,
+                        container_name=container_name,
+                        validation_type="invalid_ratio",
+                        severity="warning",
+                        message=f"Ratio CPU limit:request muito alto ({ratio:.2f}:1)",
+                        recommendation=f"Considerar reduzir limits ou aumentar requests (ratio recomendado: {self.cpu_ratio}:1)"
+                    )
+                elif ratio < 1.0:
+                    return ResourceValidation(
+                        pod_name=pod_name,
+                        namespace=namespace,
+                        container_name=container_name,
+                        validation_type="invalid_ratio",
+                        severity="error",
+                        message=f"CPU limit menor que request ({ratio:.2f}:1)",
+                        recommendation="CPU limit deve ser maior ou igual ao request"
+                    )
+        
+        except (ValueError, InvalidOperation) as e:
+            logger.warning(f"Erro ao validar ratio CPU: {e}")
+        
+        return None
+    
+    def _validate_memory_ratio(
+        self, 
+        pod_name: str, 
+        namespace: str, 
+        container_name: str,
+        requests: Dict[str, str], 
+        limits: Dict[str, str]
+    ) -> ResourceValidation:
+        """Validar ratio memória limit:request"""
+        if "memory" not in requests or "memory" not in limits:
+            return None
+        
+        try:
+            request_value = self._parse_memory_value(requests["memory"])
+            limit_value = self._parse_memory_value(limits["memory"])
+            
+            if request_value > 0:
+                ratio = limit_value / request_value
+                
+                if ratio > self.memory_ratio * 1.5:  # 50% de tolerância
+                    return ResourceValidation(
+                        pod_name=pod_name,
+                        namespace=namespace,
+                        container_name=container_name,
+                        validation_type="invalid_ratio",
+                        severity="warning",
+                        message=f"Ratio memória limit:request muito alto ({ratio:.2f}:1)",
+                        recommendation=f"Considerar reduzir limits ou aumentar requests (ratio recomendado: {self.memory_ratio}:1)"
+                    )
+                elif ratio < 1.0:
+                    return ResourceValidation(
+                        pod_name=pod_name,
+                        namespace=namespace,
+                        container_name=container_name,
+                        validation_type="invalid_ratio",
+                        severity="error",
+                        message=f"Memória limit menor que request ({ratio:.2f}:1)",
+                        recommendation="Memória limit deve ser maior ou igual ao request"
+                    )
+        
+        except (ValueError, InvalidOperation) as e:
+            logger.warning(f"Erro ao validar ratio memória: {e}")
+        
+        return None
+    
+    def _validate_minimum_values(
+        self, 
+        pod_name: str, 
+        namespace: str, 
+        container_name: str,
+        requests: Dict[str, str]
+    ) -> List[ResourceValidation]:
+        """Validar valores mínimos de requests"""
+        validations = []
+        
+        # Validar CPU mínima
+        if "cpu" in requests:
+            try:
+                request_value = self._parse_cpu_value(requests["cpu"])
+                min_value = self._parse_cpu_value(self.min_cpu_request)
+                
+                if request_value < min_value:
+                    validations.append(ResourceValidation(
+                        pod_name=pod_name,
+                        namespace=namespace,
+                        container_name=container_name,
+                        validation_type="minimum_value",
+                        severity="warning",
+                        message=f"CPU request muito baixo ({requests['cpu']})",
+                        recommendation=f"Considerar aumentar para pelo menos {self.min_cpu_request}"
+                    ))
+            except (ValueError, InvalidOperation):
+                pass
+        
+        # Validar memória mínima
+        if "memory" in requests:
+            try:
+                request_value = self._parse_memory_value(requests["memory"])
+                min_value = self._parse_memory_value(self.min_memory_request)
+                
+                if request_value < min_value:
+                    validations.append(ResourceValidation(
+                        pod_name=pod_name,
+                        namespace=namespace,
+                        container_name=container_name,
+                        validation_type="minimum_value",
+                        severity="warning",
+                        message=f"Memória request muito baixa ({requests['memory']})",
+                        recommendation=f"Considerar aumentar para pelo menos {self.min_memory_request}"
+                    ))
+            except (ValueError, InvalidOperation):
+                pass
+        
+        return validations
+    
+    def _parse_cpu_value(self, value: str) -> float:
+        """Converter valor de CPU para float (cores)"""
+        if value.endswith('m'):
+            return float(value[:-1]) / 1000
+        elif value.endswith('n'):
+            return float(value[:-1]) / 1000000000
+        else:
+            return float(value)
+    
+    def _parse_memory_value(self, value: str) -> int:
+        """Converter valor de memória para bytes"""
+        value = value.upper()
+        
+        if value.endswith('KI'):
+            return int(float(value[:-2]) * 1024)
+        elif value.endswith('MI'):
+            return int(float(value[:-2]) * 1024 * 1024)
+        elif value.endswith('GI'):
+            return int(float(value[:-2]) * 1024 * 1024 * 1024)
+        elif value.endswith('K'):
+            return int(float(value[:-1]) * 1000)
+        elif value.endswith('M'):
+            return int(float(value[:-1]) * 1000 * 1000)
+        elif value.endswith('G'):
+            return int(float(value[:-1]) * 1000 * 1000 * 1000)
+        else:
+            return int(value)
+    
+    def validate_namespace_overcommit(
+        self, 
+        namespace_resources: NamespaceResources,
+        node_capacity: Dict[str, str]
+    ) -> List[ResourceValidation]:
+        """Validar overcommit em um namespace"""
+        validations = []
+        
+        # Calcular total de requests do namespace
+        total_cpu_requests = self._parse_cpu_value(namespace_resources.total_cpu_requests)
+        total_memory_requests = self._parse_memory_value(namespace_resources.total_memory_requests)
+        
+        # Calcular capacidade total dos nós
+        total_cpu_capacity = self._parse_cpu_value(node_capacity.get("cpu", "0"))
+        total_memory_capacity = self._parse_memory_value(node_capacity.get("memory", "0"))
+        
+        # Verificar overcommit de CPU
+        if total_cpu_capacity > 0:
+            cpu_utilization = (total_cpu_requests / total_cpu_capacity) * 100
+            if cpu_utilization > 100:
+                validations.append(ResourceValidation(
+                    pod_name="namespace",
+                    namespace=namespace_resources.name,
+                    container_name="all",
+                    validation_type="overcommit",
+                    severity="critical",
+                    message=f"Overcommit de CPU no namespace: {cpu_utilization:.1f}%",
+                    recommendation="Reduzir requests de CPU ou adicionar mais nós ao cluster"
+                ))
+        
+        # Verificar overcommit de memória
+        if total_memory_capacity > 0:
+            memory_utilization = (total_memory_requests / total_memory_capacity) * 100
+            if memory_utilization > 100:
+                validations.append(ResourceValidation(
+                    pod_name="namespace",
+                    namespace=namespace_resources.name,
+                    container_name="all",
+                    validation_type="overcommit",
+                    severity="critical",
+                    message=f"Overcommit de memória no namespace: {memory_utilization:.1f}%",
+                    recommendation="Reduzir requests de memória ou adicionar mais nós ao cluster"
+                ))
+        
+        return validations
+    
+    def generate_recommendations(self, validations: List[ResourceValidation]) -> List[str]:
+        """Gerar recomendações baseadas nas validações"""
+        recommendations = []
+        
+        # Agrupar validações por tipo
+        validation_counts = {}
+        for validation in validations:
+            validation_type = validation.validation_type
+            if validation_type not in validation_counts:
+                validation_counts[validation_type] = 0
+            validation_counts[validation_type] += 1
+        
+        # Gerar recomendações baseadas nos problemas encontrados
+        if validation_counts.get("missing_requests", 0) > 0:
+            recommendations.append(
+                f"Implementar LimitRange no namespace para definir requests padrão "
+                f"({validation_counts['missing_requests']} containers sem requests)"
+            )
+        
+        if validation_counts.get("missing_limits", 0) > 0:
+            recommendations.append(
+                f"Definir limits para {validation_counts['missing_limits']} containers "
+                "para evitar consumo excessivo de recursos"
+            )
+        
+        if validation_counts.get("invalid_ratio", 0) > 0:
+            recommendations.append(
+                f"Ajustar ratio limit:request para {validation_counts['invalid_ratio']} containers "
+                f"(recomendado: {self.cpu_ratio}:1)"
+            )
+        
+        if validation_counts.get("overcommit", 0) > 0:
+            recommendations.append(
+                f"Resolver overcommit em {validation_counts['overcommit']} namespaces "
+                "para evitar problemas de performance"
+            )
+        
+        return recommendations

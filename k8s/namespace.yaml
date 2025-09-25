@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: resource-governance
+  labels:
+    name: resource-governance
+    app.kubernetes.io/name: resource-governance
+    app.kubernetes.io/component: governance
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: resource-governance-quota
+  namespace: resource-governance
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 4Gi
+    limits.cpu: "4"
+    limits.memory: 8Gi
+    pods: "10"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: resource-governance-limits
+  namespace: resource-governance
+spec:
+  limits:
+  - default:
+      cpu: "500m"
+      memory: "512Mi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "128Mi"
+    type: Container

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenShift Resource Governance Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #cc0000, #8b0000);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .header p {
+            margin-top: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #cc0000;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #cc0000;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .btn {
+            background: #cc0000;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background: #8b0000;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .validation-item {
+            padding: 1rem;
+            border-left: 4px solid #ccc;
+            margin: 0.5rem 0;
+            background: #f8f9fa;
+        }
+
+        .validation-item.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .validation-item.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        .validation-item.critical {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+            font-weight: bold;
+        }
+
+        .validation-header {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .validation-message {
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .validation-recommendation {
+            font-style: italic;
+            color: #007bff;
+        }
+
+        .export-section {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .export-section select,
+        .export-section input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .severity-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .severity-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .severity-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .severity-critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .export-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>OpenShift Resource Governance Tool</h1>
+        <p>Ferramenta de governança de recursos para clusters OpenShift</p>
+    </div>
+
+    <div class="container">
+        <!-- Estatísticas do Cluster -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalPods">-</div>
+                <div class="stat-label">Total de Pods</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalNamespaces">-</div>
+                <div class="stat-label">Namespaces</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalNodes">-</div>
+                <div class="stat-label">Nós</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="criticalIssues">-</div>
+                <div class="stat-label">Problemas Críticos</div>
+            </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="card">
+            <h2>Controles</h2>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="btn" onclick="loadClusterStatus()">Atualizar Status</button>
+                <button class="btn btn-secondary" onclick="loadValidations()">Ver Validações</button>
+                <button class="btn btn-secondary" onclick="loadVPARecommendations()">Ver VPA</button>
+            </div>
+        </div>
+
+        <!-- Exportar Relatórios -->
+        <div class="card">
+            <h2>Exportar Relatórios</h2>
+            <div class="export-section">
+                <select id="exportFormat">
+                    <option value="json">JSON</option>
+                    <option value="csv">CSV</option>
+                    <option value="pdf">PDF</option>
+                </select>
+                <input type="text" id="namespaces" placeholder="Namespaces (opcional, separados por vírgula)">
+                <label>
+                    <input type="checkbox" id="includeVPA" checked> Incluir VPA
+                </label>
+                <label>
+                    <input type="checkbox" id="includeValidations" checked> Incluir Validações
+                </label>
+                <button class="btn" onclick="exportReport()">Exportar</button>
+            </div>
+        </div>
+
+        <!-- Validações -->
+        <div class="card" id="validationsCard" style="display: none;">
+            <h2>Validações de Recursos</h2>
+            <div id="validationsList"></div>
+        </div>
+
+        <!-- Recomendações VPA -->
+        <div class="card" id="vpaCard" style="display: none;">
+            <h2>Recomendações VPA</h2>
+            <div id="vpaList"></div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading hidden" id="loading">
+            <p>Carregando dados...</p>
+        </div>
+
+        <!-- Error -->
+        <div class="error hidden" id="error"></div>
+
+        <!-- Success -->
+        <div class="success hidden" id="success"></div>
+    </div>
+
+    <script>
+        let currentData = null;
+
+        // Carregar status inicial
+        document.addEventListener('DOMContentLoaded', function() {
+            loadClusterStatus();
+        });
+
+        async function loadClusterStatus() {
+            showLoading();
+            hideMessages();
+            
+            try {
+                const response = await fetch('/api/v1/cluster/status');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                currentData = data;
+                updateStats(data);
+                showSuccess('Status do cluster carregado com sucesso');
+                
+            } catch (error) {
+                showError('Erro ao carregar status do cluster: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadValidations() {
+            if (!currentData) {
+                showError('Carregue o status do cluster primeiro');
+                return;
+            }
+
+            showLoading();
+            
+            try {
+                const response = await fetch('/api/v1/validations');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const validations = await response.json();
+                displayValidations(validations);
+                document.getElementById('validationsCard').style.display = 'block';
+                
+            } catch (error) {
+                showError('Erro ao carregar validações: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadVPARecommendations() {
+            showLoading();
+            
+            try {
+                const response = await fetch('/api/v1/vpa/recommendations');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const recommendations = await response.json();
+                displayVPARecommendations(recommendations);
+                document.getElementById('vpaCard').style.display = 'block';
+                
+            } catch (error) {
+                showError('Erro ao carregar recomendações VPA: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function exportReport() {
+            showLoading();
+            
+            try {
+                const format = document.getElementById('exportFormat').value;
+                const namespaces = document.getElementById('namespaces').value;
+                const includeVPA = document.getElementById('includeVPA').checked;
+                const includeValidations = document.getElementById('includeValidations').checked;
+                
+                const requestBody = {
+                    format: format,
+                    includeVPA: includeVPA,
+                    includeValidations: includeValidations
+                };
+                
+                if (namespaces.trim()) {
+                    requestBody.namespaces = namespaces.split(',').map(n => n.trim());
+                }
+                
+                const response = await fetch('/api/v1/export', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                showSuccess(`Relatório exportado: ${result.filepath}`);
+                
+            } catch (error) {
+                showError('Erro ao exportar relatório: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function updateStats(data) {
+            document.getElementById('totalPods').textContent = data.total_pods || 0;
+            document.getElementById('totalNamespaces').textContent = data.total_namespaces || 0;
+            document.getElementById('totalNodes').textContent = data.total_nodes || 0;
+            document.getElementById('criticalIssues').textContent = data.summary?.critical_issues || 0;
+        }
+
+        function displayValidations(validations) {
+            const container = document.getElementById('validationsList');
+            
+            if (validations.length === 0) {
+                container.innerHTML = '<p>Nenhuma validação encontrada.</p>';
+                return;
+            }
+            
+            let html = '<table class="table"><thead><tr><th>Pod</th><th>Namespace</th><th>Container</th><th>Tipo</th><th>Severidade</th><th>Mensagem</th></tr></thead><tbody>';
+            
+            validations.forEach(validation => {
+                const severityClass = `severity-${validation.severity}`;
+                html += `
+                    <tr>
+                        <td>${validation.pod_name}</td>
+                        <td>${validation.namespace}</td>
+                        <td>${validation.container_name}</td>
+                        <td>${validation.validation_type}</td>
+                        <td><span class="severity-badge ${severityClass}">${validation.severity}</span></td>
+                        <td>${validation.message}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function displayVPARecommendations(recommendations) {
+            const container = document.getElementById('vpaList');
+            
+            if (recommendations.length === 0) {
+                container.innerHTML = '<p>Nenhuma recomendação VPA encontrada.</p>';
+                return;
+            }
+            
+            let html = '<table class="table"><thead><tr><th>Nome</th><th>Namespace</th><th>Target</th><th>Recomendações</th></tr></thead><tbody>';
+            
+            recommendations.forEach(rec => {
+                html += `
+                    <tr>
+                        <td>${rec.name}</td>
+                        <td>${rec.namespace}</td>
+                        <td>${rec.target_ref?.kind}/${rec.target_ref?.name || 'N/A'}</td>
+                        <td>${JSON.stringify(rec.recommendations, null, 2)}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.classList.remove('hidden');
+            setTimeout(() => successDiv.classList.add('hidden'), 3000);
+        }
+
+        function hideMessages() {
+            document.getElementById('error').classList.add('hidden');
+            document.getElementById('success').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

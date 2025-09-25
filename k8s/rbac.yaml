@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: resource-governance-sa
+  namespace: resource-governance
+  labels:
+    app.kubernetes.io/name: resource-governance
+    app.kubernetes.io/component: governance
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: resource-governance-role
+  labels:
+    app.kubernetes.io/name: resource-governance
+    app.kubernetes.io/component: governance
+rules:
+# Permissões para listar e ler pods
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+# Permissões para listar e ler namespaces
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch"]
+# Permissões para listar e ler nós
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list", "watch"]
+# Permissões para VPA (Vertical Pod Autoscaler)
+- apiGroups: ["autoscaling.k8s.io"]
+  resources: ["verticalpodautoscalers"]
+  verbs: ["get", "list", "watch"]
+# Permissões para deployments e replicasets (para aplicar recomendações)
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "patch", "update"]
+# Permissões para pods (para aplicar recomendações)
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch", "patch", "update"]
+# Permissões para eventos (para logging)
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["get", "list", "watch", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: resource-governance-binding
+  labels:
+    app.kubernetes.io/name: resource-governance
+    app.kubernetes.io/component: governance
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: resource-governance-role
+subjects:
+- kind: ServiceAccount
+  name: resource-governance-sa
+  namespace: resource-governance
+---
+# Role para acessar recursos do Prometheus (se necessário)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: resource-governance-prometheus-role
+  namespace: resource-governance
+  labels:
+    app.kubernetes.io/name: resource-governance
+    app.kubernetes.io/component: governance
+rules:
+# Permissões para acessar serviços do Prometheus
+- apiGroups: [""]
+  resources: ["services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: resource-governance-prometheus-binding
+  namespace: resource-governance
+  labels:
+    app.kubernetes.io/name: resource-governance
+    app.kubernetes.io/component: governance
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: resource-governance-prometheus-role
+subjects:
+- kind: ServiceAccount
+  name: resource-governance-sa
+  namespace: resource-governance
