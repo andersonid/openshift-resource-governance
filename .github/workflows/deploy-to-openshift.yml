@@ -1,0 +1,88 @@
+name: Deploy to OpenShift (Manual Trigger)
+
+on:
+  workflow_dispatch:
+    inputs:
+      openshift_server:
+        description: 'OpenShift Server URL'
+        required: true
+        default: 'https://api.your-cluster.com'
+      openshift_token:
+        description: 'OpenShift Token'
+        required: true
+        type: string
+      namespace:
+        description: 'Target Namespace'
+        required: true
+        default: 'resource-governance'
+      image_tag:
+        description: 'Image Tag to Deploy'
+        required: false
+        default: 'latest'
+
+env:
+  IMAGE_NAME: resource-governance
+  REGISTRY: andersonid
+
+jobs:
+  deploy-to-openshift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install OpenShift CLI
+      run: |
+        curl -L https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz | tar -xz -C /usr/local/bin/
+        chmod +x /usr/local/bin/oc
+        
+    - name: Login to OpenShift
+      run: |
+        oc login ${{ inputs.openshift_server }} --token="${{ inputs.openshift_token }}" --insecure-skip-tls-verify=true
+        
+    - name: Deploy to OpenShift
+      run: |
+        # Usar tag fornecida ou latest
+        IMAGE_TAG="${{ inputs.image_tag }}"
+        if [ "$IMAGE_TAG" = "latest" ]; then
+          # Para latest, usar o commit SHA atual
+          IMAGE_TAG="${{ github.sha }}"
+        fi
+        
+        echo "🚀 Deploying image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG"
+        echo "📦 Target namespace: ${{ inputs.namespace }}"
+        
+        # Verificar se o namespace existe
+        if ! oc get namespace ${{ inputs.namespace }} > /dev/null 2>&1; then
+          echo "📋 Creating namespace ${{ inputs.namespace }}..."
+          oc create namespace ${{ inputs.namespace }}
+        fi
+        
+        # Aplicar manifests básicos
+        oc apply -f k8s/rbac.yaml -n ${{ inputs.namespace }}
+        oc apply -f k8s/configmap.yaml -n ${{ inputs.namespace }}
+        
+        # Atualizar deployment com nova imagem
+        oc set image deployment/${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG -n ${{ inputs.namespace }} || true
+        
+        # Aplicar deployment, service e route
+        oc apply -f k8s/deployment.yaml -n ${{ inputs.namespace }}
+        oc apply -f k8s/service.yaml -n ${{ inputs.namespace }}
+        oc apply -f k8s/route.yaml -n ${{ inputs.namespace }}
+        
+        # Aguardar rollout
+        echo "⏳ Waiting for rollout..."
+        oc rollout status deployment/${{ env.IMAGE_NAME }} -n ${{ inputs.namespace }} --timeout=300s
+        
+        # Verificar status
+        echo "✅ Deployment completed!"
+        oc get deployment ${{ env.IMAGE_NAME }} -n ${{ inputs.namespace }}
+        oc get pods -n ${{ inputs.namespace }} -l app.kubernetes.io/name=${{ env.IMAGE_NAME }}
+        
+        # Obter URL da rota
+        ROUTE_URL=$(oc get route ${{ env.IMAGE_NAME }}-route -n ${{ inputs.namespace }} -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
+        if [ -n "$ROUTE_URL" ]; then
+          echo "🌐 Application URL: https://$ROUTE_URL"
+        fi
