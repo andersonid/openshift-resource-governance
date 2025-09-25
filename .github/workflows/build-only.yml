@@ -1,11 +1,17 @@
-name: Build and Push Image
+name: Build and Push Image to Docker Hub
 
 on:
   push:
     branches: [ main, develop ]
+    tags: [ 'v*' ]  # Build tags como v1.0.0
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Custom tag for the image'
+        required: false
+        default: 'latest'
 
 env:
   IMAGE_NAME: resource-governance
@@ -39,25 +45,84 @@ jobs:
       run: |
         echo "${{ secrets.DOCKERHUB_TOKEN }}" | podman login docker.io -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
         
+    - name: Determine image tags
+      id: tags
+      run: |
+        # Determinar tags baseado no trigger
+        if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/* ]]; then
+          # Tag release (ex: v1.0.0)
+          TAG="${{ github.ref_name }}"
+          LATEST_TAG="latest"
+        elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.tag }}" != "" ]]; then
+          # Manual dispatch com tag customizada
+          TAG="${{ inputs.tag }}"
+          LATEST_TAG="latest"
+        elif [[ "${{ github.ref }}" == refs/heads/main ]]; then
+          # Branch main
+          TAG="${{ github.sha }}"
+          LATEST_TAG="latest"
+        elif [[ "${{ github.ref }}" == refs/heads/develop ]]; then
+          # Branch develop
+          TAG="develop-${{ github.sha }}"
+          LATEST_TAG="develop"
+        else
+          # Pull request ou outros
+          TAG="${{ github.sha }}"
+          LATEST_TAG="pr-${{ github.sha }}"
+        fi
+        
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        echo "image_tag=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG" >> $GITHUB_OUTPUT
+        echo "latest_image_tag=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$LATEST_TAG" >> $GITHUB_OUTPUT
+        
+        echo "🏷️ Tags determinadas:"
+        echo "   Tag: $TAG"
+        echo "   Latest: $LATEST_TAG"
+        echo "   Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG"
+        echo "   Latest Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$LATEST_TAG"
+
     - name: Build and push image
       run: |
         # Build da imagem com cache
-        podman build --layers -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        echo "🔨 Building image: ${{ steps.tags.outputs.image_tag }}"
+        podman build --layers -t ${{ steps.tags.outputs.image_tag }} .
         
-        # Tag como latest
-        podman tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        # Tag como latest (se aplicável)
+        if [[ "${{ steps.tags.outputs.latest_tag }}" != "pr-${{ github.sha }}" ]]; then
+          echo "🏷️ Tagging as latest: ${{ steps.tags.outputs.latest_image_tag }}"
+          podman tag ${{ steps.tags.outputs.image_tag }} ${{ steps.tags.outputs.latest_image_tag }}
+        fi
         
         # Push das imagens
-        podman push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        podman push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        echo "📤 Pushing image: ${{ steps.tags.outputs.image_tag }}"
+        podman push ${{ steps.tags.outputs.image_tag }}
+        
+        if [[ "${{ steps.tags.outputs.latest_tag }}" != "pr-${{ github.sha }}" ]]; then
+          echo "📤 Pushing latest: ${{ steps.tags.outputs.latest_image_tag }}"
+          podman push ${{ steps.tags.outputs.latest_image_tag }}
+        fi
         
     - name: Output deployment info
       run: |
         echo "🚀 Image built and pushed successfully!"
-        echo "📦 Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-        echo "📦 Latest: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+        echo "📦 Image: ${{ steps.tags.outputs.image_tag }}"
+        if [[ "${{ steps.tags.outputs.latest_tag }}" != "pr-${{ github.sha }}" ]]; then
+          echo "📦 Latest: ${{ steps.tags.outputs.latest_image_tag }}"
+        fi
         echo ""
         echo "🔧 To deploy to your OpenShift cluster:"
         echo "1. Clone this repository"
-        echo "2. Run: ./deploy-to-cluster.sh ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-        echo "3. Or use: ./deploy-zero-downtime.sh ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+        echo "2. Run: ./deploy-to-cluster.sh ${{ steps.tags.outputs.image_tag }}"
+        echo "3. Or use: ./deploy-zero-downtime.sh ${{ steps.tags.outputs.image_tag }}"
+        echo ""
+        echo "🐳 Docker Hub: https://hub.docker.com/r/${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+        
+    - name: Create GitHub Release (for tags)
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      run: |
+        echo "🏷️ Creating GitHub Release for ${{ github.ref_name }}"
+        gh release create ${{ github.ref_name }} \
+          --title "Release ${{ github.ref_name }}" \
+          --notes "OpenShift Resource Governance ${{ github.ref_name }}" \
+          --target main
