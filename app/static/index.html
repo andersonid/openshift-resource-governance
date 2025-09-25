@@ -627,33 +627,33 @@
             </div>
         </div>
 
-        <!-- Análise Histórica -->
+        <!-- Historical Analysis -->
         <div class="card" id="historicalCard" style="display: none;">
-            <h2>Análise Histórica com Prometheus</h2>
+            <h2>Historical Analysis with Prometheus</h2>
             
-            <!-- Filtros para análise histórica -->
+            <!-- Historical analysis filters -->
             <div class="filters">
                 <div class="filter-group">
-                    <label for="timeRangeFilter">Período:</label>
+                    <label for="timeRangeFilter">Period:</label>
                     <select id="timeRangeFilter">
-                        <option value="1h">1 hora</option>
-                        <option value="6h">6 horas</option>
-                        <option value="24h" selected>24 horas</option>
-                        <option value="7d">7 dias</option>
-                        <option value="30d">30 dias</option>
+                        <option value="1h">1 hour</option>
+                        <option value="6h">6 hours</option>
+                        <option value="24h" selected>24 hours</option>
+                        <option value="7d">7 days</option>
+                        <option value="30d">30 days</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label for="historicalSeverityFilter">Severidade:</label>
+                    <label for="historicalSeverityFilter">Severity:</label>
                     <select id="historicalSeverityFilter">
-                        <option value="">Todas</option>
-                        <option value="error">Erro</option>
-                        <option value="warning">Aviso</option>
+                        <option value="">All</option>
+                        <option value="error">Error</option>
+                        <option value="warning">Warning</option>
                         <option value="info">Info</option>
-                        <option value="critical">Crítico</option>
+                        <option value="critical">Critical</option>
                     </select>
                 </div>
-                <button class="btn" onclick="loadHistoricalValidations()">Aplicar Análise</button>
+                <button class="btn" onclick="loadHistoricalValidations()">Apply Analysis</button>
             </div>
             
             <div id="historicalSummary" class="historical-summary"></div>
@@ -1136,7 +1136,7 @@
             document.getElementById('success').classList.add('hidden');
         }
 
-        // Funções para análise histórica
+        // Historical analysis functions
         async function loadHistoricalValidations() {
             showLoading();
             
@@ -1188,7 +1188,7 @@
             const memoryUtilization = summary.memory_utilization || 0;
             
             container.innerHTML = `
-                <h3>Resumo Histórico do Cluster (${summary.time_range})</h3>
+                <h3>Historical Cluster Summary (${summary.time_range})</h3>
                 <div class="historical-stats">
                     <div class="historical-stat">
                         <h4>CPU Utilization</h4>
