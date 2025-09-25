@@ -38,6 +38,20 @@ Uma ferramenta de governança de recursos para clusters OpenShift que vai além 
 
 ### 2. Deploy no OpenShift
 
+#### Deploy Automático (Recomendado)
+```bash
+# Deploy completo com ImagePullSecret
+./scripts/deploy-complete.sh
+```
+
+Este script irá:
+- ✅ Criar namespace e RBAC
+- ✅ Configurar ImagePullSecret para Docker Hub
+- ✅ Deploy da aplicação
+- ✅ Configurar Service e Route
+- ✅ Verificar se tudo está funcionando
+
+#### Deploy Manual
 ```bash
 # Deploy padrão
 ./scripts/deploy.sh
@@ -47,6 +61,12 @@ Uma ferramenta de governança de recursos para clusters OpenShift que vai além 
 
 # Deploy para registry específico
 ./scripts/deploy.sh latest seu-usuario
+```
+
+#### Undeploy
+```bash
+# Remover completamente a aplicação
+./scripts/undeploy-complete.sh
 ```
 
 ### 3. Acesso à Aplicação

@@ -18,15 +18,32 @@ spec:
         app.kubernetes.io/component: governance
     spec:
       serviceAccountName: resource-governance-sa
-      imagePullSecrets:
-      - name: docker-hub-secret
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000940000
         fsGroup: 1000940000
+      initContainers:
+      - name: download-app
+        image: alpine/git:latest
+        command: ['sh', '-c']
+        args:
+        - |
+          git clone https://github.com/andersonid/openshift-resource-governance.git /tmp/app
+          cp -r /tmp/app/app /shared/
+          cp /tmp/app/requirements.txt /shared/
+        volumeMounts:
+        - name: app-code
+          mountPath: /shared
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
       containers:
       - name: resource-governance
-        image: andersonid/openshift-resource-governance:latest
+        image: python:3.11-slim
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
@@ -39,6 +56,14 @@ spec:
             - ALL
           seccompProfile:
             type: RuntimeDefault
+        command: ['sh', '-c']
+        args:
+        - |
+          pip install --no-cache-dir -r /app/requirements.txt
+          python -m uvicorn app.main:app --host 0.0.0.0 --port 8080
+        volumeMounts:
+        - name: app-code
+          mountPath: /app
         env:
         - name: KUBECONFIG
           value: "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -52,80 +77,45 @@ spec:
             configMapKeyRef:
               name: resource-governance-config
               key: MEMORY_LIMIT_RATIO
-        - name: MIN_CPU_REQUEST
-          valueFrom:
-            configMapKeyRef:
-              name: resource-governance-config
-              key: MIN_CPU_REQUEST
-        - name: MIN_MEMORY_REQUEST
-          valueFrom:
-            configMapKeyRef:
-              name: resource-governance-config
-              key: MIN_MEMORY_REQUEST
-        - name: CRITICAL_NAMESPACES
-          valueFrom:
-            configMapKeyRef:
-              name: resource-governance-config
-              key: CRITICAL_NAMESPACES
         - name: PROMETHEUS_URL
           valueFrom:
             configMapKeyRef:
               name: resource-governance-config
               key: PROMETHEUS_URL
-        - name: REPORT_EXPORT_PATH
+        - name: VPA_NAMESPACES
           valueFrom:
             configMapKeyRef:
               name: resource-governance-config
-              key: REPORT_EXPORT_PATH
-        - name: ENABLE_RBAC
+              key: VPA_NAMESPACES
+        - name: LOG_LEVEL
           valueFrom:
             configMapKeyRef:
               name: resource-governance-config
-              key: ENABLE_RBAC
-        - name: SERVICE_ACCOUNT_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: resource-governance-config
-              key: SERVICE_ACCOUNT_NAME
+              key: LOG_LEVEL
         resources:
           requests:
-            cpu: 100m
-            memory: 128Mi
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            cpu: 500m
-            memory: 512Mi
+            memory: "512Mi"
+            cpu: "500m"
         livenessProbe:
           httpGet:
             path: /health
             port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-        volumeMounts:
-        - name: reports-volume
-          mountPath: /tmp/reports
-        - name: tmp-volume
-          mountPath: /tmp
       volumes:
-      - name: reports-volume
-        emptyDir: {}
-      - name: tmp-volume
+      - name: app-code
         emptyDir: {}
       nodeSelector:
         kubernetes.io/os: linux
       tolerations:
-      - key: node-role.kubernetes.io/master
-        operator: Exists
-        effect: NoSchedule
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
+      - operator: Exists
         effect: NoSchedule

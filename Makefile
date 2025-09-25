@@ -22,8 +22,8 @@ help: ## Mostrar ajuda
 	@echo "Comandos disponíveis:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}'
 
-build: ## Build da imagem Docker
-	@echo "$(YELLOW)📦 Building Docker image...$(NC)"
+build: ## Build da imagem com Podman
+	@echo "$(YELLOW)📦 Building container image with Podman...$(NC)"
 	@./scripts/build.sh $(TAG) $(REGISTRY)
 
 test: ## Testar a aplicação
