@@ -226,6 +226,185 @@
             display: none;
         }
 
+        /* Accordion Styles */
+        .accordion {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            transition: background-color 0.2s;
+        }
+
+        .accordion-header:hover {
+            background: #e9ecef;
+        }
+
+        .accordion-header.active {
+            background: #cc0000;
+            color: white;
+        }
+
+        .accordion-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .accordion-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .accordion-stat {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .accordion-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .accordion-content.active {
+            max-height: 1000px;
+        }
+
+        .pod-list {
+            padding: 1rem 1.5rem;
+        }
+
+        .pod-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .pod-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .pod-name {
+            font-weight: 600;
+            color: #cc0000;
+        }
+
+        .pod-validations-count {
+            background: #6c757d;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .validation-list {
+            margin-top: 0.5rem;
+        }
+
+        .validation-item {
+            padding: 0.75rem;
+            border-left: 4px solid #ccc;
+            margin: 0.25rem 0;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .validation-item.error {
+            border-left-color: #dc3545;
+        }
+
+        .validation-item.warning {
+            border-left-color: #ffc107;
+        }
+
+        .validation-item.critical {
+            border-left-color: #dc3545;
+            font-weight: bold;
+        }
+
+        /* Pagination Styles */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #f8f9fa;
+        }
+
+        .pagination button:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .pagination button.active {
+            background: #cc0000;
+            color: white;
+            border-color: #cc0000;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -238,6 +417,22 @@
             .export-section {
                 flex-direction: column;
                 align-items: stretch;
+            }
+
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .accordion-stats {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+
+            .pod-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
             }
         }
     </style>
@@ -274,7 +469,7 @@
             <h2>Controles</h2>
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                 <button class="btn" onclick="loadClusterStatus()">Atualizar Status</button>
-                <button class="btn btn-secondary" onclick="loadValidations()">Ver Validações</button>
+                <button class="btn btn-secondary" onclick="loadValidationsByNamespace()">Ver Validações</button>
                 <button class="btn btn-secondary" onclick="loadVPARecommendations()">Ver VPA</button>
             </div>
         </div>
@@ -302,7 +497,32 @@
         <!-- Validações -->
         <div class="card" id="validationsCard" style="display: none;">
             <h2>Validações de Recursos</h2>
+            
+            <!-- Filtros -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="severityFilter">Severidade:</label>
+                    <select id="severityFilter">
+                        <option value="">Todas</option>
+                        <option value="error">Erro</option>
+                        <option value="warning">Aviso</option>
+                        <option value="critical">Crítico</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="pageSizeFilter">Por página:</label>
+                    <select id="pageSizeFilter">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="loadValidationsByNamespace()">Aplicar Filtros</button>
+            </div>
+            
             <div id="validationsList"></div>
+            <div id="pagination" class="pagination"></div>
         </div>
 
         <!-- Recomendações VPA -->
@@ -325,6 +545,9 @@
 
     <script>
         let currentData = null;
+        let currentPage = 1;
+        let currentPageSize = 20;
+        let currentSeverity = '';
 
         // Carregar status inicial
         document.addEventListener('DOMContentLoaded', function() {
@@ -367,12 +590,77 @@
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
-                const validations = await response.json();
-                displayValidations(validations);
+                const data = await response.json();
+                displayValidations(data.validations || data);
                 document.getElementById('validationsCard').style.display = 'block';
                 
             } catch (error) {
                 showError('Erro ao carregar validações: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadValidationsByNamespace() {
+            showLoading();
+            
+            try {
+                const severity = document.getElementById('severityFilter').value;
+                const pageSize = parseInt(document.getElementById('pageSizeFilter').value);
+                
+                currentSeverity = severity;
+                currentPageSize = pageSize;
+                currentPage = 1;
+                
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    page_size: currentPageSize
+                });
+                
+                if (severity) {
+                    params.append('severity', severity);
+                }
+                
+                const response = await fetch(`/api/v1/validations/by-namespace?${params}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displayValidationsByNamespace(data);
+                document.getElementById('validationsCard').style.display = 'block';
+                
+            } catch (error) {
+                showError('Erro ao carregar validações por namespace: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadPage(page) {
+            currentPage = page;
+            showLoading();
+            
+            try {
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    page_size: currentPageSize
+                });
+                
+                if (currentSeverity) {
+                    params.append('severity', currentSeverity);
+                }
+                
+                const response = await fetch(`/api/v1/validations/by-namespace?${params}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displayValidationsByNamespace(data);
+                
+            } catch (error) {
+                showError('Erro ao carregar página: ' + error.message);
             } finally {
                 hideLoading();
             }
@@ -472,6 +760,150 @@
             
             html += '</tbody></table>';
             container.innerHTML = html;
+        }
+
+        function displayValidationsByNamespace(data) {
+            const container = document.getElementById('validationsList');
+            const paginationContainer = document.getElementById('pagination');
+            
+            if (!data.namespaces || data.namespaces.length === 0) {
+                container.innerHTML = '<p>Nenhuma validação encontrada.</p>';
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            data.namespaces.forEach((namespace, index) => {
+                const pods = Object.values(namespace.pods);
+                const totalValidations = namespace.total_validations;
+                const errorCount = namespace.severity_breakdown.error || 0;
+                const warningCount = namespace.severity_breakdown.warning || 0;
+                
+                html += `
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(${index})">
+                            <div class="accordion-title">${namespace.namespace}</div>
+                            <div class="accordion-stats">
+                                <div class="accordion-stat">${pods.length} pods</div>
+                                <div class="accordion-stat">${totalValidations} validações</div>
+                                <div class="accordion-stat" style="color: #dc3545;">${errorCount} erros</div>
+                                <div class="accordion-stat" style="color: #ffc107;">${warningCount} avisos</div>
+                            </div>
+                        </div>
+                        <div class="accordion-content" id="accordion-${index}">
+                            <div class="pod-list">
+                `;
+                
+                pods.forEach(pod => {
+                    if (pod.validations && pod.validations.length > 0) {
+                        html += `
+                            <div class="pod-item">
+                                <div class="pod-header">
+                                    <div class="pod-name">${pod.pod_name}</div>
+                                    <div class="pod-validations-count">${pod.validations.length} validações</div>
+                                </div>
+                                <div class="validation-list">
+                        `;
+                        
+                        pod.validations.forEach(validation => {
+                            const severityClass = validation.severity;
+                            html += `
+                                <div class="validation-item ${severityClass}">
+                                    <div class="validation-header">
+                                        <span class="severity-badge severity-${severityClass}">${validation.severity}</span>
+                                        ${validation.validation_type} - ${validation.container_name}
+                                    </div>
+                                    <div class="validation-message">${validation.message}</div>
+                                    <div class="validation-recommendation">${validation.recommendation}</div>
+                                </div>
+                            `;
+                        });
+                        
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Renderizar paginação
+            renderPagination(data.pagination);
+        }
+
+        function renderPagination(pagination) {
+            const container = document.getElementById('pagination');
+            
+            if (!pagination || pagination.total_pages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Botão anterior
+            html += `<button onclick="loadPage(${pagination.page - 1})" ${pagination.page <= 1 ? 'disabled' : ''}>Anterior</button>`;
+            
+            // Páginas
+            const startPage = Math.max(1, pagination.page - 2);
+            const endPage = Math.min(pagination.total_pages, pagination.page + 2);
+            
+            if (startPage > 1) {
+                html += `<button onclick="loadPage(1)">1</button>`;
+                if (startPage > 2) {
+                    html += `<span>...</span>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const activeClass = i === pagination.page ? 'active' : '';
+                html += `<button class="${activeClass}" onclick="loadPage(${i})">${i}</button>`;
+            }
+            
+            if (endPage < pagination.total_pages) {
+                if (endPage < pagination.total_pages - 1) {
+                    html += `<span>...</span>`;
+                }
+                html += `<button onclick="loadPage(${pagination.total_pages})">${pagination.total_pages}</button>`;
+            }
+            
+            // Botão próximo
+            html += `<button onclick="loadPage(${pagination.page + 1})" ${pagination.page >= pagination.total_pages ? 'disabled' : ''}>Próximo</button>`;
+            
+            // Informações da paginação
+            html += `<div class="pagination-info">
+                Página ${pagination.page} de ${pagination.total_pages} 
+                (${pagination.total} namespaces)
+            </div>`;
+            
+            container.innerHTML = html;
+        }
+
+        function toggleAccordion(index) {
+            const accordion = document.querySelectorAll('.accordion')[index];
+            const header = accordion.querySelector('.accordion-header');
+            const content = accordion.querySelector('.accordion-content');
+            
+            const isActive = header.classList.contains('active');
+            
+            // Fechar todos os acordeões
+            document.querySelectorAll('.accordion-header').forEach(h => h.classList.remove('active'));
+            document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('active'));
+            
+            // Abrir o selecionado se não estava ativo
+            if (!isActive) {
+                header.classList.add('active');
+                content.classList.add('active');
+            }
         }
 
         function displayVPARecommendations(recommendations) {

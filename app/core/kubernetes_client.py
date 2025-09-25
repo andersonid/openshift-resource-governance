@@ -162,18 +162,10 @@ class K8sClient:
         recommendations = []
         
         try:
-            # Listar VPA objects em todos os namespaces
-            vpa_list = self.autoscaling_v1.list_vertical_pod_autoscaler_for_all_namespaces()
-            
-            for vpa in vpa_list.items:
-                if vpa.status and vpa.status.recommendation:
-                    recommendation = VPARecommendation(
-                        name=vpa.metadata.name,
-                        namespace=vpa.metadata.namespace,
-                        target_ref=vpa.spec.target_ref,
-                        recommendations=vpa.status.recommendation
-                    )
-                    recommendations.append(recommendation)
+            # VPA não está disponível na API padrão do Kubernetes
+            # TODO: Implementar usando Custom Resource Definition (CRD)
+            logger.warning("VPA não está disponível na API padrão do Kubernetes")
+            return []
             
             logger.info(f"Coletadas {len(recommendations)} recomendações VPA")
             return recommendations

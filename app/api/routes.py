@@ -123,9 +123,11 @@ async def get_pods(
 async def get_validations(
     namespace: Optional[str] = None,
     severity: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 50,
     k8s_client=Depends(get_k8s_client)
 ):
-    """Listar validações de recursos"""
+    """Listar validações de recursos com paginação"""
     try:
         # Coletar pods
         if namespace:
@@ -146,10 +148,91 @@ async def get_validations(
                 v for v in all_validations if v.severity == severity
             ]
         
-        return all_validations
+        # Paginação
+        total = len(all_validations)
+        start = (page - 1) * page_size
+        end = start + page_size
+        paginated_validations = all_validations[start:end]
+        
+        return {
+            "validations": paginated_validations,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total": total,
+                "total_pages": (total + page_size - 1) // page_size
+            }
+        }
         
     except Exception as e:
         logger.error(f"Erro ao obter validações: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/validations/by-namespace")
+async def get_validations_by_namespace(
+    severity: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 20,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Listar validações agrupadas por namespace com paginação"""
+    try:
+        # Coletar todos os pods
+        pods = await k8s_client.get_all_pods()
+        
+        # Validar recursos e agrupar por namespace
+        namespace_validations = {}
+        for pod in pods:
+            pod_validations = validation_service.validate_pod_resources(pod)
+            
+            if pod.namespace not in namespace_validations:
+                namespace_validations[pod.namespace] = {
+                    "namespace": pod.namespace,
+                    "pods": {},
+                    "total_validations": 0,
+                    "severity_breakdown": {"error": 0, "warning": 0}
+                }
+            
+            # Agrupar validações por pod
+            if pod.name not in namespace_validations[pod.namespace]["pods"]:
+                namespace_validations[pod.namespace]["pods"][pod.name] = {
+                    "pod_name": pod.name,
+                    "validations": []
+                }
+            
+            # Filtrar por severidade se especificado
+            if severity:
+                pod_validations = [v for v in pod_validations if v.severity == severity]
+            
+            namespace_validations[pod.namespace]["pods"][pod.name]["validations"] = pod_validations
+            namespace_validations[pod.namespace]["total_validations"] += len(pod_validations)
+            
+            # Contar severidades
+            for validation in pod_validations:
+                namespace_validations[pod.namespace]["severity_breakdown"][validation.severity] += 1
+        
+        # Converter para lista e ordenar por total de validações
+        namespace_list = list(namespace_validations.values())
+        namespace_list.sort(key=lambda x: x["total_validations"], reverse=True)
+        
+        # Paginação
+        total = len(namespace_list)
+        start = (page - 1) * page_size
+        end = start + page_size
+        paginated_namespaces = namespace_list[start:end]
+        
+        return {
+            "namespaces": paginated_namespaces,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total": total,
+                "total_pages": (total + page_size - 1) // page_size
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Erro ao obter validações por namespace: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/vpa/recommendations")
