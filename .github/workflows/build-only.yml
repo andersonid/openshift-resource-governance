@@ -1,0 +1,63 @@
+name: Build and Push Image
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: resource-governance
+  REGISTRY: andersonid
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Run basic syntax check
+      run: |
+        python -m py_compile app/main.py
+        echo "✅ Syntax check passed"
+        
+    - name: Set up Podman
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq podman buildah skopeo
+        
+    - name: Login to Docker Hub
+      run: |
+        echo "${{ secrets.DOCKERHUB_TOKEN }}" | podman login docker.io -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        
+    - name: Build and push image
+      run: |
+        # Build da imagem com cache
+        podman build --layers -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        
+        # Tag como latest
+        podman tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        
+        # Push das imagens
+        podman push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        podman push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        
+    - name: Output deployment info
+      run: |
+        echo "🚀 Image built and pushed successfully!"
+        echo "📦 Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+        echo "📦 Latest: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+        echo ""
+        echo "🔧 To deploy to your OpenShift cluster:"
+        echo "1. Clone this repository"
+        echo "2. Run: ./deploy-to-cluster.sh ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+        echo "3. Or use: ./deploy-zero-downtime.sh ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"

@@ -11,8 +11,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 1
+      maxUnavailable: 0  # Nunca derruba pods até o novo estar pronto
+      maxSurge: 1        # Permite 1 pod extra durante o rollout
   selector:
     matchLabels:
       app.kubernetes.io/name: resource-governance
@@ -50,10 +50,11 @@ spec:
           httpGet:
             path: /api/v1/health
             port: 8080
-          initialDelaySeconds: 5
+          initialDelaySeconds: 15  # Aguarda mais tempo para inicializar
           periodSeconds: 5
           timeoutSeconds: 3
-          failureThreshold: 3
+          failureThreshold: 5       # Mais tentativas antes de falhar
+          successThreshold: 2       # Precisa de 2 sucessos consecutivos
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

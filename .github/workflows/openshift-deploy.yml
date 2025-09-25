@@ -1,11 +1,14 @@
-name: Deploy to OpenShift
+# DISABLED: This workflow is disabled because it requires access to internal OpenShift clusters
+# Use build-only.yml for public clusters and deploy-to-cluster.sh for local deployment
+name: Deploy to OpenShift (DISABLED)
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+  # Disabled - use build-only.yml instead
+  # push:
+  #   branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
+  # workflow_dispatch:
 
 env:
   IMAGE_NAME: resource-governance
