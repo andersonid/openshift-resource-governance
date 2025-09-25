@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -244,11 +244,22 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #ddd;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            position: relative;
         }
 
         .accordion-header:hover {
             background: #e9ecef;
+        }
+
+        .accordion-arrow {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+            color: #6c757d;
+        }
+
+        .accordion-header.active .accordion-arrow {
+            transform: rotate(90deg);
         }
 
         .accordion-header.active {
@@ -536,15 +547,15 @@
 <body>
     <div class="header">
         <h1>OpenShift Resource Governance Tool</h1>
-        <p>Ferramenta de governança de recursos para clusters OpenShift</p>
+        <p>Resource governance tool for OpenShift clusters</p>
     </div>
 
     <div class="container">
-        <!-- Estatísticas do Cluster -->
+        <!-- Cluster Statistics -->
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
                 <div class="stat-number" id="totalPods">-</div>
-                <div class="stat-label">Total de Pods</div>
+                <div class="stat-label">Total Pods</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="totalNamespaces">-</div>
@@ -552,42 +563,42 @@
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="totalNodes">-</div>
-                <div class="stat-label">Nós</div>
+                <div class="stat-label">Nodes</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="criticalIssues">-</div>
-                <div class="stat-label">Problemas Críticos</div>
+                <div class="stat-label">Critical Issues</div>
             </div>
         </div>
 
-        <!-- Controles -->
+        <!-- Controls -->
         <div class="card">
-            <h2>Controles</h2>
+            <h2>Controls</h2>
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                <button class="btn" onclick="loadClusterStatus()">Atualizar Status</button>
-                <button class="btn btn-secondary" onclick="loadValidationsByNamespace()">Ver Validações</button>
-                <button class="btn btn-secondary" onclick="loadHistoricalValidations()">Análise Histórica</button>
-                <button class="btn btn-secondary" onclick="loadVPARecommendations()">Ver VPA</button>
+                <button class="btn" onclick="loadClusterStatus()">Refresh Status</button>
+                <button class="btn btn-secondary" onclick="loadValidationsByNamespace()">View Analysis</button>
+                <button class="btn btn-secondary" onclick="loadHistoricalValidations()">Historical Analysis</button>
+                <button class="btn btn-secondary" onclick="loadVPARecommendations()">View VPA</button>
             </div>
         </div>
 
-        <!-- Exportar Relatórios -->
+        <!-- Export Reports -->
         <div class="card">
-            <h2>Exportar Relatórios</h2>
+            <h2>Export Reports</h2>
             <div class="export-section">
                 <select id="exportFormat">
                     <option value="json">JSON</option>
                     <option value="csv">CSV</option>
                     <option value="pdf">PDF</option>
                 </select>
-                <input type="text" id="namespaces" placeholder="Namespaces (opcional, separados por vírgula)">
+                <input type="text" id="namespaces" placeholder="Namespaces (optional, comma-separated)">
                 <label>
-                    <input type="checkbox" id="includeVPA" checked> Incluir VPA
+                    <input type="checkbox" id="includeVPA" checked> Include VPA
                 </label>
                 <label>
-                    <input type="checkbox" id="includeValidations" checked> Incluir Validações
+                    <input type="checkbox" id="includeValidations" checked> Include Analysis
                 </label>
-                <button class="btn" onclick="exportReport()">Exportar</button>
+                <button class="btn" onclick="exportReport()">Export</button>
             </div>
         </div>
 
@@ -624,23 +635,23 @@
             <div id="historicalValidationsList"></div>
         </div>
 
-        <!-- Validações -->
+        <!-- Resource Analysis -->
         <div class="card" id="validationsCard" style="display: none;">
-            <h2>Validações de Recursos</h2>
+            <h2>Resource Analysis</h2>
             
-            <!-- Filtros -->
+            <!-- Filters -->
             <div class="filters">
                 <div class="filter-group">
-                    <label for="severityFilter">Severidade:</label>
+                    <label for="severityFilter">Severity:</label>
                     <select id="severityFilter">
-                        <option value="">Todas</option>
-                        <option value="error">Erro</option>
-                        <option value="warning">Aviso</option>
-                        <option value="critical">Crítico</option>
+                        <option value="">All</option>
+                        <option value="error">Error</option>
+                        <option value="warning">Warning</option>
+                        <option value="critical">Critical</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label for="pageSizeFilter">Por página:</label>
+                    <label for="pageSizeFilter">Per page:</label>
                     <select id="pageSizeFilter">
                         <option value="10">10</option>
                         <option value="20" selected>20</option>
@@ -651,10 +662,10 @@
                 <div class="filter-group">
                     <label class="checkbox-label">
                         <input type="checkbox" id="includeSystemNamespaces" onchange="loadValidationsByNamespace()">
-                        Incluir namespaces do sistema
+                        Include system namespaces
                     </label>
                 </div>
-                <button class="btn" onclick="loadValidationsByNamespace()">Aplicar Filtros</button>
+                <button class="btn" onclick="loadValidationsByNamespace()">Apply Filters</button>
             </div>
             
             <div id="validationsList"></div>
@@ -669,7 +680,7 @@
 
         <!-- Loading -->
         <div class="loading hidden" id="loading">
-            <p>Carregando dados...</p>
+            <p>Loading data...</p>
         </div>
 
         <!-- Error -->
@@ -703,13 +714,13 @@
                 const data = await response.json();
                 currentData = data;
                 updateStats(data);
-                showSuccess('Status do cluster carregado com sucesso. Carregando validações...');
+                showSuccess('Cluster status loaded successfully. Loading analysis...');
                 
                 // Carregar automaticamente as validações após o scan inicial
                 await loadValidationsByNamespace();
                 
             } catch (error) {
-                showError('Erro ao carregar status do cluster: ' + error.message);
+                showError('Error loading cluster status: ' + error.message);
             } finally {
                 hideLoading();
             }
@@ -734,7 +745,7 @@
                 document.getElementById('validationsCard').style.display = 'block';
                 
             } catch (error) {
-                showError('Erro ao carregar validações: ' + error.message);
+                showError('Error loading analysis: ' + error.message);
             } finally {
                 hideLoading();
             }
@@ -772,7 +783,7 @@
                 document.getElementById('validationsCard').style.display = 'block';
                 
             } catch (error) {
-                showError('Erro ao carregar validações por namespace: ' + error.message);
+                showError('Error loading analysis by namespace: ' + error.message);
             } finally {
                 hideLoading();
             }
@@ -801,7 +812,7 @@
                 displayValidationsByNamespace(data);
                 
             } catch (error) {
-                showError('Erro ao carregar página: ' + error.message);
+                showError('Error loading page: ' + error.message);
             } finally {
                 hideLoading();
             }
@@ -821,7 +832,7 @@
                 document.getElementById('vpaCard').style.display = 'block';
                 
             } catch (error) {
-                showError('Erro ao carregar recomendações VPA: ' + error.message);
+                showError('Error loading VPA recommendations: ' + error.message);
             } finally {
                 hideLoading();
             }
@@ -859,10 +870,10 @@
                 }
                 
                 const result = await response.json();
-                showSuccess(`Relatório exportado: ${result.filepath}`);
+                showSuccess(`Report exported: ${result.filepath}`);
                 
             } catch (error) {
-                showError('Erro ao exportar relatório: ' + error.message);
+                showError('Error exporting report: ' + error.message);
             } finally {
                 hideLoading();
             }
@@ -927,10 +938,11 @@
                             <div class="accordion-title">${namespace.namespace}</div>
                             <div class="accordion-stats">
                                 <div class="accordion-stat">${pods.length} pods</div>
-                                <div class="accordion-stat">${totalValidations} validações</div>
-                                <div class="accordion-stat" style="color: #dc3545;">${errorCount} erros</div>
-                                <div class="accordion-stat" style="color: #ffc107;">${warningCount} avisos</div>
+                                <div class="accordion-stat">${totalValidations} analysis</div>
+                                <div class="accordion-stat" style="color: #dc3545;">${errorCount} errors</div>
+                                <div class="accordion-stat" style="color: #ffc107;">${warningCount} warnings</div>
                             </div>
+                            <div class="accordion-arrow">▶</div>
                         </div>
                         <div class="accordion-content" id="accordion-${index}">
                             <div class="pod-list">
@@ -1133,7 +1145,7 @@
                 document.getElementById('historicalCard').style.display = 'block';
                 
             } catch (error) {
-                showError('Erro ao carregar análise histórica: ' + error.message);
+                showError('Error loading historical analysis: ' + error.message);
             } finally {
                 hideLoading();
             }
