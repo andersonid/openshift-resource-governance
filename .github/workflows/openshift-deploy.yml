@@ -61,7 +61,7 @@ jobs:
       if: github.ref == 'refs/heads/main'
       run: |
         # Login to OpenShift
-        echo "${{ secrets.OPENSHIFT_TOKEN }}" | oc login ${{ secrets.OPENSHIFT_SERVER }} --token-stdin
+        oc login ${{ secrets.OPENSHIFT_SERVER }} --token="${{ secrets.OPENSHIFT_TOKEN }}"
         
         # Apply manifests (namespace, rbac, configmap)
         oc apply -f k8s/namespace.yaml
