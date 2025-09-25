@@ -357,3 +357,4 @@ Para suporte e dúvidas:
 - Abra uma issue no GitHub
 - Consulte a documentação do OpenShift
 - Verifique os logs da aplicação
+# Teste das secrets do GitHub Actions
