@@ -3,7 +3,7 @@
 # Configurações
 IMAGE_NAME = resource-governance
 TAG = latest
-REGISTRY = quay.io/openshift
+REGISTRY = andersonid
 FULL_IMAGE_NAME = $(REGISTRY)/$(IMAGE_NAME):$(TAG)
 NAMESPACE = resource-governance
 

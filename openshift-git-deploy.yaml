@@ -17,7 +17,7 @@ parameters:
 - name: REGISTRY
   displayName: "Container Registry"
   description: "Registry da imagem Docker"
-  value: "quay.io/andersonid"
+  value: "andersonid"
 - name: NAMESPACE
   displayName: "Namespace"
   description: "Namespace para deploy"

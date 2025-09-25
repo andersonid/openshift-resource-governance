@@ -33,7 +33,7 @@ Uma ferramenta de governança de recursos para clusters OpenShift que vai além 
 ./scripts/build.sh v1.0.0
 
 # Build para registry específico
-./scripts/build.sh latest quay.io/seu-usuario
+./scripts/build.sh latest seu-usuario
 ```
 
 ### 2. Deploy no OpenShift
@@ -46,7 +46,7 @@ Uma ferramenta de governança de recursos para clusters OpenShift que vai além 
 ./scripts/deploy.sh v1.0.0
 
 # Deploy para registry específico
-./scripts/deploy.sh latest quay.io/seu-usuario
+./scripts/deploy.sh latest seu-usuario
 ```
 
 ### 3. Acesso à Aplicação

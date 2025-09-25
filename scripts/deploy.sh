@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 NAMESPACE="resource-governance"
 IMAGE_NAME="resource-governance"
 TAG="${1:-latest}"
-REGISTRY="${2:-quay.io/openshift}"
+REGISTRY="${2:-andersonid}"
 FULL_IMAGE_NAME="${REGISTRY}/${IMAGE_NAME}:${TAG}"
 
 echo -e "${BLUE}🚀 Deploying OpenShift Resource Governance Tool${NC}"

@@ -7,7 +7,7 @@ Este documento explica como fazer deploy da OpenShift Resource Governance Tool n
 - Cluster OpenShift 4.x
 - OpenShift CLI (oc) instalado e configurado
 - Acesso ao cluster com permissões para criar recursos
-- Container Registry (Quay.io, Docker Hub, etc.)
+- Container Registry (Docker Hub, Quay.io, etc.)
 
 ## 🎯 Opções de Deploy
 
@@ -29,7 +29,7 @@ cd openshift-resource-governance
 oc process -f openshift-git-deploy.yaml \
   -p GITHUB_REPO="https://github.com/andersonid/openshift-resource-governance.git" \
   -p IMAGE_TAG="latest" \
-  -p REGISTRY="quay.io/seu-usuario" \
+  -p REGISTRY="andersonid" \
   -p NAMESPACE="resource-governance" | oc apply -f -
 ```
 
@@ -46,7 +46,7 @@ oc apply -f k8s/rbac.yaml
 oc apply -f k8s/configmap.yaml
 
 # 4. Atualizar imagem no DaemonSet
-oc set image daemonset/resource-governance resource-governance=quay.io/seu-usuario/resource-governance:latest -n resource-governance
+oc set image daemonset/resource-governance resource-governance=andersonid/resource-governance:latest -n resource-governance
 
 # 5. Aplicar recursos
 oc apply -f k8s/daemonset.yaml
@@ -146,7 +146,7 @@ oc describe clusterrole resource-governance-role
 
 ```bash
 # Atualizar para nova tag
-oc set image daemonset/resource-governance resource-governance=quay.io/seu-usuario/resource-governance:v1.1.0 -n resource-governance
+oc set image daemonset/resource-governance resource-governance=andersonid/resource-governance:v1.1.0 -n resource-governance
 
 # Aguardar rollout
 oc rollout status daemonset/resource-governance -n resource-governance

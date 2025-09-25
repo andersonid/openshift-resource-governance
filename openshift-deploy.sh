@@ -13,7 +13,7 @@ NC='\033[0m' # No Color
 # Configurações
 REPO_URL="https://github.com/andersonid/openshift-resource-governance.git"
 IMAGE_NAME="resource-governance"
-REGISTRY="quay.io/andersonid"
+REGISTRY="andersonid"
 TAG="${1:-latest}"
 NAMESPACE="resource-governance"
 
