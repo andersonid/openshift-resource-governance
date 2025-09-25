@@ -54,15 +54,15 @@ class HistoricalAnalysisService:
             validations.extend(memory_analysis)
             
         except Exception as e:
-            logger.error(f"Erro na análise histórica do pod {pod.name}: {e}")
+            logger.error(f"Error in historical analysis for pod {pod.name}: {e}")
             validations.append(ResourceValidation(
                 pod_name=pod.name,
                 namespace=pod.namespace,
                 container_name="all",
                 validation_type="historical_analysis_error",
                 severity="warning",
-                message=f"Erro na análise histórica: {str(e)}",
-                recommendation="Verificar conectividade com Prometheus"
+                message=f"Error in historical analysis: {str(e)}",
+                recommendation="Check Prometheus connectivity"
             ))
         
         return validations
@@ -123,7 +123,7 @@ class HistoricalAnalysisService:
                     validations.extend(analysis)
                 
             except Exception as e:
-                logger.warning(f"Erro ao analisar CPU do container {container_name}: {e}")
+                logger.warning(f"Error analyzing CPU for container {container_name}: {e}")
         
         return validations
     
@@ -183,7 +183,7 @@ class HistoricalAnalysisService:
                     validations.extend(analysis)
                 
             except Exception as e:
-                logger.warning(f"Erro ao analisar memória do container {container_name}: {e}")
+                logger.warning(f"Error analyzing memory for container {container_name}: {e}")
         
         return validations
     
@@ -218,9 +218,9 @@ class HistoricalAnalysisService:
         p95_usage = sorted(usage_values)[int(len(usage_values) * 0.95)]
         p99_usage = sorted(usage_values)[int(len(usage_values) * 0.99)]
         
-        # Análise de adequação dos requests
+        # Request adequacy analysis
         if current_requests > 0:
-            # Request muito alto (uso médio < 50% do request)
+            # Request too high (average usage < 50% of request)
             if avg_usage < current_requests * 0.5:
                 validations.append(ResourceValidation(
                     pod_name=pod_name,
@@ -228,11 +228,11 @@ class HistoricalAnalysisService:
                     container_name=container_name,
                     validation_type="historical_analysis",
                     severity="warning",
-                    message=f"CPU request muito alto: uso médio {avg_usage:.3f} cores vs request {current_requests:.3f} cores",
-                    recommendation=f"Considerar reduzir CPU request para ~{avg_usage * 1.2:.3f} cores (baseado em {time_range} de uso)"
+                    message=f"CPU request too high: average usage {avg_usage:.3f} cores vs request {current_requests:.3f} cores",
+                    recommendation=f"Consider reducing CPU request to ~{avg_usage * 1.2:.3f} cores (based on {time_range} of usage)"
                 ))
             
-            # Request muito baixo (uso P95 > 80% do request)
+            # Request too low (P95 usage > 80% of request)
             elif p95_usage > current_requests * 0.8:
                 validations.append(ResourceValidation(
                     pod_name=pod_name,
@@ -240,13 +240,13 @@ class HistoricalAnalysisService:
                     container_name=container_name,
                     validation_type="historical_analysis",
                     severity="warning",
-                    message=f"CPU request pode ser insuficiente: P95 {p95_usage:.3f} cores vs request {current_requests:.3f} cores",
-                    recommendation=f"Considerar aumentar CPU request para ~{p95_usage * 1.2:.3f} cores (baseado em {time_range} de uso)"
+                    message=f"CPU request may be insufficient: P95 {p95_usage:.3f} cores vs request {current_requests:.3f} cores",
+                    recommendation=f"Consider increasing CPU request to ~{p95_usage * 1.2:.3f} cores (based on {time_range} of usage)"
                 ))
         
-        # Análise de adequação dos limits
+        # Limit adequacy analysis
         if current_limits > 0:
-            # Limit muito alto (uso P99 < 50% do limit)
+            # Limit too high (P99 usage < 50% of limit)
             if p99_usage < current_limits * 0.5:
                 validations.append(ResourceValidation(
                     pod_name=pod_name,
@@ -254,11 +254,11 @@ class HistoricalAnalysisService:
                     container_name=container_name,
                     validation_type="historical_analysis",
                     severity="info",
-                    message=f"CPU limit muito alto: P99 {p99_usage:.3f} cores vs limit {current_limits:.3f} cores",
-                    recommendation=f"Considerar reduzir CPU limit para ~{p99_usage * 1.5:.3f} cores (baseado em {time_range} de uso)"
+                    message=f"CPU limit too high: P99 {p99_usage:.3f} cores vs limit {current_limits:.3f} cores",
+                    recommendation=f"Consider reducing CPU limit to ~{p99_usage * 1.5:.3f} cores (based on {time_range} of usage)"
                 ))
             
-            # Limit muito baixo (uso máximo > 90% do limit)
+            # Limit too low (maximum usage > 90% of limit)
             elif max_usage > current_limits * 0.9:
                 validations.append(ResourceValidation(
                     pod_name=pod_name,
@@ -266,8 +266,8 @@ class HistoricalAnalysisService:
                     container_name=container_name,
                     validation_type="historical_analysis",
                     severity="warning",
-                    message=f"CPU limit pode ser insuficiente: uso máximo {max_usage:.3f} cores vs limit {current_limits:.3f} cores",
-                    recommendation=f"Considerar aumentar CPU limit para ~{max_usage * 1.2:.3f} cores (baseado em {time_range} de uso)"
+                    message=f"CPU limit may be insufficient: maximum usage {max_usage:.3f} cores vs limit {current_limits:.3f} cores",
+                    recommendation=f"Consider increasing CPU limit to ~{max_usage * 1.2:.3f} cores (based on {time_range} of usage)"
                 ))
         
         return validations
@@ -307,9 +307,9 @@ class HistoricalAnalysisService:
         def bytes_to_mib(bytes_value):
             return bytes_value / (1024 * 1024)
         
-        # Análise de adequação dos requests
+        # Request adequacy analysis
         if current_requests > 0:
-            # Request muito alto (uso médio < 50% do request)
+            # Request too high (average usage < 50% of request)
             if avg_usage < current_requests * 0.5:
                 validations.append(ResourceValidation(
                     pod_name=pod_name,
@@ -317,11 +317,11 @@ class HistoricalAnalysisService:
                     container_name=container_name,
                     validation_type="historical_analysis",
                     severity="warning",
-                    message=f"Memória request muito alto: uso médio {bytes_to_mib(avg_usage):.1f}Mi vs request {bytes_to_mib(current_requests):.1f}Mi",
-                    recommendation=f"Considerar reduzir memória request para ~{bytes_to_mib(avg_usage * 1.2):.1f}Mi (baseado em {time_range} de uso)"
+                    message=f"Memory request too high: average usage {bytes_to_mib(avg_usage):.1f}Mi vs request {bytes_to_mib(current_requests):.1f}Mi",
+                    recommendation=f"Consider reducing memory request to ~{bytes_to_mib(avg_usage * 1.2):.1f}Mi (based on {time_range} of usage)"
                 ))
             
-            # Request muito baixo (uso P95 > 80% do request)
+            # Request too low (P95 usage > 80% of request)
             elif p95_usage > current_requests * 0.8:
                 validations.append(ResourceValidation(
                     pod_name=pod_name,
@@ -329,13 +329,13 @@ class HistoricalAnalysisService:
                     container_name=container_name,
                     validation_type="historical_analysis",
                     severity="warning",
-                    message=f"Memória request pode ser insuficiente: P95 {bytes_to_mib(p95_usage):.1f}Mi vs request {bytes_to_mib(current_requests):.1f}Mi",
-                    recommendation=f"Considerar aumentar memória request para ~{bytes_to_mib(p95_usage * 1.2):.1f}Mi (baseado em {time_range} de uso)"
+                    message=f"Memory request may be insufficient: P95 {bytes_to_mib(p95_usage):.1f}Mi vs request {bytes_to_mib(current_requests):.1f}Mi",
+                    recommendation=f"Consider increasing memory request to ~{bytes_to_mib(p95_usage * 1.2):.1f}Mi (based on {time_range} of usage)"
                 ))
         
-        # Análise de adequação dos limits
+        # Limit adequacy analysis
         if current_limits > 0:
-            # Limit muito alto (uso P99 < 50% do limit)
+            # Limit too high (P99 usage < 50% of limit)
             if p99_usage < current_limits * 0.5:
                 validations.append(ResourceValidation(
                     pod_name=pod_name,
@@ -343,11 +343,11 @@ class HistoricalAnalysisService:
                     container_name=container_name,
                     validation_type="historical_analysis",
                     severity="info",
-                    message=f"Memória limit muito alto: P99 {bytes_to_mib(p99_usage):.1f}Mi vs limit {bytes_to_mib(current_limits):.1f}Mi",
-                    recommendation=f"Considerar reduzir memória limit para ~{bytes_to_mib(p99_usage * 1.5):.1f}Mi (baseado em {time_range} de uso)"
+                    message=f"Memory limit too high: P99 {bytes_to_mib(p99_usage):.1f}Mi vs limit {bytes_to_mib(current_limits):.1f}Mi",
+                    recommendation=f"Consider reducing memory limit to ~{bytes_to_mib(p99_usage * 1.5):.1f}Mi (based on {time_range} of usage)"
                 ))
             
-            # Limit muito baixo (uso máximo > 90% do limit)
+            # Limit too low (maximum usage > 90% of limit)
             elif max_usage > current_limits * 0.9:
                 validations.append(ResourceValidation(
                     pod_name=pod_name,
@@ -355,8 +355,8 @@ class HistoricalAnalysisService:
                     container_name=container_name,
                     validation_type="historical_analysis",
                     severity="warning",
-                    message=f"Memória limit pode ser insuficiente: uso máximo {bytes_to_mib(max_usage):.1f}Mi vs limit {bytes_to_mib(current_limits):.1f}Mi",
-                    recommendation=f"Considerar aumentar memória limit para ~{bytes_to_mib(max_usage * 1.2):.1f}Mi (baseado em {time_range} de uso)"
+                    message=f"Memory limit may be insufficient: maximum usage {bytes_to_mib(max_usage):.1f}Mi vs limit {bytes_to_mib(current_limits):.1f}Mi",
+                    recommendation=f"Consider increasing memory limit to ~{bytes_to_mib(max_usage * 1.2):.1f}Mi (based on {time_range} of usage)"
                 ))
         
         return validations
@@ -385,7 +385,7 @@ class HistoricalAnalysisService:
                         logger.warning(f"Prometheus query failed: {response.status}")
                         return []
         except Exception as e:
-            logger.error(f"Erro ao consultar Prometheus: {e}")
+            logger.error(f"Error querying Prometheus: {e}")
             return []
     
     async def get_cluster_historical_summary(self, time_range: str = '24h') -> Dict[str, Any]:
@@ -441,5 +441,5 @@ class HistoricalAnalysisService:
             }
             
         except Exception as e:
-            logger.error(f"Erro ao obter resumo histórico: {e}")
+            logger.error(f"Error getting historical summary: {e}")
             return {}

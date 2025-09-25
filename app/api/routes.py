@@ -55,7 +55,7 @@ async def get_cluster_status(
         # Obter recomendações VPA
         vpa_recommendations = await k8s_client.get_vpa_recommendations()
         
-        # Gerar relatório
+        # Generate report
         report = report_service.generate_cluster_report(
             pods=pods,
             validations=all_validations,
@@ -67,7 +67,7 @@ async def get_cluster_status(
         return report
         
     except Exception as e:
-        logger.error(f"Erro ao obter status do cluster: {e}")
+        logger.error(f"Error getting cluster status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/namespace/{namespace}/status")
@@ -90,7 +90,7 @@ async def get_namespace_status(
         # Obter uso de recursos do Prometheus
         resource_usage = await prometheus_client.get_namespace_resource_usage(namespace)
         
-        # Gerar relatório do namespace
+        # Generate report do namespace
         report = report_service.generate_namespace_report(
             namespace=namespace,
             pods=namespace_resources.pods,
@@ -101,7 +101,7 @@ async def get_namespace_status(
         return report
         
     except Exception as e:
-        logger.error(f"Erro ao obter status do namespace {namespace}: {e}")
+        logger.error(f"Error getting namespace {namespace} status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/pods")
@@ -118,7 +118,7 @@ async def get_pods(
             return await k8s_client.get_all_pods()
             
     except Exception as e:
-        logger.error(f"Erro ao listar pods: {e}")
+        logger.error(f"Error listing pods: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/validations")
@@ -167,7 +167,7 @@ async def get_validations(
         }
         
     except Exception as e:
-        logger.error(f"Erro ao obter validações: {e}")
+        logger.error(f"Error getting validations: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/validations/by-namespace")
@@ -235,7 +235,7 @@ async def get_validations_by_namespace(
         }
         
     except Exception as e:
-        logger.error(f"Erro ao obter validações por namespace: {e}")
+        logger.error(f"Error getting validations by namespace: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/vpa/recommendations")
@@ -255,7 +255,7 @@ async def get_vpa_recommendations(
         return recommendations
         
     except Exception as e:
-        logger.error(f"Erro ao obter recomendações VPA: {e}")
+        logger.error(f"Error getting VPA recommendations: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/export")
@@ -264,9 +264,9 @@ async def export_report(
     k8s_client=Depends(get_k8s_client),
     prometheus_client=Depends(get_prometheus_client)
 ):
-    """Exportar relatório em diferentes formatos"""
+    """Export report in different formats"""
     try:
-        # Gerar relatório
+        # Generate report
         pods = await k8s_client.get_all_pods()
         nodes_info = await k8s_client.get_nodes_info()
         
@@ -290,7 +290,7 @@ async def export_report(
         if export_request.include_validations:
             overcommit_info = await prometheus_client.get_cluster_overcommit()
         
-        # Gerar relatório
+        # Generate report
         report = report_service.generate_cluster_report(
             pods=pods,
             validations=all_validations,
@@ -303,29 +303,29 @@ async def export_report(
         filepath = await report_service.export_report(report, export_request)
         
         return {
-            "message": "Relatório exportado com sucesso",
+            "message": "Report exported successfully",
             "filepath": filepath,
             "format": export_request.format
         }
         
     except Exception as e:
-        logger.error(f"Erro ao exportar relatório: {e}")
+        logger.error(f"Error exporting report: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/export/files")
 async def list_exported_files():
-    """Listar arquivos exportados"""
+    """List exported files"""
     try:
         files = report_service.get_exported_reports()
         return files
         
     except Exception as e:
-        logger.error(f"Erro ao listar arquivos exportados: {e}")
+        logger.error(f"Error listing exported files: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/export/files/{filename}")
 async def download_exported_file(filename: str):
-    """Download de arquivo exportado"""
+    """Download exported file"""
     try:
         files = report_service.get_exported_reports()
         file_info = next((f for f in files if f["filename"] == filename), None)
@@ -340,7 +340,7 @@ async def download_exported_file(filename: str):
         )
         
     except Exception as e:
-        logger.error(f"Erro ao baixar arquivo {filename}: {e}")
+        logger.error(f"Error downloading file {filename}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/apply/recommendation")
@@ -362,10 +362,10 @@ async def apply_recommendation(
             }
         else:
             # Implementar aplicação real da recomendação
-            raise HTTPException(status_code=501, detail="Aplicação de recomendações não implementada ainda")
+            raise HTTPException(status_code=501, detail="Recommendation application not implemented yet")
             
     except Exception as e:
-        logger.error(f"Erro ao aplicar recomendação: {e}")
+        logger.error(f"Error applying recommendation: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/validations/historical")
@@ -401,7 +401,7 @@ async def get_historical_validations(
         }
         
     except Exception as e:
-        logger.error(f"Erro ao obter validações históricas: {e}")
+        logger.error(f"Error getting historical validations: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/cluster/historical-summary")
@@ -420,12 +420,12 @@ async def get_cluster_historical_summary(
         }
         
     except Exception as e:
-        logger.error(f"Erro ao obter resumo histórico: {e}")
+        logger.error(f"Error getting historical summary: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/health")
 async def health_check():
-    """Health check da API"""
+    """API health check"""
     return {
         "status": "healthy",
         "service": "resource-governance-api",

@@ -28,19 +28,19 @@ class PrometheusClient:
             async with self.session.get(f"{self.base_url}/api/v1/query?query=up") as response:
                 if response.status == 200:
                     self.initialized = True
-                    logger.info("Cliente Prometheus inicializado com sucesso")
+                    logger.info("Prometheus client initialized successfully")
                 else:
                     logger.warning(f"Prometheus retornou status {response.status}")
                     
         except Exception as e:
-            logger.error(f"Erro ao inicializar cliente Prometheus: {e}")
+            logger.error(f"Error initializing Prometheus client: {e}")
             # Prometheus pode não estar disponível, continuar sem ele
             self.initialized = False
     
     async def query(self, query: str, time: Optional[datetime] = None) -> Dict[str, Any]:
         """Executar query no Prometheus"""
         if not self.initialized or not self.session:
-            return {"status": "error", "message": "Prometheus não disponível"}
+            return {"status": "error", "message": "Prometheus not available"}
         
         try:
             params = {"query": query}
@@ -55,11 +55,11 @@ class PrometheusClient:
                     data = await response.json()
                     return data
                 else:
-                    logger.error(f"Erro na query Prometheus: {response.status}")
+                    logger.error(f"Error in Prometheus query: {response.status}")
                     return {"status": "error", "message": f"HTTP {response.status}"}
                     
         except Exception as e:
-            logger.error(f"Erro ao executar query Prometheus: {e}")
+            logger.error(f"Error executing Prometheus query: {e}")
             return {"status": "error", "message": str(e)}
     
     async def get_pod_cpu_usage(self, namespace: str, pod_name: str) -> Dict[str, Any]:

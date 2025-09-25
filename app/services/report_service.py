@@ -1,5 +1,5 @@
 """
-Serviço de geração de relatórios
+Report generation service
 """
 import logging
 import json
@@ -18,7 +18,7 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 class ReportService:
-    """Serviço para geração de relatórios"""
+    """Service for report generation"""
     
     def __init__(self):
         self.export_path = settings.report_export_path
@@ -32,12 +32,12 @@ class ReportService:
         overcommit_info: Dict[str, Any],
         nodes_info: List[Dict[str, Any]]
     ) -> ClusterReport:
-        """Gerar relatório do cluster"""
+        """Generate cluster report"""
         
-        # Contar namespaces únicos
+        # Count unique namespaces
         namespaces = set(pod.namespace for pod in pods)
         
-        # Gerar resumo
+        # Generate summary
         summary = self._generate_summary(validations, vpa_recommendations, overcommit_info)
         
         report = ClusterReport(
@@ -60,14 +60,14 @@ class ReportService:
         validations: List[ResourceValidation],
         resource_usage: Dict[str, Any]
     ) -> NamespaceReport:
-        """Gerar relatório de um namespace"""
+        """Generate namespace report"""
         
-        # Filtrar validações do namespace
+        # Filter validations for the namespace
         namespace_validations = [
             v for v in validations if v.namespace == namespace
         ]
         
-        # Gerar recomendações
+        # Generate recommendations
         recommendations = self._generate_namespace_recommendations(namespace_validations)
         
         report = NamespaceReport(
@@ -87,9 +87,9 @@ class ReportService:
         vpa_recommendations: List[VPARecommendation],
         overcommit_info: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Gerar resumo do relatório"""
+        """Generate report summary"""
         
-        # Contar validações por severidade
+        # Count validations by severity
         severity_counts = {}
         for validation in validations:
             severity = validation.severity
@@ -97,7 +97,7 @@ class ReportService:
                 severity_counts[severity] = 0
             severity_counts[severity] += 1
         
-        # Contar validações por tipo
+        # Count validations by type
         type_counts = {}
         for validation in validations:
             validation_type = validation.validation_type
@@ -120,10 +120,10 @@ class ReportService:
         self, 
         validations: List[ResourceValidation]
     ) -> List[str]:
-        """Gerar recomendações para um namespace"""
+        """Generate recommendations for a namespace"""
         recommendations = []
         
-        # Agrupar por tipo de problema
+        # Group by problem type
         problems = {}
         for validation in validations:
             problem_type = validation.validation_type
@@ -131,18 +131,18 @@ class ReportService:
                 problems[problem_type] = []
             problems[problem_type].append(validation)
         
-        # Gerar recomendações específicas
+        # Generate recommendations específicas
         if "missing_requests" in problems:
             count = len(problems["missing_requests"])
             recommendations.append(
-                f"Criar LimitRange para definir requests padrão "
-                f"({count} containers sem requests)"
+                f"Create LimitRange to define default requests "
+                f"({count} containers without requests)"
             )
         
         if "missing_limits" in problems:
             count = len(problems["missing_limits"])
             recommendations.append(
-                f"Definir limits para {count} containers para evitar consumo excessivo"
+                f"Define limits for {count} containers to avoid excessive consumption"
             )
         
         if "invalid_ratio" in problems:
@@ -163,7 +163,7 @@ class ReportService:
         report: ClusterReport, 
         export_request: ExportRequest
     ) -> str:
-        """Exportar relatório em diferentes formatos"""
+        """Export report in different formats"""
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
@@ -174,10 +174,10 @@ class ReportService:
         elif export_request.format == "pdf":
             return await self._export_pdf(report, timestamp)
         else:
-            raise ValueError(f"Formato não suportado: {export_request.format}")
+            raise ValueError(f"Unsupported format: {export_request.format}")
     
     async def _export_json(self, report: ClusterReport, timestamp: str) -> str:
-        """Exportar relatório em JSON"""
+        """Export report in JSON"""
         filename = f"cluster_report_{timestamp}.json"
         filepath = os.path.join(self.export_path, filename)
         
@@ -187,11 +187,11 @@ class ReportService:
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(report_dict, f, indent=2, ensure_ascii=False)
         
-        logger.info(f"Relatório JSON exportado: {filepath}")
+        logger.info(f"JSON report exported: {filepath}")
         return filepath
     
     async def _export_csv(self, report: ClusterReport, timestamp: str) -> str:
-        """Exportar relatório em CSV"""
+        """Export report in CSV"""
         filename = f"cluster_report_{timestamp}.csv"
         filepath = os.path.join(self.export_path, filename)
         
@@ -204,7 +204,7 @@ class ReportService:
                 "Validation Type", "Severity", "Message", "Recommendation"
             ])
             
-            # Dados das validações
+            # Validation data
             for validation in report.validations:
                 writer.writerow([
                     validation.pod_name,
@@ -216,11 +216,11 @@ class ReportService:
                     validation.recommendation or ""
                 ])
         
-        logger.info(f"Relatório CSV exportado: {filepath}")
+        logger.info(f"CSV report exported: {filepath}")
         return filepath
     
     async def _export_pdf(self, report: ClusterReport, timestamp: str) -> str:
-        """Exportar relatório em PDF"""
+        """Export report in PDF"""
         try:
             from reportlab.lib.pagesizes import letter
             from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
@@ -241,20 +241,20 @@ class ReportService:
             
             # Resumo
             summary_text = f"""
-            <b>Resumo do Cluster:</b><br/>
-            Total de Pods: {report.total_pods}<br/>
-            Total de Namespaces: {report.total_namespaces}<br/>
-            Total de Nós: {report.total_nodes}<br/>
-            Total de Validações: {report.summary['total_validations']}<br/>
-            Problemas Críticos: {report.summary['critical_issues']}<br/>
+            <b>Cluster Summary:</b><br/>
+            Total Pods: {report.total_pods}<br/>
+            Total Namespaces: {report.total_namespaces}<br/>
+            Total Nodes: {report.total_nodes}<br/>
+            Total Validations: {report.summary['total_validations']}<br/>
+            Critical Issues: {report.summary['critical_issues']}<br/>
             """
             story.append(Paragraph(summary_text, styles['Normal']))
             story.append(Spacer(1, 12))
             
-            # Tabela de validações
+            # Validations table
             if report.validations:
-                data = [["Pod", "Namespace", "Container", "Tipo", "Severidade", "Mensagem"]]
-                for validation in report.validations[:50]:  # Limitar a 50 para PDF
+                data = [["Pod", "Namespace", "Container", "Type", "Severity", "Message"]]
+                for validation in report.validations[:50]:  # Limit to 50 for PDF
                     data.append([
                         validation.pod_name,
                         validation.namespace,
@@ -280,15 +280,15 @@ class ReportService:
                 story.append(table)
             
             doc.build(story)
-            logger.info(f"Relatório PDF exportado: {filepath}")
+            logger.info(f"PDF report exported: {filepath}")
             return filepath
             
         except ImportError:
-            logger.error("reportlab não instalado. Instale com: pip install reportlab")
-            raise ValueError("PDF export requer reportlab")
+            logger.error("reportlab not installed. Install with: pip install reportlab")
+            raise ValueError("PDF export requires reportlab")
     
     def get_exported_reports(self) -> List[Dict[str, str]]:
-        """Listar relatórios exportados"""
+        """List exported reports"""
         reports = []
         
         for filename in os.listdir(self.export_path):

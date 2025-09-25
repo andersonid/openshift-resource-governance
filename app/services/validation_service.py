@@ -50,7 +50,7 @@ class ValidationService:
             )
             static_validations.extend(historical_validations)
         except Exception as e:
-            logger.warning(f"Erro na análise histórica do pod {pod.name}: {e}")
+            logger.warning(f"Error in historical analysis for pod {pod.name}: {e}")
         
         return static_validations
     
@@ -74,8 +74,8 @@ class ValidationService:
                 container_name=container["name"],
                 validation_type="missing_requests",
                 severity="error",
-                message="Container sem requests definidos",
-                recommendation="Definir requests de CPU e memória para garantir QoS"
+                message="Container without defined requests",
+                recommendation="Define CPU and memory requests to guarantee QoS"
             ))
         
         # 2. Verificar se limits estão definidos
@@ -86,8 +86,8 @@ class ValidationService:
                 container_name=container["name"],
                 validation_type="missing_limits",
                 severity="warning",
-                message="Container sem limits definidos",
-                recommendation="Definir limits para evitar consumo excessivo de recursos"
+                message="Container without defined limits",
+                recommendation="Define limits to avoid excessive resource consumption"
             ))
         
         # 3. Validar ratio limit:request
@@ -139,8 +139,8 @@ class ValidationService:
                         container_name=container_name,
                         validation_type="invalid_ratio",
                         severity="warning",
-                        message=f"Ratio CPU limit:request muito alto ({ratio:.2f}:1)",
-                        recommendation=f"Considerar reduzir limits ou aumentar requests (ratio recomendado: {self.cpu_ratio}:1)"
+                        message=f"CPU limit:request ratio too high ({ratio:.2f}:1)",
+                        recommendation=f"Consider reducing limits or increasing requests (recommended ratio: {self.cpu_ratio}:1)"
                     )
                 elif ratio < 1.0:
                     return ResourceValidation(
@@ -149,12 +149,12 @@ class ValidationService:
                         container_name=container_name,
                         validation_type="invalid_ratio",
                         severity="error",
-                        message=f"CPU limit menor que request ({ratio:.2f}:1)",
-                        recommendation="CPU limit deve ser maior ou igual ao request"
+                        message=f"CPU limit less than request ({ratio:.2f}:1)",
+                        recommendation="CPU limit should be greater than or equal to request"
                     )
         
         except (ValueError, InvalidOperation) as e:
-            logger.warning(f"Erro ao validar ratio CPU: {e}")
+            logger.warning(f"Error validating CPU ratio: {e}")
         
         return None
     
@@ -184,8 +184,8 @@ class ValidationService:
                         container_name=container_name,
                         validation_type="invalid_ratio",
                         severity="warning",
-                        message=f"Ratio memória limit:request muito alto ({ratio:.2f}:1)",
-                        recommendation=f"Considerar reduzir limits ou aumentar requests (ratio recomendado: {self.memory_ratio}:1)"
+                        message=f"Memory limit:request ratio too high ({ratio:.2f}:1)",
+                        recommendation=f"Consider reducing limits or increasing requests (recommended ratio: {self.memory_ratio}:1)"
                     )
                 elif ratio < 1.0:
                     return ResourceValidation(
@@ -194,12 +194,12 @@ class ValidationService:
                         container_name=container_name,
                         validation_type="invalid_ratio",
                         severity="error",
-                        message=f"Memória limit menor que request ({ratio:.2f}:1)",
-                        recommendation="Memória limit deve ser maior ou igual ao request"
+                        message=f"Memory limit less than request ({ratio:.2f}:1)",
+                        recommendation="Memory limit should be greater than or equal to request"
                     )
         
         except (ValueError, InvalidOperation) as e:
-            logger.warning(f"Erro ao validar ratio memória: {e}")
+            logger.warning(f"Error validating memory ratio: {e}")
         
         return None
     
@@ -226,8 +226,8 @@ class ValidationService:
                         container_name=container_name,
                         validation_type="minimum_value",
                         severity="warning",
-                        message=f"CPU request muito baixo ({requests['cpu']})",
-                        recommendation=f"Considerar aumentar para pelo menos {self.min_cpu_request}"
+                        message=f"CPU request too low ({requests['cpu']})",
+                        recommendation=f"Consider increasing to at least {self.min_cpu_request}"
                     ))
             except (ValueError, InvalidOperation):
                 pass
@@ -245,8 +245,8 @@ class ValidationService:
                         container_name=container_name,
                         validation_type="minimum_value",
                         severity="warning",
-                        message=f"Memória request muito baixa ({requests['memory']})",
-                        recommendation=f"Considerar aumentar para pelo menos {self.min_memory_request}"
+                        message=f"Memory request too low ({requests['memory']})",
+                        recommendation=f"Consider increasing to at least {self.min_memory_request}"
                     ))
             except (ValueError, InvalidOperation):
                 pass
@@ -307,8 +307,8 @@ class ValidationService:
                     container_name="all",
                     validation_type="overcommit",
                     severity="critical",
-                    message=f"Overcommit de CPU no namespace: {cpu_utilization:.1f}%",
-                    recommendation="Reduzir requests de CPU ou adicionar mais nós ao cluster"
+                    message=f"CPU overcommit in namespace: {cpu_utilization:.1f}%",
+                    recommendation="Reduce CPU requests or add more nodes to the cluster"
                 ))
         
         # Verificar overcommit de memória
@@ -321,8 +321,8 @@ class ValidationService:
                     container_name="all",
                     validation_type="overcommit",
                     severity="critical",
-                    message=f"Overcommit de memória no namespace: {memory_utilization:.1f}%",
-                    recommendation="Reduzir requests de memória ou adicionar mais nós ao cluster"
+                    message=f"Memory overcommit in namespace: {memory_utilization:.1f}%",
+                    recommendation="Reduce memory requests or add more nodes to the cluster"
                 ))
         
         return validations
@@ -342,26 +342,26 @@ class ValidationService:
         # Gerar recomendações baseadas nos problemas encontrados
         if validation_counts.get("missing_requests", 0) > 0:
             recommendations.append(
-                f"Implementar LimitRange no namespace para definir requests padrão "
-                f"({validation_counts['missing_requests']} containers sem requests)"
+                f"Implement LimitRange in namespace to define default requests "
+                f"({validation_counts['missing_requests']} containers without requests)"
             )
         
         if validation_counts.get("missing_limits", 0) > 0:
             recommendations.append(
-                f"Definir limits para {validation_counts['missing_limits']} containers "
-                "para evitar consumo excessivo de recursos"
+                f"Define limits for {validation_counts['missing_limits']} containers "
+                "to avoid excessive resource consumption"
             )
         
         if validation_counts.get("invalid_ratio", 0) > 0:
             recommendations.append(
-                f"Ajustar ratio limit:request para {validation_counts['invalid_ratio']} containers "
-                f"(recomendado: {self.cpu_ratio}:1)"
+                f"Adjust limit:request ratio for {validation_counts['invalid_ratio']} containers "
+                f"(recommended: {self.cpu_ratio}:1)"
             )
         
         if validation_counts.get("overcommit", 0) > 0:
             recommendations.append(
-                f"Resolver overcommit em {validation_counts['overcommit']} namespaces "
-                "para evitar problemas de performance"
+                f"Resolve overcommit in {validation_counts['overcommit']} namespaces "
+                "to avoid performance issues"
             )
         
         return recommendations

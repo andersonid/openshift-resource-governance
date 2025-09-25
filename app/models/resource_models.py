@@ -45,7 +45,7 @@ class ResourceValidation(BaseModel):
     recommendation: Optional[str] = None
 
 class ClusterReport(BaseModel):
-    """Relatório do cluster"""
+    """Cluster report"""
     timestamp: str
     total_pods: int
     total_namespaces: int
@@ -56,7 +56,7 @@ class ClusterReport(BaseModel):
     summary: Dict[str, Any]
 
 class NamespaceReport(BaseModel):
-    """Relatório de um namespace"""
+    """Namespace report"""
     namespace: str
     timestamp: str
     total_pods: int
@@ -65,7 +65,7 @@ class NamespaceReport(BaseModel):
     recommendations: List[str]
 
 class ExportRequest(BaseModel):
-    """Request para exportar relatório"""
+    """Request to export report"""
     format: str  # "json", "csv", "pdf"
     namespaces: Optional[List[str]] = None
     include_vpa: bool = True

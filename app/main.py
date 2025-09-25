@@ -33,9 +33,9 @@ async def lifespan(app: FastAPI):
     try:
         await app.state.k8s_client.initialize()
         await app.state.prometheus_client.initialize()
-        logger.info("Clientes inicializados com sucesso")
+        logger.info("Clients initialized successfully")
     except Exception as e:
-        logger.error(f"Erro ao inicializar clientes: {e}")
+        logger.error(f"Error initializing clients: {e}")
         raise
     
     yield
