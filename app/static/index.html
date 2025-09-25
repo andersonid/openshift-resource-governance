@@ -699,7 +699,7 @@
 
         <!-- Recomendações VPA -->
         <div class="card" id="vpaCard" style="display: none;">
-            <h2>Recomendações VPA</h2>
+            <h2>VPA Recommendations</h2>
             <div id="vpaList"></div>
         </div>
 
@@ -915,11 +915,11 @@
             const container = document.getElementById('validationsList');
             
             if (validations.length === 0) {
-                container.innerHTML = '<p>Nenhuma validação encontrada.</p>';
+                container.innerHTML = '<p>No validations found.</p>';
                 return;
             }
             
-            let html = '<table class="table"><thead><tr><th>Pod</th><th>Namespace</th><th>Container</th><th>Tipo</th><th>Severidade</th><th>Mensagem</th></tr></thead><tbody>';
+            let html = '<table class="table"><thead><tr><th>Pod</th><th>Namespace</th><th>Container</th><th>Type</th><th>Severity</th><th>Message</th></tr></thead><tbody>';
             
             validations.forEach(validation => {
                 const severityClass = `severity-${validation.severity}`;
@@ -944,7 +944,7 @@
             const paginationContainer = document.getElementById('pagination');
             
             if (!data.namespaces || data.namespaces.length === 0) {
-                container.innerHTML = '<p>Nenhuma validação encontrada.</p>';
+                container.innerHTML = '<p>No validations found.</p>';
                 paginationContainer.innerHTML = '';
                 return;
             }
@@ -979,7 +979,7 @@
                             <div class="pod-item">
                                 <div class="pod-header">
                                     <div class="pod-name">${pod.pod_name}</div>
-                                    <div class="pod-validations-count">${pod.validations.length} validações</div>
+                                    <div class="pod-validations-count">${pod.validations.length} validations</div>
                                 </div>
                                 <div class="validation-list">
                         `;
@@ -1088,11 +1088,11 @@
             const container = document.getElementById('vpaList');
             
             if (recommendations.length === 0) {
-                container.innerHTML = '<p>Nenhuma recomendação VPA encontrada.</p>';
+                container.innerHTML = '<p>No VPA recommendations found.</p>';
                 return;
             }
             
-            let html = '<table class="table"><thead><tr><th>Nome</th><th>Namespace</th><th>Target</th><th>Recomendações</th></tr></thead><tbody>';
+            let html = '<table class="table"><thead><tr><th>Name</th><th>Namespace</th><th>Target</th><th>Recommendations</th></tr></thead><tbody>';
             
             recommendations.forEach(rec => {
                 html += `
@@ -1214,7 +1214,7 @@
             const container = document.getElementById('historicalValidationsList');
             
             if (!data.validations || data.validations.length === 0) {
-                container.innerHTML = '<p>Nenhuma validação histórica encontrada.</p>';
+                container.innerHTML = '<p>No historical validations found.</p>';
                 return;
             }
 
@@ -1247,12 +1247,12 @@
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             <div>
                                 <strong>${namespace}</strong>
-                                <span class="badge">${namespaceValidations.length} validações</span>
+                                <span class="badge">${namespaceValidations.length} validations</span>
                             </div>
                             <div class="severity-badges">
-                                ${criticalCount > 0 ? `<span class="badge severity-critical">${criticalCount} crítico</span>` : ''}
-                                ${errorCount > 0 ? `<span class="badge severity-error">${errorCount} erro</span>` : ''}
-                                ${warningCount > 0 ? `<span class="badge severity-warning">${warningCount} aviso</span>` : ''}
+                                ${criticalCount > 0 ? `<span class="badge severity-critical">${criticalCount} critical</span>` : ''}
+                                ${errorCount > 0 ? `<span class="badge severity-error">${errorCount} error</span>` : ''}
+                                ${warningCount > 0 ? `<span class="badge severity-warning">${warningCount} warning</span>` : ''}
                                 ${infoCount > 0 ? `<span class="badge severity-info">${infoCount} info</span>` : ''}
                             </div>
                             <span class="accordion-icon">▼</span>
