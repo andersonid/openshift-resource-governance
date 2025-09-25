@@ -1,0 +1,294 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: resource-governance-git-deploy
+  annotations:
+    description: "Deploy OpenShift Resource Governance Tool from GitHub repository"
+    tags: "governance,resources,openshift,github"
+parameters:
+- name: GITHUB_REPO
+  displayName: "GitHub Repository URL"
+  description: "URL do repositório GitHub"
+  value: "https://github.com/andersonid/openshift-resource-governance.git"
+- name: IMAGE_TAG
+  displayName: "Image Tag"
+  description: "Tag da imagem Docker"
+  value: "latest"
+- name: REGISTRY
+  displayName: "Container Registry"
+  description: "Registry da imagem Docker"
+  value: "quay.io/andersonid"
+- name: NAMESPACE
+  displayName: "Namespace"
+  description: "Namespace para deploy"
+  value: "resource-governance"
+objects:
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: ${NAMESPACE}
+    labels:
+      name: ${NAMESPACE}
+      app.kubernetes.io/name: resource-governance
+      app.kubernetes.io/component: governance
+      app.kubernetes.io/part-of: openshift-governance
+- apiVersion: v1
+  kind: ResourceQuota
+  metadata:
+    name: resource-governance-quota
+    namespace: ${NAMESPACE}
+  spec:
+    hard:
+      requests.cpu: "2"
+      requests.memory: 4Gi
+      limits.cpu: "4"
+      limits.memory: 8Gi
+      pods: "10"
+- apiVersion: v1
+  kind: LimitRange
+  metadata:
+    name: resource-governance-limits
+    namespace: ${NAMESPACE}
+  spec:
+    limits:
+    - default:
+        cpu: "500m"
+        memory: "512Mi"
+      defaultRequest:
+        cpu: "100m"
+        memory: "128Mi"
+      type: Container
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: resource-governance-sa
+    namespace: ${NAMESPACE}
+    labels:
+      app.kubernetes.io/name: resource-governance
+      app.kubernetes.io/component: governance
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    name: resource-governance-role
+    labels:
+      app.kubernetes.io/name: resource-governance
+      app.kubernetes.io/component: governance
+  rules:
+  - apiGroups: [""]
+    resources: ["pods", "namespaces", "nodes", "events"]
+    verbs: ["get", "list", "watch", "patch", "update", "create"]
+  - apiGroups: ["autoscaling.k8s.io"]
+    resources: ["verticalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    name: resource-governance-binding
+    labels:
+      app.kubernetes.io/name: resource-governance
+      app.kubernetes.io/component: governance
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: resource-governance-role
+  subjects:
+  - kind: ServiceAccount
+    name: resource-governance-sa
+    namespace: ${NAMESPACE}
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: resource-governance-config
+    namespace: ${NAMESPACE}
+    labels:
+      app.kubernetes.io/name: resource-governance
+      app.kubernetes.io/component: governance
+  data:
+    CPU_LIMIT_RATIO: "3.0"
+    MEMORY_LIMIT_RATIO: "3.0"
+    MIN_CPU_REQUEST: "10m"
+    MIN_MEMORY_REQUEST: "32Mi"
+    CRITICAL_NAMESPACES: |
+      openshift-monitoring
+      openshift-ingress
+      openshift-apiserver
+      openshift-controller-manager
+      openshift-sdn
+    PROMETHEUS_URL: "http://prometheus.openshift-monitoring.svc.cluster.local:9090"
+    REPORT_EXPORT_PATH: "/tmp/reports"
+    ENABLE_RBAC: "true"
+    SERVICE_ACCOUNT_NAME: "resource-governance-sa"
+    GITHUB_REPO: "${GITHUB_REPO}"
+- apiVersion: apps/v1
+  kind: DaemonSet
+  metadata:
+    name: resource-governance
+    namespace: ${NAMESPACE}
+    labels:
+      app.kubernetes.io/name: resource-governance
+      app.kubernetes.io/component: governance
+  spec:
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: resource-governance
+        app.kubernetes.io/component: governance
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: resource-governance
+          app.kubernetes.io/component: governance
+        annotations:
+          github.com/repo: "${GITHUB_REPO}"
+      spec:
+        serviceAccountName: resource-governance-sa
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          fsGroup: 1000
+        containers:
+        - name: resource-governance
+          image: ${REGISTRY}/resource-governance:${IMAGE_TAG}
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          env:
+          - name: KUBECONFIG
+            value: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+          - name: CPU_LIMIT_RATIO
+            valueFrom:
+              configMapKeyRef:
+                name: resource-governance-config
+                key: CPU_LIMIT_RATIO
+          - name: MEMORY_LIMIT_RATIO
+            valueFrom:
+              configMapKeyRef:
+                name: resource-governance-config
+                key: MEMORY_LIMIT_RATIO
+          - name: MIN_CPU_REQUEST
+            valueFrom:
+              configMapKeyRef:
+                name: resource-governance-config
+                key: MIN_CPU_REQUEST
+          - name: MIN_MEMORY_REQUEST
+            valueFrom:
+              configMapKeyRef:
+                name: resource-governance-config
+                key: MIN_MEMORY_REQUEST
+          - name: CRITICAL_NAMESPACES
+            valueFrom:
+              configMapKeyRef:
+                name: resource-governance-config
+                key: CRITICAL_NAMESPACES
+          - name: PROMETHEUS_URL
+            valueFrom:
+              configMapKeyRef:
+                name: resource-governance-config
+                key: PROMETHEUS_URL
+          - name: REPORT_EXPORT_PATH
+            valueFrom:
+              configMapKeyRef:
+                name: resource-governance-config
+                key: REPORT_EXPORT_PATH
+          - name: ENABLE_RBAC
+            valueFrom:
+              configMapKeyRef:
+                name: resource-governance-config
+                key: ENABLE_RBAC
+          - name: SERVICE_ACCOUNT_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: resource-governance-config
+                key: SERVICE_ACCOUNT_NAME
+          - name: GITHUB_REPO
+            valueFrom:
+              configMapKeyRef:
+                name: resource-governance-config
+                key: GITHUB_REPO
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+          - name: reports-volume
+            mountPath: /tmp/reports
+          - name: tmp-volume
+            mountPath: /tmp
+        volumes:
+        - name: reports-volume
+          emptyDir: {}
+        - name: tmp-volume
+          emptyDir: {}
+        nodeSelector:
+          kubernetes.io/os: linux
+        tolerations:
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: resource-governance-service
+    namespace: ${NAMESPACE}
+    labels:
+      app.kubernetes.io/name: resource-governance
+      app.kubernetes.io/component: governance
+  spec:
+    type: ClusterIP
+    ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+    selector:
+      app.kubernetes.io/name: resource-governance
+      app.kubernetes.io/component: governance
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: resource-governance-route
+    namespace: ${NAMESPACE}
+    labels:
+      app.kubernetes.io/name: resource-governance
+      app.kubernetes.io/component: governance
+    annotations:
+      haproxy.router.openshift.io/timeout: "300s"
+      haproxy.router.openshift.io/rate-limit: "100"
+  spec:
+    host: resource-governance.apps.openshift.local
+    to:
+      kind: Service
+      name: resource-governance-service
+      weight: 100
+    port:
+      targetPort: http
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+    wildcardPolicy: None

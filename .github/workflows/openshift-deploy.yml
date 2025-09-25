@@ -1,0 +1,101 @@
+name: Deploy to OpenShift
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: resource-governance
+  REGISTRY: quay.io/andersonid
+  NAMESPACE: resource-governance
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run tests
+      run: |
+        python -c "import app.main; print('✅ App imports successfully')"
+        
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Login to Quay.io
+      uses: docker/login-action@v3
+      with:
+        registry: quay.io
+        username: ${{ secrets.QUAY_USERNAME }}
+        password: ${{ secrets.QUAY_PASSWORD }}
+        
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+          
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Install OpenShift CLI
+      run: |
+        curl -L https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz | tar -xz -C /usr/local/bin/
+        chmod +x /usr/local/bin/oc
+        
+    - name: Deploy to OpenShift
+      if: github.ref == 'refs/heads/main'
+      run: |
+        # Login to OpenShift
+        echo "${{ secrets.OPENSHIFT_TOKEN }}" | oc login ${{ secrets.OPENSHIFT_SERVER }} --token-stdin
+        
+        # Update image in DaemonSet
+        oc set image daemonset/${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}=${{ steps.meta.outputs.tags }} -n ${{ env.NAMESPACE }} || true
+        
+        # Apply manifests
+        oc apply -f k8s/namespace.yaml
+        oc apply -f k8s/rbac.yaml
+        oc apply -f k8s/configmap.yaml
+        oc apply -f k8s/daemonset.yaml
+        oc apply -f k8s/service.yaml
+        oc apply -f k8s/route.yaml
+        
+        # Wait for rollout
+        oc rollout status daemonset/${{ env.IMAGE_NAME }} -n ${{ env.NAMESPACE }} --timeout=300s
+        
+        # Get route URL
+        ROUTE_URL=$(oc get route ${{ env.IMAGE_NAME }}-route -n ${{ env.NAMESPACE }} -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
+        if [ -n "$ROUTE_URL" ]; then
+          echo "🚀 Application deployed successfully!"
+          echo "🌐 URL: https://$ROUTE_URL"
+        fi
+      env:
+        OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
+        OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
