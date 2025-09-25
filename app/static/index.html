@@ -741,7 +741,7 @@
                 updateStats(data);
                 showSuccess('Cluster status loaded successfully. Loading analysis...');
                 
-                // Carregar automaticamente as validações após o scan inicial
+                // Automatically load validations after initial scan
                 await loadValidationsByNamespace();
                 
             } catch (error) {
@@ -1029,9 +1029,9 @@
             let html = '';
             
             // Botão anterior
-            html += `<button onclick="loadPage(${pagination.page - 1})" ${pagination.page <= 1 ? 'disabled' : ''}>Anterior</button>`;
+            html += `<button onclick="loadPage(${pagination.page - 1})" ${pagination.page <= 1 ? 'disabled' : ''}>Previous</button>`;
             
-            // Páginas
+            // Pages
             const startPage = Math.max(1, pagination.page - 2);
             const endPage = Math.min(pagination.total_pages, pagination.page + 2);
             
@@ -1055,11 +1055,11 @@
             }
             
             // Botão próximo
-            html += `<button onclick="loadPage(${pagination.page + 1})" ${pagination.page >= pagination.total_pages ? 'disabled' : ''}>Próximo</button>`;
+            html += `<button onclick="loadPage(${pagination.page + 1})" ${pagination.page >= pagination.total_pages ? 'disabled' : ''}>Next</button>`;
             
             // Informações da paginação
             html += `<div class="pagination-info">
-                Página ${pagination.page} de ${pagination.total_pages} 
+                Page ${pagination.page} of ${pagination.total_pages} 
                 (${pagination.total} namespaces)
             </div>`;
             
@@ -1151,7 +1151,7 @@
                     displayHistoricalSummary(summaryData.summary);
                 }
 
-                // Carregar validações históricas
+                // Load historical validations
                 const params = new URLSearchParams({
                     time_range: timeRange
                 });
@@ -1180,7 +1180,7 @@
             const container = document.getElementById('historicalSummary');
             
             if (!summary || Object.keys(summary).length === 0) {
-                container.innerHTML = '<p>Não foi possível obter dados históricos do Prometheus.</p>';
+                container.innerHTML = '<p>Unable to get historical data from Prometheus.</p>';
                 return;
             }
 
@@ -1266,7 +1266,7 @@
                                     </div>
                                     <div class="validation-message">${validation.message}</div>
                                     <div class="validation-recommendation">
-                                        <strong>Recomendação:</strong> ${validation.recommendation}
+                                        <strong>Recommendation:</strong> ${validation.recommendation}
                                     </div>
                                 </div>
                             `).join('')}

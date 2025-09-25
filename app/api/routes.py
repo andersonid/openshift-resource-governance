@@ -1,5 +1,5 @@
 """
-Rotas da API
+API Routes
 """
 import logging
 from typing import List, Optional
@@ -37,7 +37,7 @@ async def get_cluster_status(
     k8s_client=Depends(get_k8s_client),
     prometheus_client=Depends(get_prometheus_client)
 ):
-    """Obter status geral do cluster"""
+    """Get overall cluster status"""
     try:
         # Coletar dados básicos
         pods = await k8s_client.get_all_pods()
@@ -52,7 +52,7 @@ async def get_cluster_status(
         # Obter informações de overcommit
         overcommit_info = await prometheus_client.get_cluster_overcommit()
         
-        # Obter recomendações VPA
+        # Get VPA recommendations
         vpa_recommendations = await k8s_client.get_vpa_recommendations()
         
         # Generate report
@@ -76,7 +76,7 @@ async def get_namespace_status(
     k8s_client=Depends(get_k8s_client),
     prometheus_client=Depends(get_prometheus_client)
 ):
-    """Obter status de um namespace específico"""
+    """Get status of a specific namespace"""
     try:
         # Coletar dados do namespace
         namespace_resources = await k8s_client.get_namespace_resources(namespace)
@@ -109,7 +109,7 @@ async def get_pods(
     namespace: Optional[str] = None,
     k8s_client=Depends(get_k8s_client)
 ):
-    """Listar pods com informações de recursos"""
+    """List pods with resource information"""
     try:
         if namespace:
             namespace_resources = await k8s_client.get_namespace_resources(namespace)
@@ -129,7 +129,7 @@ async def get_validations(
     page_size: int = 50,
     k8s_client=Depends(get_k8s_client)
 ):
-    """Listar validações de recursos com paginação"""
+    """List resource validations with pagination"""
     try:
         # Coletar pods
         if namespace:
@@ -178,7 +178,7 @@ async def get_validations_by_namespace(
     include_system_namespaces: bool = False,
     k8s_client=Depends(get_k8s_client)
 ):
-    """Listar validações agrupadas por namespace com paginação"""
+    """List validations grouped by namespace with pagination"""
     try:
         # Coletar todos os pods com filtro de namespaces do sistema
         pods = await k8s_client.get_all_pods(include_system_namespaces=include_system_namespaces)
@@ -196,7 +196,7 @@ async def get_validations_by_namespace(
                     "severity_breakdown": {"error": 0, "warning": 0}
                 }
             
-            # Agrupar validações por pod
+            # Group validations by pod
             if pod.name not in namespace_validations[pod.namespace]["pods"]:
                 namespace_validations[pod.namespace]["pods"][pod.name] = {
                     "pod_name": pod.name,
@@ -214,7 +214,7 @@ async def get_validations_by_namespace(
             for validation in pod_validations:
                 namespace_validations[pod.namespace]["severity_breakdown"][validation.severity] += 1
         
-        # Converter para lista e ordenar por total de validações
+        # Convert to list and sort by total validations
         namespace_list = list(namespace_validations.values())
         namespace_list.sort(key=lambda x: x["total_validations"], reverse=True)
         
@@ -243,7 +243,7 @@ async def get_vpa_recommendations(
     namespace: Optional[str] = None,
     k8s_client=Depends(get_k8s_client)
 ):
-    """Obter recomendações do VPA"""
+    """Get VPA recommendations"""
     try:
         recommendations = await k8s_client.get_vpa_recommendations()
         
@@ -348,7 +348,7 @@ async def apply_recommendation(
     recommendation: ApplyRecommendationRequest,
     k8s_client=Depends(get_k8s_client)
 ):
-    """Aplicar recomendação de recursos"""
+    """Apply resource recommendation"""
     try:
         # TODO: Implementar aplicação de recomendações
         # Por enquanto, apenas simular
@@ -374,7 +374,7 @@ async def get_historical_validations(
     time_range: str = "24h",
     k8s_client=Depends(get_k8s_client)
 ):
-    """Obter validações com análise histórica do Prometheus"""
+    """Get validations with historical analysis from Prometheus"""
     try:
         validation_service = ValidationService()
         
@@ -408,7 +408,7 @@ async def get_historical_validations(
 async def get_cluster_historical_summary(
     time_range: str = "24h"
 ):
-    """Obter resumo histórico do cluster"""
+    """Get cluster historical summary"""
     try:
         historical_service = HistoricalAnalysisService()
         summary = await historical_service.get_cluster_historical_summary(time_range)

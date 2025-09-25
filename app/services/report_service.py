@@ -131,7 +131,7 @@ class ReportService:
                 problems[problem_type] = []
             problems[problem_type].append(validation)
         
-        # Generate recommendations específicas
+        # Generate specific recommendations
         if "missing_requests" in problems:
             count = len(problems["missing_requests"])
             recommendations.append(
@@ -148,12 +148,12 @@ class ReportService:
         if "invalid_ratio" in problems:
             count = len(problems["invalid_ratio"])
             recommendations.append(
-                f"Ajustar ratio limit:request para {count} containers"
+                f"Adjust limit:request ratio for {count} containers"
             )
         
         if "overcommit" in problems:
             recommendations.append(
-                "Resolver overcommit de recursos no namespace"
+                "Resolve resource overcommit in namespace"
             )
         
         return recommendations

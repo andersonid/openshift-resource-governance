@@ -1,5 +1,5 @@
 """
-Serviço de validação de recursos seguindo best practices Red Hat
+Resource validation service following Red Hat best practices
 """
 import logging
 from typing import List, Dict, Any
@@ -13,7 +13,7 @@ from app.services.historical_analysis import HistoricalAnalysisService
 logger = logging.getLogger(__name__)
 
 class ValidationService:
-    """Serviço para validação de recursos"""
+    """Service for resource validation"""
     
     def __init__(self):
         self.cpu_ratio = settings.cpu_limit_ratio
@@ -23,7 +23,7 @@ class ValidationService:
         self.historical_analysis = HistoricalAnalysisService()
     
     def validate_pod_resources(self, pod: PodResource) -> List[ResourceValidation]:
-        """Validar recursos de um pod"""
+        """Validate pod resources"""
         validations = []
         
         for container in pod.containers:
@@ -39,7 +39,7 @@ class ValidationService:
         pod: PodResource, 
         time_range: str = '24h'
     ) -> List[ResourceValidation]:
-        """Validar recursos de um pod incluindo análise histórica"""
+        """Validate pod resources including historical analysis"""
         # Validações estáticas
         static_validations = self.validate_pod_resources(pod)
         
@@ -60,7 +60,7 @@ class ValidationService:
         namespace: str, 
         container: Dict[str, Any]
     ) -> List[ResourceValidation]:
-        """Validar recursos de um container"""
+        """Validate container resources"""
         validations = []
         resources = container.get("resources", {})
         requests = resources.get("requests", {})
@@ -90,7 +90,7 @@ class ValidationService:
                 recommendation="Define limits to avoid excessive resource consumption"
             ))
         
-        # 3. Validar ratio limit:request
+        # 3. Validate limit:request ratio
         if requests and limits:
             cpu_validation = self._validate_cpu_ratio(
                 pod_name, namespace, container["name"], requests, limits
@@ -104,7 +104,7 @@ class ValidationService:
             if memory_validation:
                 validations.append(memory_validation)
         
-        # 4. Validar valores mínimos
+        # 4. Validate minimum values
         if requests:
             min_validation = self._validate_minimum_values(
                 pod_name, namespace, container["name"], requests
@@ -121,7 +121,7 @@ class ValidationService:
         requests: Dict[str, str], 
         limits: Dict[str, str]
     ) -> ResourceValidation:
-        """Validar ratio CPU limit:request"""
+        """Validate CPU limit:request ratio"""
         if "cpu" not in requests or "cpu" not in limits:
             return None
         
@@ -166,7 +166,7 @@ class ValidationService:
         requests: Dict[str, str], 
         limits: Dict[str, str]
     ) -> ResourceValidation:
-        """Validar ratio memória limit:request"""
+        """Validate memory limit:request ratio"""
         if "memory" not in requests or "memory" not in limits:
             return None
         
@@ -210,7 +210,7 @@ class ValidationService:
         container_name: str,
         requests: Dict[str, str]
     ) -> List[ResourceValidation]:
-        """Validar valores mínimos de requests"""
+        """Validate minimum request values"""
         validations = []
         
         # Validar CPU mínima
@@ -286,7 +286,7 @@ class ValidationService:
         namespace_resources: NamespaceResources,
         node_capacity: Dict[str, str]
     ) -> List[ResourceValidation]:
-        """Validar overcommit em um namespace"""
+        """Validate overcommit in a namespace"""
         validations = []
         
         # Calcular total de requests do namespace
@@ -328,7 +328,7 @@ class ValidationService:
         return validations
     
     def generate_recommendations(self, validations: List[ResourceValidation]) -> List[str]:
-        """Gerar recomendações baseadas nas validações"""
+        """Generate recommendations based on validations"""
         recommendations = []
         
         # Agrupar validações por tipo
