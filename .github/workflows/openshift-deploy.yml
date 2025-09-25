@@ -64,25 +64,32 @@ jobs:
         # Login to OpenShift
         echo "${{ secrets.OPENSHIFT_TOKEN }}" | oc login ${{ secrets.OPENSHIFT_SERVER }} --token-stdin
         
-        # Update image in DaemonSet
-        oc set image daemonset/${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}=${{ steps.meta.outputs.tags }} -n ${{ env.NAMESPACE }} || true
-        
-        # Apply manifests
+        # Apply manifests (namespace, rbac, configmap)
         oc apply -f k8s/namespace.yaml
         oc apply -f k8s/rbac.yaml
         oc apply -f k8s/configmap.yaml
-        oc apply -f k8s/daemonset.yaml
+        
+        # Update deployment with new image
+        oc set image deployment/${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n ${{ env.NAMESPACE }} || true
+        
+        # Apply deployment, service and route
+        oc apply -f k8s/deployment.yaml
         oc apply -f k8s/service.yaml
         oc apply -f k8s/route.yaml
         
         # Wait for rollout
-        oc rollout status daemonset/${{ env.IMAGE_NAME }} -n ${{ env.NAMESPACE }} --timeout=300s
+        oc rollout status deployment/${{ env.IMAGE_NAME }} -n ${{ env.NAMESPACE }} --timeout=300s
+        
+        # Verify deployment
+        oc get deployment ${{ env.IMAGE_NAME }} -n ${{ env.NAMESPACE }}
+        oc get pods -n ${{ env.NAMESPACE }} -l app.kubernetes.io/name=${{ env.IMAGE_NAME }}
         
         # Get route URL
         ROUTE_URL=$(oc get route ${{ env.IMAGE_NAME }}-route -n ${{ env.NAMESPACE }} -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
         if [ -n "$ROUTE_URL" ]; then
           echo "🚀 Application deployed successfully!"
           echo "🌐 URL: https://$ROUTE_URL"
+          echo "📊 Status: oc get pods -n ${{ env.NAMESPACE }} -l app.kubernetes.io/name=${{ env.IMAGE_NAME }}"
         fi
       env:
         OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}

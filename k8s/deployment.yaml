@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
   name: resource-governance
   namespace: resource-governance
@@ -7,10 +7,12 @@ metadata:
     app.kubernetes.io/name: resource-governance
     app.kubernetes.io/component: governance
 spec:
-  updateStrategy:
+  replicas: 2
+  strategy:
     type: RollingUpdate
     rollingUpdate:
       maxUnavailable: 1
+      maxSurge: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: resource-governance
@@ -97,11 +99,6 @@ spec:
             configMapKeyRef:
               name: resource-governance-config
               key: REPORT_EXPORT_PATH
-        - name: ENABLE_RBAC
-          valueFrom:
-            configMapKeyRef:
-              name: resource-governance-config
-              key: ENABLE_RBAC
         - name: SERVICE_ACCOUNT_NAME
           valueFrom:
             configMapKeyRef:
@@ -114,38 +111,10 @@ spec:
           limits:
             cpu: 500m
             memory: 512Mi
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
         volumeMounts:
-        - name: reports-volume
+        - name: reports
           mountPath: /tmp/reports
-        - name: tmp-volume
-          mountPath: /tmp
       volumes:
-      - name: reports-volume
+      - name: reports
         emptyDir: {}
-      - name: tmp-volume
-        emptyDir: {}
-      nodeSelector:
-        kubernetes.io/os: linux
-      tolerations:
-      - key: node-role.kubernetes.io/master
-        operator: Exists
-        effect: NoSchedule
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
+      restartPolicy: Always

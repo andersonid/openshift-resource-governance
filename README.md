@@ -38,9 +38,47 @@ Uma ferramenta de governança de recursos para clusters OpenShift que vai além 
 
 ### 2. Deploy no OpenShift
 
-#### Deploy Automático (Recomendado)
+#### 🚀 CI/CD Automático (Recomendado para Produção)
 ```bash
-# Deploy completo com ImagePullSecret
+# 1. Configurar secrets do GitHub
+./scripts/setup-github-secrets.sh
+
+# 2. Fazer commit e push
+git add .
+git commit -m "Nova funcionalidade"
+git push origin main
+
+# 3. GitHub Actions fará deploy automático!
+```
+
+**Fluxo Automático:**
+- ✅ **Push para main** → GitHub Actions detecta mudança
+- ✅ **Build automático** → Nova imagem no Docker Hub
+- ✅ **Deploy automático** → OpenShift atualiza deployment
+- ✅ **Rolling Update** → Zero downtime
+- ✅ **Health Checks** → Validação automática
+
+#### 🔧 Deploy Manual (Desenvolvimento)
+```bash
+# Deploy com estratégia Blue-Green
+./scripts/blue-green-deploy.sh
+
+# Deploy com tag específica
+./scripts/blue-green-deploy.sh v1.2.0
+
+# Testar fluxo CI/CD localmente
+./scripts/test-ci-cd.sh
+```
+
+**Scripts para Desenvolvimento:**
+- ✅ **Controle total** sobre o processo
+- ✅ **Iteração rápida** durante desenvolvimento
+- ✅ **Debugging** mais fácil
+- ✅ **Testes locais** antes de fazer push
+
+#### Deploy Completo (Inicial)
+```bash
+# Deploy completo com ImagePullSecret (primeira vez)
 ./scripts/deploy-complete.sh
 ```
 

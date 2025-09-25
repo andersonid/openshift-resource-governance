@@ -133,8 +133,10 @@
         .validation-item {
             padding: 1rem;
             border-left: 4px solid #ccc;
-            margin: 0.5rem 0;
+            margin: 0.75rem 0;
             background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
         }
 
         .validation-item.error {
@@ -231,7 +233,7 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             margin-bottom: 1rem;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .accordion-header {
@@ -272,14 +274,27 @@
         }
 
         .accordion-content {
-            padding: 0;
+            padding: 1rem 1.5rem;
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease;
+            background: white;
+            border-top: 1px solid #dee2e6;
         }
 
         .accordion-content.active {
-            max-height: 1000px;
+            max-height: none;
+            overflow: visible;
+            padding: 1rem 1.5rem;
+        }
+
+        /* Garantir que o conteúdo não seja cortado */
+        .accordion-content .validation-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .accordion-content .historical-validation:last-child {
+            margin-bottom: 0;
         }
 
         .pod-list {
@@ -365,6 +380,74 @@
             background: #f8f9fa;
             color: #6c757d;
             cursor: not-allowed;
+        }
+
+        /* Historical Analysis Styles */
+        .historical-summary {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .historical-summary h3 {
+            margin: 0 0 1rem 0;
+            color: #495057;
+        }
+
+        .historical-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .historical-stat {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+
+        .historical-stat h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .historical-stat .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .historical-validation {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .historical-validation.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .historical-validation.warning {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+        }
+
+        .historical-validation.info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+        }
+
+        .historical-validation.critical {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            border-left: 4px solid #dc3545;
         }
 
         .pagination button.active {
@@ -470,6 +553,7 @@
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                 <button class="btn" onclick="loadClusterStatus()">Atualizar Status</button>
                 <button class="btn btn-secondary" onclick="loadValidationsByNamespace()">Ver Validações</button>
+                <button class="btn btn-secondary" onclick="loadHistoricalValidations()">Análise Histórica</button>
                 <button class="btn btn-secondary" onclick="loadVPARecommendations()">Ver VPA</button>
             </div>
         </div>
@@ -492,6 +576,39 @@
                 </label>
                 <button class="btn" onclick="exportReport()">Exportar</button>
             </div>
+        </div>
+
+        <!-- Análise Histórica -->
+        <div class="card" id="historicalCard" style="display: none;">
+            <h2>Análise Histórica com Prometheus</h2>
+            
+            <!-- Filtros para análise histórica -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="timeRangeFilter">Período:</label>
+                    <select id="timeRangeFilter">
+                        <option value="1h">1 hora</option>
+                        <option value="6h">6 horas</option>
+                        <option value="24h" selected>24 horas</option>
+                        <option value="7d">7 dias</option>
+                        <option value="30d">30 dias</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="historicalSeverityFilter">Severidade:</label>
+                    <select id="historicalSeverityFilter">
+                        <option value="">Todas</option>
+                        <option value="error">Erro</option>
+                        <option value="warning">Aviso</option>
+                        <option value="info">Info</option>
+                        <option value="critical">Crítico</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="loadHistoricalValidations()">Aplicar Análise</button>
+            </div>
+            
+            <div id="historicalSummary" class="historical-summary"></div>
+            <div id="historicalValidationsList"></div>
         </div>
 
         <!-- Validações -->
@@ -567,7 +684,10 @@
                 const data = await response.json();
                 currentData = data;
                 updateStats(data);
-                showSuccess('Status do cluster carregado com sucesso');
+                showSuccess('Status do cluster carregado com sucesso. Carregando validações...');
+                
+                // Carregar automaticamente as validações após o scan inicial
+                await loadValidationsByNamespace();
                 
             } catch (error) {
                 showError('Erro ao carregar status do cluster: ' + error.message);
@@ -956,6 +1076,148 @@
         function hideMessages() {
             document.getElementById('error').classList.add('hidden');
             document.getElementById('success').classList.add('hidden');
+        }
+
+        // Funções para análise histórica
+        async function loadHistoricalValidations() {
+            showLoading();
+            
+            try {
+                const timeRange = document.getElementById('timeRangeFilter').value;
+                const severity = document.getElementById('historicalSeverityFilter').value;
+
+                // Carregar resumo histórico
+                const summaryResponse = await fetch(`/api/v1/cluster/historical-summary?time_range=${timeRange}`);
+                if (summaryResponse.ok) {
+                    const summaryData = await summaryResponse.json();
+                    displayHistoricalSummary(summaryData.summary);
+                }
+
+                // Carregar validações históricas
+                const params = new URLSearchParams({
+                    time_range: timeRange
+                });
+                
+                if (severity) {
+                    params.append('severity', severity);
+                }
+
+                const response = await fetch(`/api/v1/validations/historical?${params}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displayHistoricalValidations(data);
+                document.getElementById('historicalCard').style.display = 'block';
+                
+            } catch (error) {
+                showError('Erro ao carregar análise histórica: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displayHistoricalSummary(summary) {
+            const container = document.getElementById('historicalSummary');
+            
+            if (!summary || Object.keys(summary).length === 0) {
+                container.innerHTML = '<p>Não foi possível obter dados históricos do Prometheus.</p>';
+                return;
+            }
+
+            const cpuUtilization = summary.cpu_utilization || 0;
+            const memoryUtilization = summary.memory_utilization || 0;
+            
+            container.innerHTML = `
+                <h3>Resumo Histórico do Cluster (${summary.time_range})</h3>
+                <div class="historical-stats">
+                    <div class="historical-stat">
+                        <h4>CPU Utilization</h4>
+                        <div class="value">${cpuUtilization.toFixed(1)}%</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>Memory Utilization</h4>
+                        <div class="value">${memoryUtilization.toFixed(1)}%</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>CPU Usage</h4>
+                        <div class="value">${summary.cpu_usage ? summary.cpu_usage.toFixed(3) : '0'} cores</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>Memory Usage</h4>
+                        <div class="value">${summary.memory_usage ? (summary.memory_usage / (1024*1024*1024)).toFixed(2) : '0'} GiB</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayHistoricalValidations(data) {
+            const container = document.getElementById('historicalValidationsList');
+            
+            if (!data.validations || data.validations.length === 0) {
+                container.innerHTML = '<p>Nenhuma validação histórica encontrada.</p>';
+                return;
+            }
+
+            // Filtrar por severidade se especificado
+            let validations = data.validations;
+            const severity = document.getElementById('historicalSeverityFilter').value;
+            if (severity) {
+                validations = validations.filter(v => v.severity === severity);
+            }
+
+            // Agrupar por namespace
+            const groupedByNamespace = {};
+            validations.forEach(validation => {
+                if (!groupedByNamespace[validation.namespace]) {
+                    groupedByNamespace[validation.namespace] = [];
+                }
+                groupedByNamespace[validation.namespace].push(validation);
+            });
+
+            let html = '';
+            Object.keys(groupedByNamespace).forEach(namespace => {
+                const namespaceValidations = groupedByNamespace[namespace];
+                const errorCount = namespaceValidations.filter(v => v.severity === 'error').length;
+                const warningCount = namespaceValidations.filter(v => v.severity === 'warning').length;
+                const infoCount = namespaceValidations.filter(v => v.severity === 'info').length;
+                const criticalCount = namespaceValidations.filter(v => v.severity === 'critical').length;
+
+                html += `
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <div>
+                                <strong>${namespace}</strong>
+                                <span class="badge">${namespaceValidations.length} validações</span>
+                            </div>
+                            <div class="severity-badges">
+                                ${criticalCount > 0 ? `<span class="badge severity-critical">${criticalCount} crítico</span>` : ''}
+                                ${errorCount > 0 ? `<span class="badge severity-error">${errorCount} erro</span>` : ''}
+                                ${warningCount > 0 ? `<span class="badge severity-warning">${warningCount} aviso</span>` : ''}
+                                ${infoCount > 0 ? `<span class="badge severity-info">${infoCount} info</span>` : ''}
+                            </div>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            ${namespaceValidations.map(validation => `
+                                <div class="historical-validation ${validation.severity}">
+                                    <div class="validation-header">
+                                        <strong>${validation.pod_name}</strong> - ${validation.container_name}
+                                        <span class="severity-badge severity-${validation.severity}">${validation.severity}</span>
+                                    </div>
+                                    <div class="validation-message">${validation.message}</div>
+                                    <div class="validation-recommendation">
+                                        <strong>Recomendação:</strong> ${validation.recommendation}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
         }
     </script>
 </body>

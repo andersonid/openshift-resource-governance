@@ -8,6 +8,7 @@ import re
 
 from app.models.resource_models import PodResource, ResourceValidation, NamespaceResources
 from app.core.config import settings
+from app.services.historical_analysis import HistoricalAnalysisService
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ class ValidationService:
         self.memory_ratio = settings.memory_limit_ratio
         self.min_cpu_request = settings.min_cpu_request
         self.min_memory_request = settings.min_memory_request
+        self.historical_analysis = HistoricalAnalysisService()
     
     def validate_pod_resources(self, pod: PodResource) -> List[ResourceValidation]:
         """Validar recursos de um pod"""
@@ -31,6 +33,26 @@ class ValidationService:
             validations.extend(container_validations)
         
         return validations
+    
+    async def validate_pod_resources_with_historical_analysis(
+        self, 
+        pod: PodResource, 
+        time_range: str = '24h'
+    ) -> List[ResourceValidation]:
+        """Validar recursos de um pod incluindo análise histórica"""
+        # Validações estáticas
+        static_validations = self.validate_pod_resources(pod)
+        
+        # Análise histórica
+        try:
+            historical_validations = await self.historical_analysis.analyze_pod_historical_usage(
+                pod, time_range
+            )
+            static_validations.extend(historical_validations)
+        except Exception as e:
+            logger.warning(f"Erro na análise histórica do pod {pod.name}: {e}")
+        
+        return static_validations
     
     def _validate_container_resources(
         self, 

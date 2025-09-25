@@ -3,6 +3,7 @@ Rotas da API
 """
 import logging
 from typing import List, Optional
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import FileResponse
 
@@ -12,6 +13,7 @@ from app.models.resource_models import (
 )
 from app.services.validation_service import ValidationService
 from app.services.report_service import ReportService
+from app.services.historical_analysis import HistoricalAnalysisService
 
 logger = logging.getLogger(__name__)
 
@@ -363,6 +365,61 @@ async def apply_recommendation(
             
     except Exception as e:
         logger.error(f"Erro ao aplicar recomendação: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/validations/historical")
+async def get_historical_validations(
+    namespace: Optional[str] = None,
+    time_range: str = "24h",
+    k8s_client=Depends(get_k8s_client)
+):
+    """Obter validações com análise histórica do Prometheus"""
+    try:
+        validation_service = ValidationService()
+        
+        # Coletar pods
+        if namespace:
+            namespace_resources = await k8s_client.get_namespace_resources(namespace)
+            pods = namespace_resources.pods
+        else:
+            pods = await k8s_client.get_all_pods()
+        
+        # Validar com análise histórica
+        all_validations = []
+        for pod in pods:
+            pod_validations = await validation_service.validate_pod_resources_with_historical_analysis(
+                pod, time_range
+            )
+            all_validations.extend(pod_validations)
+        
+        return {
+            "validations": all_validations,
+            "total": len(all_validations),
+            "time_range": time_range,
+            "namespace": namespace or "all"
+        }
+        
+    except Exception as e:
+        logger.error(f"Erro ao obter validações históricas: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/cluster/historical-summary")
+async def get_cluster_historical_summary(
+    time_range: str = "24h"
+):
+    """Obter resumo histórico do cluster"""
+    try:
+        historical_service = HistoricalAnalysisService()
+        summary = await historical_service.get_cluster_historical_summary(time_range)
+        
+        return {
+            "summary": summary,
+            "time_range": time_range,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Erro ao obter resumo histórico: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/health")
