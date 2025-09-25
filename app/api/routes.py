@@ -175,12 +175,13 @@ async def get_validations_by_namespace(
     severity: Optional[str] = None,
     page: int = 1,
     page_size: int = 20,
+    include_system_namespaces: bool = False,
     k8s_client=Depends(get_k8s_client)
 ):
     """Listar validações agrupadas por namespace com paginação"""
     try:
-        # Coletar todos os pods
-        pods = await k8s_client.get_all_pods()
+        # Coletar todos os pods com filtro de namespaces do sistema
+        pods = await k8s_client.get_all_pods(include_system_namespaces=include_system_namespaces)
         
         # Validar recursos e agrupar por namespace
         namespace_validations = {}

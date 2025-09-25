@@ -44,7 +44,20 @@ class K8sClient:
             logger.error(f"Erro ao inicializar cliente Kubernetes: {e}")
             raise
     
-    async def get_all_pods(self) -> List[PodResource]:
+    def _is_system_namespace(self, namespace: str, include_system: bool = None) -> bool:
+        """Verificar se um namespace é do sistema"""
+        # Usar parâmetro se fornecido, senão usar configuração global
+        should_include = include_system if include_system is not None else settings.include_system_namespaces
+        
+        if should_include:
+            return False
+        
+        for prefix in settings.system_namespace_prefixes:
+            if namespace.startswith(prefix):
+                return True
+        return False
+    
+    async def get_all_pods(self, include_system_namespaces: bool = None) -> List[PodResource]:
         """Coletar informações de todos os pods do cluster"""
         if not self.initialized:
             raise RuntimeError("Cliente Kubernetes não inicializado")
@@ -56,6 +69,9 @@ class K8sClient:
             pods = self.v1.list_pod_for_all_namespaces(watch=False)
             
             for pod in pods.items:
+                # Filtrar namespaces do sistema
+                if self._is_system_namespace(pod.metadata.namespace, include_system_namespaces):
+                    continue
                 pod_resource = PodResource(
                     name=pod.metadata.name,
                     namespace=pod.metadata.namespace,
@@ -101,6 +117,18 @@ class K8sClient:
         """Coletar recursos de um namespace específico"""
         if not self.initialized:
             raise RuntimeError("Cliente Kubernetes não inicializado")
+        
+        # Verificar se é namespace do sistema
+        if self._is_system_namespace(namespace):
+            logger.info(f"Namespace {namespace} é do sistema, retornando vazio")
+            return NamespaceResources(
+                name=namespace,
+                pods=[],
+                total_cpu_requests="0",
+                total_cpu_limits="0",
+                total_memory_requests="0",
+                total_memory_limits="0"
+            )
         
         try:
             # Listar pods do namespace

@@ -89,6 +89,16 @@ spec:
             configMapKeyRef:
               name: resource-governance-config
               key: CRITICAL_NAMESPACES
+        - name: INCLUDE_SYSTEM_NAMESPACES
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: INCLUDE_SYSTEM_NAMESPACES
+        - name: SYSTEM_NAMESPACE_PREFIXES
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: SYSTEM_NAMESPACE_PREFIXES
         - name: PROMETHEUS_URL
           valueFrom:
             configMapKeyRef:

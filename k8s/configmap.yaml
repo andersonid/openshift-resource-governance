@@ -16,6 +16,10 @@ data:
   # Namespaces críticos para VPA
   CRITICAL_NAMESPACES: '["openshift-monitoring", "openshift-ingress", "openshift-apiserver", "openshift-controller-manager", "openshift-sdn"]'
   
+  # Configurações de filtro de namespaces
+  INCLUDE_SYSTEM_NAMESPACES: "false"
+  SYSTEM_NAMESPACE_PREFIXES: '["kube-", "openshift-", "default", "kube-system", "kube-public", "kube-node-lease"]'
+  
   # URL do Prometheus
   PROMETHEUS_URL: "http://prometheus.openshift-monitoring.svc.cluster.local:9090"
   

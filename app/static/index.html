@@ -488,6 +488,19 @@
             border-radius: 4px;
         }
 
+        .checkbox-label {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            margin: 0;
+            width: auto;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -635,6 +648,12 @@
                         <option value="100">100</option>
                     </select>
                 </div>
+                <div class="filter-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="includeSystemNamespaces" onchange="loadValidationsByNamespace()">
+                        Incluir namespaces do sistema
+                    </label>
+                </div>
                 <button class="btn" onclick="loadValidationsByNamespace()">Aplicar Filtros</button>
             </div>
             
@@ -727,6 +746,7 @@
             try {
                 const severity = document.getElementById('severityFilter').value;
                 const pageSize = parseInt(document.getElementById('pageSizeFilter').value);
+                const includeSystem = document.getElementById('includeSystemNamespaces').checked;
                 
                 currentSeverity = severity;
                 currentPageSize = pageSize;
@@ -734,7 +754,8 @@
                 
                 const params = new URLSearchParams({
                     page: currentPage,
-                    page_size: currentPageSize
+                    page_size: currentPageSize,
+                    include_system_namespaces: includeSystem
                 });
                 
                 if (severity) {

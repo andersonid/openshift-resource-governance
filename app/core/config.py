@@ -4,6 +4,7 @@ Configurações da aplicação
 import os
 from typing import List, Optional
 from pydantic_settings import BaseSettings
+from pydantic import Field
 
 class Settings(BaseSettings):
     """Configurações da aplicação"""
@@ -30,6 +31,24 @@ class Settings(BaseSettings):
         "openshift-controller-manager",
         "openshift-sdn"
     ]
+    
+    # Configurações de filtro de namespaces
+    include_system_namespaces: bool = Field(default=False, alias="INCLUDE_SYSTEM_NAMESPACES")
+    system_namespace_prefixes: List[str] = Field(
+        default=[
+            "kube-",
+            "openshift-",
+            "default",
+            "kube-system",
+            "kube-public",
+            "kube-node-lease"
+        ],
+        alias="SYSTEM_NAMESPACE_PREFIXES"
+    )
+    
+    class Config:
+        env_file = ".env"
+        case_sensitive = False
     
     # Configurações de relatório
     report_export_path: str = "/tmp/reports"

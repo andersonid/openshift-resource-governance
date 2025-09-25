@@ -29,11 +29,9 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 RUN mkdir -p /app /tmp/reports && \
     chown -R appuser:appuser /app /tmp/reports
 
-# Copiar dependências Python do stage anterior
-COPY --from=builder /root/.local /home/appuser/.local
-
-# Definir PATH para incluir dependências locais
-ENV PATH=/home/appuser/.local/bin:$PATH
+# Instalar dependências Python globalmente
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Definir diretório de trabalho
 WORKDIR /app
