@@ -2,97 +2,93 @@
 # Use build-only.yml for public clusters and deploy-to-cluster.sh for local deployment
 name: Deploy to OpenShift (DISABLED)
 
-on:
-  # Disabled - use build-only.yml instead
-  # push:
-  #   branches: [ main ]
-  # pull_request:
-  #   branches: [ main ]
-  # workflow_dispatch:
+# This workflow is completely disabled
+# on:
+#   workflow_dispatch:
 
-env:
-  IMAGE_NAME: resource-governance
-  REGISTRY: andersonid
-  NAMESPACE: resource-governance
+# env:
+#   IMAGE_NAME: resource-governance
+#   REGISTRY: andersonid
+#   NAMESPACE: resource-governance
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        
-    - name: Run basic syntax check
-      run: |
-        python -m py_compile app/main.py
-        echo "✅ Syntax check passed"
-        
-    - name: Set up Podman
-      run: |
-        sudo apt-get update -qq
-        sudo apt-get install -y -qq podman buildah skopeo
-        
-    - name: Login to Docker Hub
-      run: |
-        echo "${{ secrets.DOCKERHUB_TOKEN }}" | podman login docker.io -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-        
-    - name: Build and push image with Podman
-      run: |
-        # Build da imagem com cache
-        podman build --layers -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
-        
-        # Tag como latest
-        podman tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-        
-        # Push das imagens
-        podman push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        podman push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-        
-    - name: Install OpenShift CLI
-      run: |
-        curl -L https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz | tar -xz -C /usr/local/bin/
-        chmod +x /usr/local/bin/oc
-        
-    - name: Deploy to OpenShift
-      if: github.ref == 'refs/heads/main'
-      run: |
-        # Login to OpenShift
-        oc login ${{ secrets.OPENSHIFT_SERVER }} --token="${{ secrets.OPENSHIFT_TOKEN }}"
-        
-        # Apply manifests (namespace, rbac, configmap)
-        oc apply -f k8s/namespace.yaml
-        oc apply -f k8s/rbac.yaml
-        oc apply -f k8s/configmap.yaml
-        
-        # Update deployment with new image
-        oc set image deployment/${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n ${{ env.NAMESPACE }} || true
-        
-        # Apply deployment, service and route
-        oc apply -f k8s/deployment.yaml
-        oc apply -f k8s/service.yaml
-        oc apply -f k8s/route.yaml
-        
-        # Wait for rollout
-        oc rollout status deployment/${{ env.IMAGE_NAME }} -n ${{ env.NAMESPACE }} --timeout=300s
-        
-        # Verify deployment
-        oc get deployment ${{ env.IMAGE_NAME }} -n ${{ env.NAMESPACE }}
-        oc get pods -n ${{ env.NAMESPACE }} -l app.kubernetes.io/name=${{ env.IMAGE_NAME }}
-        
-        # Get route URL
-        ROUTE_URL=$(oc get route ${{ env.IMAGE_NAME }}-route -n ${{ env.NAMESPACE }} -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
-        if [ -n "$ROUTE_URL" ]; then
-          echo "🚀 Application deployed successfully!"
-          echo "🌐 URL: https://$ROUTE_URL"
-          echo "📊 Status: oc get pods -n ${{ env.NAMESPACE }} -l app.kubernetes.io/name=${{ env.IMAGE_NAME }}"
-        fi
-      env:
-        OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
-        OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 30
+#     
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v4
+#       
+#     - name: Set up Python
+#       uses: actions/setup-python@v4
+#       with:
+#         python-version: '3.11'
+#         
+#     - name: Run basic syntax check
+#       run: |
+#         python -m py_compile app/main.py
+#         echo "✅ Syntax check passed"
+#         
+#     - name: Set up Podman
+#       run: |
+#         sudo apt-get update -qq
+#         sudo apt-get install -y -qq podman buildah skopeo
+#         
+#     - name: Login to Docker Hub
+#       run: |
+#         echo "${{ secrets.DOCKERHUB_TOKEN }}" | podman login docker.io -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+#         
+#     - name: Build and push image with Podman
+#       run: |
+#         # Build da imagem com cache
+#         podman build --layers -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+#         
+#         # Tag como latest
+#         podman tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+#         
+#         # Push das imagens
+#         podman push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+#         podman push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+#         
+#     - name: Install OpenShift CLI
+#       run: |
+#         curl -L https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz | tar -xz -C /usr/local/bin/
+#         chmod +x /usr/local/bin/oc
+#         
+#     - name: Deploy to OpenShift
+#       if: github.ref == 'refs/heads/main'
+#       run: |
+#         # Login to OpenShift
+#         oc login ${{ secrets.OPENSHIFT_SERVER }} --token="${{ secrets.OPENSHIFT_TOKEN }}"
+#         
+#         # Apply manifests (namespace, rbac, configmap)
+#         oc apply -f k8s/namespace.yaml
+#         oc apply -f k8s/rbac.yaml
+#         oc apply -f k8s/configmap.yaml
+#         
+#         # Update deployment with new image
+#         oc set image deployment/${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n ${{ env.NAMESPACE }} || true
+#         
+#         # Apply deployment, service and route
+#         oc apply -f k8s/deployment.yaml
+#         oc apply -f k8s/service.yaml
+#         oc apply -f k8s/route.yaml
+#         
+#         # Wait for rollout
+#         oc rollout status deployment/${{ env.IMAGE_NAME }} -n ${{ env.NAMESPACE }} --timeout=300s
+#         
+#         # Verify deployment
+#         oc get deployment ${{ env.IMAGE_NAME }} -n ${{ env.NAMESPACE }}
+#         oc get pods -n ${{ env.NAMESPACE }} -l app.kubernetes.io/name=${{ env.IMAGE_NAME }}
+#         
+#         # Get route URL
+#         ROUTE_URL=$(oc get route ${{ env.IMAGE_NAME }}-route -n ${{ env.NAMESPACE }} -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
+#         if [ -n "$ROUTE_URL" ]; then
+#           echo "🚀 Application deployed successfully!"
+#           echo "🌐 URL: https://$ROUTE_URL"
+#           echo "📊 Status: oc get pods -n ${{ env.NAMESPACE }} -l app.kubernetes.io/name=${{ env.IMAGE_NAME }}"
+#         fi
+#       env:
+#         OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
+#         OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
