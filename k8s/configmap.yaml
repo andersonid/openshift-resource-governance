@@ -14,12 +14,7 @@ data:
   MIN_MEMORY_REQUEST: "32Mi"
   
   # Namespaces críticos para VPA
-  CRITICAL_NAMESPACES: |
-    openshift-monitoring
-    openshift-ingress
-    openshift-apiserver
-    openshift-controller-manager
-    openshift-sdn
+  CRITICAL_NAMESPACES: '["openshift-monitoring", "openshift-ingress", "openshift-apiserver", "openshift-controller-manager", "openshift-sdn"]'
   
   # URL do Prometheus
   PROMETHEUS_URL: "http://prometheus.openshift-monitoring.svc.cluster.local:9090"
