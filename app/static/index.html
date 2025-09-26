@@ -506,9 +506,13 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
         }
 
         .modal-content {
@@ -774,7 +778,7 @@
         <div class="success hidden" id="success"></div>
 
         <!-- Historical Analysis Modal -->
-        <div class="modal hidden" id="historicalModal">
+        <div class="modal hidden" id="historicalModal" style="display: none;">
             <div class="modal-content">
                 <div class="modal-header">
                     <h2 id="historicalModalTitle">Historical Analysis</h2>
@@ -1453,11 +1457,11 @@
 
         function showHistoricalModal(namespace) {
             document.getElementById('historicalModalTitle').textContent = `Historical Analysis - ${namespace}`;
-            document.getElementById('historicalModal').classList.remove('hidden');
+            document.getElementById('historicalModal').classList.add('show');
         }
 
         function closeHistoricalModal() {
-            document.getElementById('historicalModal').classList.add('hidden');
+            document.getElementById('historicalModal').classList.remove('show');
         }
 
         // Close modal when clicking outside
