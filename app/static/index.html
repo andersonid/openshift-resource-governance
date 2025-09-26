@@ -15,6 +15,77 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #f5f5f5;
             color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid #34495e;
+            background: #34495e;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: #34495e;
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        .nav-item.active {
+            background: #3498db;
+            color: white;
+            border-left-color: #2980b9;
+        }
+
+        .nav-icon {
+            font-size: 1.2rem;
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-text {
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            min-height: 100vh;
         }
 
         .header {
@@ -634,12 +705,39 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>OpenShift Resource Governance Tool</h1>
-        <p>Resource governance tool for OpenShift clusters</p>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Resource Governance</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="dashboard">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Resource Analysis</span>
+            </a>
+            <a href="#" class="nav-item" data-section="vpa-recommendations">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-text">VPA Recommendations</span>
+            </a>
+            <a href="#" class="nav-item" data-section="historical-analysis">
+                <span class="nav-icon">📈</span>
+                <span class="nav-text">Historical Analysis</span>
+            </a>
+            <a href="#" class="nav-item" data-section="vpa-health">
+                <span class="nav-icon">⚡</span>
+                <span class="nav-text">VPA Health</span>
+            </a>
+        </nav>
     </div>
 
-    <div class="container">
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h1>OpenShift Resource Governance Tool</h1>
+            <p>Resource governance tool for OpenShift clusters</p>
+        </div>
+
+        <div class="container">
         <!-- Cluster Statistics -->
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
@@ -1573,5 +1671,7 @@
             }
         });
     </script>
+        </div> <!-- Close main-content -->
+    </div> <!-- Close container -->
 </body>
 </html>
