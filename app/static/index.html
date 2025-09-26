@@ -88,6 +88,71 @@
             min-height: 100vh;
         }
 
+        /* Export Button */
+        .export-button {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background 0.3s ease;
+        }
+
+        .export-button:hover {
+            background: #218838;
+        }
+
+        /* Export Modal Styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: normal;
+            margin-bottom: 0;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
         .header {
             background: linear-gradient(135deg, #cc0000, #8b0000);
             color: white;
@@ -737,6 +802,9 @@
             <p>Resource governance tool for OpenShift clusters</p>
         </div>
 
+        <!-- Export Button -->
+        <button class="export-button" onclick="showExportModal()">Export</button>
+
         <div class="container">
         <!-- Cluster Statistics -->
         <div class="stats-grid" id="statsGrid">
@@ -759,34 +827,8 @@
         </div>
 
         <!-- Controls -->
-        <div class="card">
-            <h2>Controls</h2>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                <button class="btn" onclick="loadClusterStatus()">Refresh Status</button>
-                <button class="btn btn-secondary" onclick="loadValidationsByNamespace()">View Analysis</button>
-                <button class="btn btn-secondary" onclick="loadVPARecommendations()">View VPA</button>
-            </div>
-        </div>
 
         <!-- Export Reports -->
-        <div class="card">
-            <h2>Export Reports</h2>
-            <div class="export-section">
-                <select id="exportFormat">
-                    <option value="json">JSON</option>
-                    <option value="csv">CSV</option>
-                    <option value="pdf">PDF</option>
-                </select>
-                <input type="text" id="namespaces" placeholder="Namespaces (optional, comma-separated)">
-                <label>
-                    <input type="checkbox" id="includeVPA" checked> Include VPA
-                </label>
-                <label>
-                    <input type="checkbox" id="includeValidations" checked> Include Analysis
-                </label>
-                <button class="btn" onclick="exportReport()">Export</button>
-            </div>
-        </div>
 
         <!-- Historical Analysis -->
         <div class="card" id="historicalCard" style="display: none;">
@@ -874,6 +916,44 @@
 
         <!-- Success -->
         <div class="success hidden" id="success"></div>
+
+        <!-- Export Modal -->
+        <div class="modal hidden" id="exportModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Export Report</h2>
+                    <button class="modal-close" onclick="closeExportModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="export-section">
+                        <div class="form-group">
+                            <label for="exportFormat">Format:</label>
+                            <select id="exportFormat">
+                                <option value="xlsx">Excel (XLSX)</option>
+                                <option value="csv">CSV</option>
+                                <option value="pdf">PDF</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="exportNamespaces">Namespaces (optional):</label>
+                            <input type="text" id="exportNamespaces" placeholder="Comma-separated list">
+                        </div>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="includeVPA" checked> Include VPA
+                            </label>
+                            <label>
+                                <input type="checkbox" id="includeValidations" checked> Include Analysis
+                            </label>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn btn-secondary" onclick="closeExportModal()">Cancel</button>
+                            <button class="btn" onclick="exportReport()">Export</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Historical Analysis Modal -->
         <div class="modal hidden" id="historicalModal" style="display: none;">
@@ -1668,6 +1748,71 @@
         document.getElementById('historicalModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeHistoricalModal();
+            }
+        });
+
+        // Export Modal Functions
+        function showExportModal() {
+            document.getElementById('exportModal').classList.add('show');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('show');
+        }
+
+        async function exportReport() {
+            const format = document.getElementById('exportFormat').value;
+            const namespaces = document.getElementById('exportNamespaces').value;
+            const includeVPA = document.getElementById('includeVPA').checked;
+            const includeValidations = document.getElementById('includeValidations').checked;
+
+            try {
+                const response = await fetch('/api/v1/export', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        format: format,
+                        namespaces: namespaces ? namespaces.split(',').map(ns => ns.trim()) : null,
+                        include_vpa: includeVPA,
+                        include_validations: includeValidations
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                // Get filename from response headers
+                const contentDisposition = response.headers.get('Content-Disposition');
+                const filename = contentDisposition 
+                    ? contentDisposition.split('filename=')[1].replace(/"/g, '')
+                    : `report.${format}`;
+
+                // Download the file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                closeExportModal();
+                showSuccess('Report exported successfully!');
+
+            } catch (error) {
+                showError('Error exporting report: ' + error.message);
+            }
+        }
+
+        // Close export modal when clicking outside
+        document.getElementById('exportModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeExportModal();
             }
         });
     </script>
