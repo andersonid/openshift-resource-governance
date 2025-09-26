@@ -1,5 +1,5 @@
 """
-Serviço de análise histórica usando métricas do Prometheus
+Historical analysis service using Prometheus metrics
 """
 import logging
 import asyncio
@@ -14,16 +14,16 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 class HistoricalAnalysisService:
-    """Serviço para análise histórica de recursos usando Prometheus"""
+    """Service for historical resource analysis using Prometheus"""
     
     def __init__(self):
         self.prometheus_url = settings.prometheus_url
         self.time_ranges = {
-            '1h': 3600,      # 1 hora
-            '6h': 21600,     # 6 horas
-            '24h': 86400,    # 24 horas
-            '7d': 604800,    # 7 dias
-            '30d': 2592000   # 30 dias
+            '1h': 3600,      # 1 hour
+            '6h': 21600,     # 6 hours
+            '24h': 86400,    # 24 hours
+            '7d': 604800,    # 7 days
+            '30d': 2592000   # 30 days
         }
     
     async def analyze_pod_historical_usage(
@@ -31,7 +31,7 @@ class HistoricalAnalysisService:
         pod: PodResource, 
         time_range: str = '24h'
     ) -> List[ResourceValidation]:
-        """Analisar uso histórico de um pod"""
+        """Analyze historical usage of a pod"""
         validations = []
         
         if time_range not in self.time_ranges:
@@ -41,13 +41,13 @@ class HistoricalAnalysisService:
         start_time = end_time - timedelta(seconds=self.time_ranges[time_range])
         
         try:
-            # Analisar CPU
+            # Analyze CPU
             cpu_analysis = await self._analyze_cpu_usage(
                 pod, start_time, end_time, time_range
             )
             validations.extend(cpu_analysis)
             
-            # Analisar memória
+            # Analyze memory
             memory_analysis = await self._analyze_memory_usage(
                 pod, start_time, end_time, time_range
             )
@@ -74,14 +74,14 @@ class HistoricalAnalysisService:
         end_time: datetime,
         time_range: str
     ) -> List[ResourceValidation]:
-        """Analisar uso histórico de CPU"""
+        """Analyze historical CPU usage"""
         validations = []
         
         for container in pod.containers:
             container_name = container["name"]
             
             try:
-                # Query para CPU usage rate
+                # Query for CPU usage rate
                 cpu_query = f'''
                 rate(container_cpu_usage_seconds_total{{
                     pod="{pod.name}",
@@ -92,7 +92,7 @@ class HistoricalAnalysisService:
                 }}[{time_range}])
                 '''
                 
-                # Query para CPU requests
+                # Query for CPU requests
                 cpu_requests_query = f'''
                 kube_pod_container_resource_requests{{
                     pod="{pod.name}",
@@ -101,7 +101,7 @@ class HistoricalAnalysisService:
                 }}
                 '''
                 
-                # Query para CPU limits
+                # Query for CPU limits
                 cpu_limits_query = f'''
                 kube_pod_container_resource_limits{{
                     pod="{pod.name}",
@@ -110,7 +110,7 @@ class HistoricalAnalysisService:
                 }}
                 '''
                 
-                # Executar queries
+                # Execute queries
                 cpu_usage = await self._query_prometheus(cpu_query, start_time, end_time)
                 cpu_requests = await self._query_prometheus(cpu_requests_query, start_time, end_time)
                 cpu_limits = await self._query_prometheus(cpu_limits_query, start_time, end_time)
@@ -134,14 +134,14 @@ class HistoricalAnalysisService:
         end_time: datetime,
         time_range: str
     ) -> List[ResourceValidation]:
-        """Analisar uso histórico de memória"""
+        """Analyze historical memory usage"""
         validations = []
         
         for container in pod.containers:
             container_name = container["name"]
             
             try:
-                # Query para memória usage
+                # Query for memory usage
                 memory_query = f'''
                 container_memory_working_set_bytes{{
                     pod="{pod.name}",
@@ -152,7 +152,7 @@ class HistoricalAnalysisService:
                 }}
                 '''
                 
-                # Query para memória requests
+                # Query for memory requests
                 memory_requests_query = f'''
                 kube_pod_container_resource_requests{{
                     pod="{pod.name}",
@@ -161,7 +161,7 @@ class HistoricalAnalysisService:
                 }}
                 '''
                 
-                # Query para memória limits
+                # Query for memory limits
                 memory_limits_query = f'''
                 kube_pod_container_resource_limits{{
                     pod="{pod.name}",
@@ -170,7 +170,7 @@ class HistoricalAnalysisService:
                 }}
                 '''
                 
-                # Executar queries
+                # Execute queries
                 memory_usage = await self._query_prometheus(memory_query, start_time, end_time)
                 memory_requests = await self._query_prometheus(memory_requests_query, start_time, end_time)
                 memory_limits = await self._query_prometheus(memory_limits_query, start_time, end_time)
@@ -197,22 +197,22 @@ class HistoricalAnalysisService:
         limits_data: List[Dict],
         time_range: str
     ) -> List[ResourceValidation]:
-        """Analisar métricas de CPU"""
+        """Analyze CPU metrics"""
         validations = []
         
         if not usage_data or not requests_data:
             return validations
         
-        # Calcular estatísticas de uso
+        # Calculate usage statistics
         usage_values = [float(point[1]) for point in usage_data if point[1] != 'NaN']
         if not usage_values:
             return validations
         
-        # Valores atuais de requests/limits
+        # Current values of requests/limits
         current_requests = float(requests_data[0][1]) if requests_data else 0
         current_limits = float(limits_data[0][1]) if limits_data else 0
         
-        # Estatísticas de uso
+        # Usage statistics
         avg_usage = sum(usage_values) / len(usage_values)
         max_usage = max(usage_values)
         p95_usage = sorted(usage_values)[int(len(usage_values) * 0.95)]
@@ -282,28 +282,28 @@ class HistoricalAnalysisService:
         limits_data: List[Dict],
         time_range: str
     ) -> List[ResourceValidation]:
-        """Analisar métricas de memória"""
+        """Analyze memory metrics"""
         validations = []
         
         if not usage_data or not requests_data:
             return validations
         
-        # Calcular estatísticas de uso
+        # Calculate usage statistics
         usage_values = [float(point[1]) for point in usage_data if point[1] != 'NaN']
         if not usage_values:
             return validations
         
-        # Valores atuais de requests/limits (em bytes)
+        # Current values of requests/limits (in bytes)
         current_requests = float(requests_data[0][1]) if requests_data else 0
         current_limits = float(limits_data[0][1]) if limits_data else 0
         
-        # Estatísticas de uso
+        # Usage statistics
         avg_usage = sum(usage_values) / len(usage_values)
         max_usage = max(usage_values)
         p95_usage = sorted(usage_values)[int(len(usage_values) * 0.95)]
         p99_usage = sorted(usage_values)[int(len(usage_values) * 0.99)]
         
-        # Converter para MiB para melhor legibilidade
+        # Convert to MiB for better readability
         def bytes_to_mib(bytes_value):
             return bytes_value / (1024 * 1024)
         
@@ -362,14 +362,14 @@ class HistoricalAnalysisService:
         return validations
     
     async def _query_prometheus(self, query: str, start_time: datetime, end_time: datetime) -> List[Dict]:
-        """Executar query no Prometheus"""
+        """Execute query in Prometheus"""
         try:
             async with aiohttp.ClientSession() as session:
                 params = {
                     'query': query,
                     'start': start_time.timestamp(),
                     'end': end_time.timestamp(),
-                    'step': '60s'  # 1 minuto de resolução
+                    'step': '60s'  # 1 minute resolution
                 }
                 
                 async with session.get(
@@ -389,9 +389,9 @@ class HistoricalAnalysisService:
             return []
     
     async def get_cluster_historical_summary(self, time_range: str = '24h') -> Dict[str, Any]:
-        """Obter resumo histórico do cluster"""
+        """Get cluster historical summary"""
         try:
-            # Query para CPU total do cluster
+            # Query for total cluster CPU
             cpu_query = f'''
             sum(rate(container_cpu_usage_seconds_total{{
                 container!="POD",
@@ -399,7 +399,7 @@ class HistoricalAnalysisService:
             }}[{time_range}]))
             '''
             
-            # Query para memória total do cluster
+            # Query for total cluster memory
             memory_query = f'''
             sum(container_memory_working_set_bytes{{
                 container!="POD",
@@ -407,7 +407,7 @@ class HistoricalAnalysisService:
             }})
             '''
             
-            # Query para requests totais
+            # Query for total requests
             cpu_requests_query = f'''
             sum(kube_pod_container_resource_requests{{resource="cpu"}})
             '''
@@ -416,7 +416,7 @@ class HistoricalAnalysisService:
             sum(kube_pod_container_resource_requests{{resource="memory"}})
             '''
             
-            # Executar queries
+            # Execute queries
             cpu_usage = await self._query_prometheus(cpu_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
                 datetime.now())

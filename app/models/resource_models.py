@@ -1,17 +1,17 @@
 """
-Modelos de dados para recursos Kubernetes
+Data models for Kubernetes resources
 """
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 
 class ContainerResource(BaseModel):
-    """Recursos de um container"""
+    """Container resources"""
     name: str
     image: str
     resources: Dict[str, Dict[str, str]]
 
 class PodResource(BaseModel):
-    """Recursos de um pod"""
+    """Pod resources"""
     name: str
     namespace: str
     node_name: Optional[str] = None
@@ -19,7 +19,7 @@ class PodResource(BaseModel):
     containers: List[ContainerResource]
 
 class NamespaceResources(BaseModel):
-    """Recursos de um namespace"""
+    """Namespace resources"""
     name: str
     pods: List[PodResource]
     total_cpu_requests: str = "0"
@@ -28,14 +28,14 @@ class NamespaceResources(BaseModel):
     total_memory_limits: str = "0"
 
 class VPARecommendation(BaseModel):
-    """Recomendação do VPA"""
+    """VPA recommendation"""
     name: str
     namespace: str
     target_ref: Dict[str, str]
     recommendations: Dict[str, Any]
 
 class ResourceValidation(BaseModel):
-    """Resultado de validação de recursos"""
+    """Resource validation result"""
     pod_name: str
     namespace: str
     container_name: str
@@ -72,7 +72,7 @@ class ExportRequest(BaseModel):
     include_validations: bool = True
 
 class ApplyRecommendationRequest(BaseModel):
-    """Request para aplicar recomendação"""
+    """Request to apply recommendation"""
     pod_name: str
     namespace: str
     container_name: str

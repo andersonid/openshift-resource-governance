@@ -18,12 +18,12 @@ class Settings(BaseSettings):
     prometheus_url: str = "http://prometheus.openshift-monitoring.svc.cluster.local:9090"
     
     # Validation settings
-    cpu_limit_ratio: float = 3.0  # Ratio padrão limit:request para CPU
-    memory_limit_ratio: float = 3.0  # Ratio padrão limit:request para memória
-    min_cpu_request: str = "10m"  # Mínimo de CPU request
-    min_memory_request: str = "32Mi"  # Mínimo de memória request
+    cpu_limit_ratio: float = 3.0  # Default limit:request ratio for CPU
+    memory_limit_ratio: float = 3.0  # Default limit:request ratio for memory
+    min_cpu_request: str = "10m"  # Minimum CPU request
+    min_memory_request: str = "32Mi"  # Minimum memory request
     
-    # Namespaces críticos para VPA
+    # Critical namespaces for VPA
     critical_namespaces: List[str] = [
         "openshift-monitoring",
         "openshift-ingress",

@@ -1,5 +1,5 @@
 """
-Cliente Prometheus para coleta de métricas
+Prometheus client for metrics collection
 """
 import logging
 import aiohttp
@@ -12,7 +12,7 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 class PrometheusClient:
-    """Cliente para interação com Prometheus"""
+    """Client for Prometheus interaction"""
     
     def __init__(self):
         self.base_url = settings.prometheus_url
@@ -20,25 +20,25 @@ class PrometheusClient:
         self.initialized = False
     
     async def initialize(self):
-        """Inicializar cliente Prometheus"""
+        """Initialize Prometheus client"""
         try:
             self.session = aiohttp.ClientSession()
             
-            # Testar conexão
+            # Test connection
             async with self.session.get(f"{self.base_url}/api/v1/query?query=up") as response:
                 if response.status == 200:
                     self.initialized = True
                     logger.info("Prometheus client initialized successfully")
                 else:
-                    logger.warning(f"Prometheus retornou status {response.status}")
+                    logger.warning(f"Prometheus returned status {response.status}")
                     
         except Exception as e:
             logger.error(f"Error initializing Prometheus client: {e}")
-            # Prometheus pode não estar disponível, continuar sem ele
+            # Prometheus may not be available, continue without it
             self.initialized = False
     
     async def query(self, query: str, time: Optional[datetime] = None) -> Dict[str, Any]:
-        """Executar query no Prometheus"""
+        """Execute query in Prometheus"""
         if not self.initialized or not self.session:
             return {"status": "error", "message": "Prometheus not available"}
         
@@ -63,17 +63,17 @@ class PrometheusClient:
             return {"status": "error", "message": str(e)}
     
     async def get_pod_cpu_usage(self, namespace: str, pod_name: str) -> Dict[str, Any]:
-        """Obter uso de CPU de um pod específico"""
+        """Get CPU usage for a specific pod"""
         query = f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}", pod="{pod_name}"}}[5m])'
         return await self.query(query)
     
     async def get_pod_memory_usage(self, namespace: str, pod_name: str) -> Dict[str, Any]:
-        """Obter uso de memória de um pod específico"""
+        """Get memory usage for a specific pod"""
         query = f'container_memory_working_set_bytes{{namespace="{namespace}", pod="{pod_name}"}}'
         return await self.query(query)
     
     async def get_namespace_resource_usage(self, namespace: str) -> Dict[str, Any]:
-        """Obter uso de recursos de um namespace"""
+        """Get resource usage of a namespace"""
         cpu_query = f'sum(rate(container_cpu_usage_seconds_total{{namespace="{namespace}"}}[5m]))'
         memory_query = f'sum(container_memory_working_set_bytes{{namespace="{namespace}"}})'
         
@@ -86,7 +86,7 @@ class PrometheusClient:
         }
     
     async def get_cluster_overcommit(self) -> Dict[str, Any]:
-        """Verificar overcommit no cluster"""
+        """Check overcommit in cluster"""
         # CPU overcommit
         cpu_capacity_query = 'sum(kube_node_status_capacity{resource="cpu"})'
         cpu_requests_query = 'sum(kube_pod_container_resource_requests{resource="cpu"})'
@@ -112,7 +112,7 @@ class PrometheusClient:
         }
     
     async def get_node_resource_usage(self) -> List[Dict[str, Any]]:
-        """Obter uso de recursos por nó"""
+        """Get resource usage by node"""
         query = '''
         (
             kube_node_status_capacity{resource="cpu"} or
@@ -126,6 +126,6 @@ class PrometheusClient:
         return result
     
     async def close(self):
-        """Fechar sessão HTTP"""
+        """Close HTTP session"""
         if self.session:
             await self.session.close()

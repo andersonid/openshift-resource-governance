@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Webhook para deploy automático após GitHub Actions
-Este script pode ser executado como um serviço para detectar mudanças no Docker Hub
+Webhook for automatic deployment after GitHub Actions
+This script can be run as a service to detect changes on Docker Hub
 """
 
 import os
@@ -11,13 +11,13 @@ import logging
 from flask import Flask, request, jsonify
 from datetime import datetime
 
-# Configuração do logging
+# Logging configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Configurações
+# Configuration
 IMAGE_NAME = os.getenv('IMAGE_NAME', 'resource-governance')
 REGISTRY = os.getenv('REGISTRY', 'andersonid')
 NAMESPACE = os.getenv('NAMESPACE', 'resource-governance')
@@ -25,100 +25,100 @@ SCRIPT_PATH = os.getenv('AUTO_DEPLOY_SCRIPT', './scripts/auto-deploy.sh')
 
 @app.route('/webhook/dockerhub', methods=['POST'])
 def dockerhub_webhook():
-    """Webhook para receber notificações do Docker Hub"""
+    """Webhook to receive Docker Hub notifications"""
     try:
         data = request.get_json()
         
-        # Verificar se é uma notificação de push
+        # Check if it's a push notification
         if data.get('push_data', {}).get('tag') == 'latest':
-            logger.info(f"Recebida notificação de push para {REGISTRY}/{IMAGE_NAME}:latest")
+            logger.info(f"Received push notification for {REGISTRY}/{IMAGE_NAME}:latest")
             
-            # Executar deploy automático
+            # Execute automatic deployment
             result = run_auto_deploy('latest')
             
             return jsonify({
                 'status': 'success',
-                'message': 'Deploy automático iniciado',
+                'message': 'Automatic deployment started',
                 'result': result
             }), 200
         else:
-            logger.info(f"Push ignorado - tag: {data.get('push_data', {}).get('tag')}")
-            return jsonify({'status': 'ignored', 'message': 'Tag não é latest'}), 200
+            logger.info(f"Push ignored - tag: {data.get('push_data', {}).get('tag')}")
+            return jsonify({'status': 'ignored', 'message': 'Tag is not latest'}), 200
             
     except Exception as e:
-        logger.error(f"Erro no webhook: {e}")
+        logger.error(f"Webhook error: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/webhook/github', methods=['POST'])
 def github_webhook():
-    """Webhook para receber notificações do GitHub"""
+    """Webhook to receive GitHub notifications"""
     try:
-        # Verificar se é um push para main
+        # Check if it's a push to main
         if request.headers.get('X-GitHub-Event') == 'push':
             data = request.get_json()
             
             if data.get('ref') == 'refs/heads/main':
-                logger.info("Recebida notificação de push para main branch")
+                logger.info("Received push notification for main branch")
                 
-                # Executar deploy automático
+                # Execute automatic deployment
                 result = run_auto_deploy('latest')
                 
                 return jsonify({
                     'status': 'success',
-                    'message': 'Deploy automático iniciado',
+                    'message': 'Automatic deployment started',
                     'result': result
                 }), 200
             else:
-                logger.info(f"Push ignorado - branch: {data.get('ref')}")
-                return jsonify({'status': 'ignored', 'message': 'Branch não é main'}), 200
+                logger.info(f"Push ignored - branch: {data.get('ref')}")
+                return jsonify({'status': 'ignored', 'message': 'Branch is not main'}), 200
         else:
-            logger.info(f"Evento ignorado: {request.headers.get('X-GitHub-Event')}")
-            return jsonify({'status': 'ignored', 'message': 'Evento não é push'}), 200
+            logger.info(f"Event ignored: {request.headers.get('X-GitHub-Event')}")
+            return jsonify({'status': 'ignored', 'message': 'Event is not push'}), 200
             
     except Exception as e:
-        logger.error(f"Erro no webhook: {e}")
+        logger.error(f"Webhook error: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/deploy/<tag>', methods=['POST'])
 def manual_deploy(tag):
-    """Deploy manual com tag específica"""
+    """Manual deployment with specific tag"""
     try:
-        logger.info(f"Deploy manual solicitado para tag: {tag}")
+        logger.info(f"Manual deployment requested for tag: {tag}")
         
         result = run_auto_deploy(tag)
         
         return jsonify({
             'status': 'success',
-            'message': f'Deploy manual iniciado para tag: {tag}',
+            'message': f'Manual deployment started for tag: {tag}',
             'result': result
         }), 200
         
     except Exception as e:
-        logger.error(f"Erro no deploy manual: {e}")
+        logger.error(f"Manual deployment error: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 def run_auto_deploy(tag):
-    """Executar script de deploy automático"""
+    """Execute automatic deployment script"""
     try:
-        logger.info(f"Executando deploy automático para tag: {tag}")
+        logger.info(f"Executing automatic deployment for tag: {tag}")
         
-        # Executar script de deploy
+        # Execute deployment script
         result = subprocess.run(
             [SCRIPT_PATH, tag],
             capture_output=True,
             text=True,
-            timeout=600  # 10 minutos timeout
+            timeout=600  # 10 minutes timeout
         )
         
         if result.returncode == 0:
-            logger.info("Deploy automático concluído com sucesso")
+            logger.info("Automatic deployment completed successfully")
             return {
                 'success': True,
                 'stdout': result.stdout,
                 'stderr': result.stderr
             }
         else:
-            logger.error(f"Deploy automático falhou: {result.stderr}")
+            logger.error(f"Automatic deployment failed: {result.stderr}")
             return {
                 'success': False,
                 'stdout': result.stdout,
@@ -126,13 +126,13 @@ def run_auto_deploy(tag):
             }
             
     except subprocess.TimeoutExpired:
-        logger.error("Deploy automático timeout")
+        logger.error("Automatic deployment timeout")
         return {
             'success': False,
             'error': 'Timeout'
         }
     except Exception as e:
-        logger.error(f"Erro ao executar deploy automático: {e}")
+        logger.error(f"Error executing automatic deployment: {e}")
         return {
             'success': False,
             'error': str(e)
@@ -150,9 +150,9 @@ def health():
 
 @app.route('/status', methods=['GET'])
 def status():
-    """Status do serviço"""
+    """Service status"""
     try:
-        # Verificar se está logado no OpenShift
+        # Check if logged into OpenShift
         result = subprocess.run(['oc', 'whoami'], capture_output=True, text=True)
         
         return jsonify({
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 8080))
     debug = os.getenv('DEBUG', 'false').lower() == 'true'
     
-    logger.info(f"Iniciando webhook server na porta {port}")
-    logger.info(f"Configurações: IMAGE_NAME={IMAGE_NAME}, REGISTRY={REGISTRY}, NAMESPACE={NAMESPACE}")
+    logger.info(f"Starting webhook server on port {port}")
+    logger.info(f"Configuration: IMAGE_NAME={IMAGE_NAME}, REGISTRY={REGISTRY}, NAMESPACE={NAMESPACE}")
     
     app.run(host='0.0.0.0', port=port, debug=debug)

@@ -1,6 +1,6 @@
 """
 OpenShift Resource Governance Tool
-Aplicação para governança de recursos no cluster OpenShift
+Application for resource governance in OpenShift cluster
 """
 import os
 import logging
@@ -14,7 +14,7 @@ from app.api.routes import api_router
 from app.core.kubernetes_client import K8sClient
 from app.core.prometheus_client import PrometheusClient
 
-# Configuração de logging
+# Logging configuration
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Inicialização e cleanup da aplicação"""
-    logger.info("Iniciando OpenShift Resource Governance Tool")
+    """Application initialization and cleanup"""
+    logger.info("Starting OpenShift Resource Governance Tool")
     
-    # Inicializar clientes
+    # Initialize clients
     app.state.k8s_client = K8sClient()
     app.state.prometheus_client = PrometheusClient()
     
@@ -40,25 +40,25 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    logger.info("Finalizando aplicação")
+    logger.info("Shutting down application")
 
-# Criar aplicação FastAPI
+# Create FastAPI application
 app = FastAPI(
     title="OpenShift Resource Governance Tool",
-    description="Ferramenta de governança de recursos para clusters OpenShift",
+    description="Resource governance tool for OpenShift clusters",
     version="1.0.0",
     lifespan=lifespan
 )
 
-# Incluir rotas da API
+# Include API routes
 app.include_router(api_router, prefix="/api/v1")
 
-# Servir arquivos estáticos
+# Serve static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Página principal da aplicação"""
+    """Main application page"""
     with open("app/static/index.html", "r") as f:
         return HTMLResponse(content=f.read())
 

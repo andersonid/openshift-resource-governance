@@ -1,5 +1,5 @@
 """
-Cliente Kubernetes/OpenShift para coleta de dados
+Kubernetes/OpenShift client for data collection
 """
 import logging
 from typing import List, Dict, Any, Optional
@@ -14,7 +14,7 @@ from app.models.resource_models import PodResource, NamespaceResources, VPARecom
 logger = logging.getLogger(__name__)
 
 class K8sClient:
-    """Cliente para interação com Kubernetes/OpenShift"""
+    """Client for interaction with Kubernetes/OpenShift"""
     
     def __init__(self):
         self.v1 = None
@@ -23,16 +23,16 @@ class K8sClient:
         self.initialized = False
     
     async def initialize(self):
-        """Inicializar cliente Kubernetes"""
+        """Initialize Kubernetes client"""
         try:
-            # Tentar carregar configuração do cluster
+            # Try to load cluster configuration
             if settings.kubeconfig_path:
                 config.load_kube_config(config_file=settings.kubeconfig_path)
             else:
-                # Usar configuração in-cluster
+                # Use in-cluster configuration
                 config.load_incluster_config()
             
-            # Inicializar clientes da API
+            # Initialize API clients
             self.v1 = client.CoreV1Api()
             self.autoscaling_v1 = client.AutoscalingV1Api()
             self.apps_v1 = client.AppsV1Api()
@@ -45,8 +45,8 @@ class K8sClient:
             raise
     
     def _is_system_namespace(self, namespace: str, include_system: bool = None) -> bool:
-        """Verificar se um namespace é do sistema"""
-        # Usar parâmetro se fornecido, senão usar configuração global
+        """Check if a namespace is a system namespace"""
+        # Use parameter if provided, otherwise use global configuration
         should_include = include_system if include_system is not None else settings.include_system_namespaces
         
         if should_include:
@@ -58,18 +58,18 @@ class K8sClient:
         return False
     
     async def get_all_pods(self, include_system_namespaces: bool = None) -> List[PodResource]:
-        """Coletar informações de todos os pods do cluster"""
+        """Collect information from all pods in the cluster"""
         if not self.initialized:
             raise RuntimeError("Kubernetes client not initialized")
         
         pods_data = []
         
         try:
-            # Listar todos os pods em todos os namespaces
+            # List all pods in all namespaces
             pods = self.v1.list_pod_for_all_namespaces(watch=False)
             
             for pod in pods.items:
-                # Filtrar namespaces do sistema
+                # Filter system namespaces
                 if self._is_system_namespace(pod.metadata.namespace, include_system_namespaces):
                     continue
                 pod_resource = PodResource(
@@ -80,7 +80,7 @@ class K8sClient:
                     containers=[]
                 )
                 
-                # Processar containers do pod
+                # Process pod containers
                 for container in pod.spec.containers:
                     container_resource = {
                         "name": container.name,
@@ -91,7 +91,7 @@ class K8sClient:
                         }
                     }
                     
-                    # Extrair requests e limits
+                    # Extract requests and limits
                     if container.resources:
                         if container.resources.requests:
                             container_resource["resources"]["requests"] = {
@@ -106,7 +106,7 @@ class K8sClient:
                 
                 pods_data.append(pod_resource)
             
-            logger.info(f"Coletados {len(pods_data)} pods")
+            logger.info(f"Collected {len(pods_data)} pods")
             return pods_data
             
         except ApiException as e:
@@ -114,13 +114,13 @@ class K8sClient:
             raise
     
     async def get_namespace_resources(self, namespace: str) -> NamespaceResources:
-        """Coletar recursos de um namespace específico"""
+        """Collect resources from a specific namespace"""
         if not self.initialized:
             raise RuntimeError("Kubernetes client not initialized")
         
-        # Verificar se é namespace do sistema
+        # Check if it's a system namespace
         if self._is_system_namespace(namespace):
-            logger.info(f"Namespace {namespace} é do sistema, retornando vazio")
+            logger.info(f"Namespace {namespace} is system, returning empty")
             return NamespaceResources(
                 name=namespace,
                 pods=[],
@@ -131,7 +131,7 @@ class K8sClient:
             )
         
         try:
-            # Listar pods do namespace
+            # List namespace pods
             pods = self.v1.list_namespaced_pod(namespace=namespace)
             
             namespace_resource = NamespaceResources(
@@ -183,28 +183,28 @@ class K8sClient:
             raise
     
     async def get_vpa_recommendations(self) -> List[VPARecommendation]:
-        """Coletar recomendações do VPA"""
+        """Collect VPA recommendations"""
         if not self.initialized:
             raise RuntimeError("Kubernetes client not initialized")
         
         recommendations = []
         
         try:
-            # VPA não está disponível na API padrão do Kubernetes
-            # TODO: Implementar usando Custom Resource Definition (CRD)
-            logger.warning("VPA não está disponível na API padrão do Kubernetes")
+            # VPA is not available in the standard Kubernetes API
+            # TODO: Implement using Custom Resource Definition (CRD)
+            logger.warning("VPA is not available in the standard Kubernetes API")
             return []
             
-            logger.info(f"Coletadas {len(recommendations)} recomendações VPA")
+            logger.info(f"Collected {len(recommendations)} VPA recommendations")
             return recommendations
             
         except ApiException as e:
             logger.error(f"Error collecting VPA recommendations: {e}")
-            # VPA pode não estar instalado, retornar lista vazia
+            # VPA may not be installed, return empty list
             return []
     
     async def get_nodes_info(self) -> List[Dict[str, Any]]:
-        """Coletar informações dos nós do cluster"""
+        """Collect cluster node information"""
         if not self.initialized:
             raise RuntimeError("Kubernetes client not initialized")
         
@@ -221,19 +221,19 @@ class K8sClient:
                     "conditions": []
                 }
                 
-                # Capacidade do nó
+                # Node capacity
                 if node.status.capacity:
                     node_info["capacity"] = {
                         k: v for k, v in node.status.capacity.items()
                     }
                 
-                # Recursos alocáveis
+                # Allocatable resources
                 if node.status.allocatable:
                     node_info["allocatable"] = {
                         k: v for k, v in node.status.allocatable.items()
                     }
                 
-                # Condições do nó
+                # Node conditions
                 if node.status.conditions:
                     node_info["conditions"] = [
                         {

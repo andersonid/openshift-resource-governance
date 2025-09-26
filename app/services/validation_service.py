@@ -40,10 +40,10 @@ class ValidationService:
         time_range: str = '24h'
     ) -> List[ResourceValidation]:
         """Validate pod resources including historical analysis"""
-        # Validações estáticas
+        # Static validations
         static_validations = self.validate_pod_resources(pod)
         
-        # Análise histórica
+        # Historical analysis
         try:
             historical_validations = await self.historical_analysis.analyze_pod_historical_usage(
                 pod, time_range
@@ -66,7 +66,7 @@ class ValidationService:
         requests = resources.get("requests", {})
         limits = resources.get("limits", {})
         
-        # 1. Verificar se requests estão definidos
+        # 1. Check if requests are defined
         if not requests:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
@@ -78,7 +78,7 @@ class ValidationService:
                 recommendation="Define CPU and memory requests to guarantee QoS"
             ))
         
-        # 2. Verificar se limits estão definidos
+        # 2. Check if limits are defined
         if not limits:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
@@ -213,7 +213,7 @@ class ValidationService:
         """Validate minimum request values"""
         validations = []
         
-        # Validar CPU mínima
+        # Validate minimum CPU
         if "cpu" in requests:
             try:
                 request_value = self._parse_cpu_value(requests["cpu"])
@@ -232,7 +232,7 @@ class ValidationService:
             except (ValueError, InvalidOperation):
                 pass
         
-        # Validar memória mínima
+        # Validate minimum memory
         if "memory" in requests:
             try:
                 request_value = self._parse_memory_value(requests["memory"])
@@ -254,7 +254,7 @@ class ValidationService:
         return validations
     
     def _parse_cpu_value(self, value: str) -> float:
-        """Converter valor de CPU para float (cores)"""
+        """Convert CPU value to float (cores)"""
         if value.endswith('m'):
             return float(value[:-1]) / 1000
         elif value.endswith('n'):
@@ -263,7 +263,7 @@ class ValidationService:
             return float(value)
     
     def _parse_memory_value(self, value: str) -> int:
-        """Converter valor de memória para bytes"""
+        """Convert memory value to bytes"""
         value = value.upper()
         
         if value.endswith('KI'):
@@ -289,15 +289,15 @@ class ValidationService:
         """Validate overcommit in a namespace"""
         validations = []
         
-        # Calcular total de requests do namespace
+        # Calculate total namespace requests
         total_cpu_requests = self._parse_cpu_value(namespace_resources.total_cpu_requests)
         total_memory_requests = self._parse_memory_value(namespace_resources.total_memory_requests)
         
-        # Calcular capacidade total dos nós
+        # Calculate total node capacity
         total_cpu_capacity = self._parse_cpu_value(node_capacity.get("cpu", "0"))
         total_memory_capacity = self._parse_memory_value(node_capacity.get("memory", "0"))
         
-        # Verificar overcommit de CPU
+        # Check CPU overcommit
         if total_cpu_capacity > 0:
             cpu_utilization = (total_cpu_requests / total_cpu_capacity) * 100
             if cpu_utilization > 100:
@@ -311,7 +311,7 @@ class ValidationService:
                     recommendation="Reduce CPU requests or add more nodes to the cluster"
                 ))
         
-        # Verificar overcommit de memória
+        # Check memory overcommit
         if total_memory_capacity > 0:
             memory_utilization = (total_memory_requests / total_memory_capacity) * 100
             if memory_utilization > 100:
@@ -331,7 +331,7 @@ class ValidationService:
         """Generate recommendations based on validations"""
         recommendations = []
         
-        # Agrupar validações por tipo
+        # Group validations by type
         validation_counts = {}
         for validation in validations:
             validation_type = validation.validation_type
@@ -339,7 +339,7 @@ class ValidationService:
                 validation_counts[validation_type] = 0
             validation_counts[validation_type] += 1
         
-        # Gerar recomendações baseadas nos problemas encontrados
+        # Generate recommendations based on found issues
         if validation_counts.get("missing_requests", 0) > 0:
             recommendations.append(
                 f"Implement LimitRange in namespace to define default requests "

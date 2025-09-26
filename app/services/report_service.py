@@ -181,7 +181,7 @@ class ReportService:
         filename = f"cluster_report_{timestamp}.json"
         filepath = os.path.join(self.export_path, filename)
         
-        # Converter para dict para serialização
+        # Convert to dict for serialization
         report_dict = report.dict()
         
         with open(filepath, 'w', encoding='utf-8') as f:
@@ -198,7 +198,7 @@ class ReportService:
         with open(filepath, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             
-            # Cabeçalho
+            # Header
             writer.writerow([
                 "Pod Name", "Namespace", "Container Name", 
                 "Validation Type", "Severity", "Message", "Recommendation"
@@ -234,12 +234,12 @@ class ReportService:
             styles = getSampleStyleSheet()
             story = []
             
-            # Título
+            # Title
             title = Paragraph("OpenShift Resource Governance Report", styles['Title'])
             story.append(title)
             story.append(Spacer(1, 12))
             
-            # Resumo
+            # Summary
             summary_text = f"""
             <b>Cluster Summary:</b><br/>
             Total Pods: {report.total_pods}<br/>
@@ -276,7 +276,7 @@ class ReportService:
                     ('GRID', (0, 0), (-1, -1), 1, colors.black)
                 ]))
                 
-                story.append(Paragraph("<b>Validações:</b>", styles['Heading2']))
+                story.append(Paragraph("<b>Validations:</b>", styles['Heading2']))
                 story.append(table)
             
             doc.build(story)

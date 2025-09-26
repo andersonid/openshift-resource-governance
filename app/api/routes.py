@@ -17,19 +17,19 @@ from app.services.historical_analysis import HistoricalAnalysisService
 
 logger = logging.getLogger(__name__)
 
-# Criar router
+# Create router
 api_router = APIRouter()
 
-# Inicializar serviços
+# Initialize services
 validation_service = ValidationService()
 report_service = ReportService()
 
 def get_k8s_client(request: Request):
-    """Dependency para obter cliente Kubernetes"""
+    """Dependency to get Kubernetes client"""
     return request.app.state.k8s_client
 
 def get_prometheus_client(request: Request):
-    """Dependency para obter cliente Prometheus"""
+    """Dependency to get Prometheus client"""
     return request.app.state.prometheus_client
 
 @api_router.get("/cluster/status")
@@ -39,17 +39,17 @@ async def get_cluster_status(
 ):
     """Get overall cluster status"""
     try:
-        # Coletar dados básicos
+        # Collect basic data
         pods = await k8s_client.get_all_pods()
         nodes_info = await k8s_client.get_nodes_info()
         
-        # Validar recursos
+        # Validate resources
         all_validations = []
         for pod in pods:
             pod_validations = validation_service.validate_pod_resources(pod)
             all_validations.extend(pod_validations)
         
-        # Obter informações de overcommit
+        # Get overcommit information
         overcommit_info = await prometheus_client.get_cluster_overcommit()
         
         # Get VPA recommendations
@@ -78,19 +78,19 @@ async def get_namespace_status(
 ):
     """Get status of a specific namespace"""
     try:
-        # Coletar dados do namespace
+        # Collect namespace data
         namespace_resources = await k8s_client.get_namespace_resources(namespace)
         
-        # Validar recursos
+        # Validate resources
         all_validations = []
         for pod in namespace_resources.pods:
             pod_validations = validation_service.validate_pod_resources(pod)
             all_validations.extend(pod_validations)
         
-        # Obter uso de recursos do Prometheus
+        # Get resource usage from Prometheus
         resource_usage = await prometheus_client.get_namespace_resource_usage(namespace)
         
-        # Generate report do namespace
+        # Generate namespace report
         report = report_service.generate_namespace_report(
             namespace=namespace,
             pods=namespace_resources.pods,
@@ -131,26 +131,26 @@ async def get_validations(
 ):
     """List resource validations with pagination"""
     try:
-        # Coletar pods
+        # Collect pods
         if namespace:
             namespace_resources = await k8s_client.get_namespace_resources(namespace)
             pods = namespace_resources.pods
         else:
             pods = await k8s_client.get_all_pods()
         
-        # Validar recursos
+        # Validate resources
         all_validations = []
         for pod in pods:
             pod_validations = validation_service.validate_pod_resources(pod)
             all_validations.extend(pod_validations)
         
-        # Filtrar por severidade se especificado
+        # Filter by severity if specified
         if severity:
             all_validations = [
                 v for v in all_validations if v.severity == severity
             ]
         
-        # Paginação
+        # Pagination
         total = len(all_validations)
         start = (page - 1) * page_size
         end = start + page_size
@@ -180,10 +180,10 @@ async def get_validations_by_namespace(
 ):
     """List validations grouped by namespace with pagination"""
     try:
-        # Coletar todos os pods com filtro de namespaces do sistema
+        # Collect all pods with system namespace filter
         pods = await k8s_client.get_all_pods(include_system_namespaces=include_system_namespaces)
         
-        # Validar recursos e agrupar por namespace
+        # Validate resources and group by namespace
         namespace_validations = {}
         for pod in pods:
             pod_validations = validation_service.validate_pod_resources(pod)
@@ -203,14 +203,14 @@ async def get_validations_by_namespace(
                     "validations": []
                 }
             
-            # Filtrar por severidade se especificado
+            # Filter by severity if specified
             if severity:
                 pod_validations = [v for v in pod_validations if v.severity == severity]
             
             namespace_validations[pod.namespace]["pods"][pod.name]["validations"] = pod_validations
             namespace_validations[pod.namespace]["total_validations"] += len(pod_validations)
             
-            # Contar severidades
+            # Count severities
             for validation in pod_validations:
                 namespace_validations[pod.namespace]["severity_breakdown"][validation.severity] += 1
         
@@ -218,7 +218,7 @@ async def get_validations_by_namespace(
         namespace_list = list(namespace_validations.values())
         namespace_list.sort(key=lambda x: x["total_validations"], reverse=True)
         
-        # Paginação
+        # Pagination
         total = len(namespace_list)
         start = (page - 1) * page_size
         end = start + page_size
@@ -270,17 +270,17 @@ async def export_report(
         pods = await k8s_client.get_all_pods()
         nodes_info = await k8s_client.get_nodes_info()
         
-        # Filtrar por namespaces se especificado
+        # Filter by namespaces if specified
         if export_request.namespaces:
             pods = [p for p in pods if p.namespace in export_request.namespaces]
         
-        # Validar recursos
+        # Validate resources
         all_validations = []
         for pod in pods:
             pod_validations = validation_service.validate_pod_resources(pod)
             all_validations.extend(pod_validations)
         
-        # Obter informações adicionais
+        # Get additional information
         overcommit_info = {}
         vpa_recommendations = []
         
@@ -299,7 +299,7 @@ async def export_report(
             nodes_info=nodes_info
         )
         
-        # Exportar
+        # Export
         filepath = await report_service.export_report(report, export_request)
         
         return {
@@ -331,7 +331,7 @@ async def download_exported_file(filename: str):
         file_info = next((f for f in files if f["filename"] == filename), None)
         
         if not file_info:
-            raise HTTPException(status_code=404, detail="Arquivo não encontrado")
+            raise HTTPException(status_code=404, detail="File not found")
         
         return FileResponse(
             path=file_info["filepath"],
@@ -350,18 +350,18 @@ async def apply_recommendation(
 ):
     """Apply resource recommendation"""
     try:
-        # TODO: Implementar aplicação de recomendações
-        # Por enquanto, apenas simular
+        # TODO: Implement recommendation application
+        # For now, just simulate
         if recommendation.dry_run:
             return {
-                "message": "Dry run - recomendação seria aplicada",
+                "message": "Dry run - recommendation would be applied",
                 "pod": recommendation.pod_name,
                 "namespace": recommendation.namespace,
                 "container": recommendation.container_name,
                 "action": f"{recommendation.action} {recommendation.resource_type} = {recommendation.value}"
             }
         else:
-            # Implementar aplicação real da recomendação
+            # Implement real recommendation application
             raise HTTPException(status_code=501, detail="Recommendation application not implemented yet")
             
     except Exception as e:
@@ -378,14 +378,14 @@ async def get_historical_validations(
     try:
         validation_service = ValidationService()
         
-        # Coletar pods
+        # Collect pods
         if namespace:
             namespace_resources = await k8s_client.get_namespace_resources(namespace)
             pods = namespace_resources.pods
         else:
             pods = await k8s_client.get_all_pods()
         
-        # Validar com análise histórica
+        # Validate with historical analysis
         all_validations = []
         for pod in pods:
             pod_validations = await validation_service.validate_pod_resources_with_historical_analysis(

@@ -1,145 +1,145 @@
 #!/bin/bash
 
-# Script de deploy com ZERO DOWNTIME (Blue-Green Strategy)
-# Garante que a aplicação nunca saia do ar durante atualizações
+# Zero downtime deployment script (Blue-Green Strategy)
+# Ensures application never goes down during updates
 
 set -e
 
-# Configurações
+# Configuration
 IMAGE_NAME="resource-governance"
 REGISTRY="andersonid"
 NAMESPACE="resource-governance"
 TAG=${1:-"latest"}
 FULL_IMAGE="$REGISTRY/$IMAGE_NAME:$TAG"
 
-echo "🚀 Deploy ZERO DOWNTIME para OpenShift"
-echo "======================================"
-echo "Imagem: $FULL_IMAGE"
+echo "Zero Downtime Deploy to OpenShift"
+echo "================================="
+echo "Image: $FULL_IMAGE"
 echo "Namespace: $NAMESPACE"
-echo "Estratégia: Blue-Green (Zero Downtime)"
+echo "Strategy: Blue-Green (Zero Downtime)"
 echo ""
 
-# Verificar se está logado no OpenShift
+# Check if logged into OpenShift
 if ! oc whoami > /dev/null 2>&1; then
-    echo "❌ Não está logado no OpenShift. Execute: oc login"
+    echo "ERROR: Not logged into OpenShift. Run: oc login"
     exit 1
 fi
 
-echo "✅ Logado no OpenShift como: $(oc whoami)"
+echo "SUCCESS: Logged into OpenShift as: $(oc whoami)"
 echo ""
 
-# Função para verificar se todos os pods estão prontos
+# Function to check if all pods are ready
 check_pods_ready() {
     local deployment=$1
     local namespace=$2
     local timeout=${3:-300}
     
-    echo "⏳ Aguardando pods do deployment $deployment ficarem prontos..."
+    echo "Waiting for deployment $deployment pods to be ready..."
     oc rollout status deployment/$deployment -n $namespace --timeout=${timeout}s
 }
 
-# Função para verificar se a aplicação está respondendo
+# Function to check if application is responding
 check_app_health() {
     local service=$1
     local namespace=$2
     local port=${3:-8080}
     
-    echo "🔍 Verificando saúde da aplicação..."
+    echo "Checking application health..."
     
-    # Tentar port-forward temporário para testar
+    # Try temporary port-forward for testing
     local temp_pid
     oc port-forward service/$service $port:$port -n $namespace > /dev/null 2>&1 &
     temp_pid=$!
     
-    # Aguardar port-forward inicializar
+    # Wait for port-forward to initialize
     sleep 3
     
-    # Testar health check
+    # Test health check
     local health_status
     health_status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$port/api/v1/health 2>/dev/null || echo "000")
     
-    # Parar port-forward temporário
+    # Stop temporary port-forward
     kill $temp_pid 2>/dev/null || true
     
     if [ "$health_status" = "200" ]; then
-        echo "✅ Aplicação saudável (HTTP $health_status)"
+        echo "SUCCESS: Application healthy (HTTP $health_status)"
         return 0
     else
-        echo "❌ Aplicação não saudável (HTTP $health_status)"
+        echo "ERROR: Application not healthy (HTTP $health_status)"
         return 1
     fi
 }
 
-# Aplicar manifests básicos
-echo "📋 Aplicando manifests básicos..."
+# Apply basic manifests
+echo "Applying basic manifests..."
 oc apply -f k8s/namespace.yaml
 oc apply -f k8s/rbac.yaml
 oc apply -f k8s/configmap.yaml
 
-# Verificar se o deployment existe
+# Check if deployment exists
 if oc get deployment $IMAGE_NAME -n $NAMESPACE > /dev/null 2>&1; then
-    echo "🔄 Deployment existente encontrado. Iniciando atualização zero-downtime..."
+    echo "Existing deployment found. Starting zero-downtime update..."
     
-    # Obter número atual de réplicas
+    # Get current replica count
     CURRENT_REPLICAS=$(oc get deployment $IMAGE_NAME -n $NAMESPACE -o jsonpath='{.spec.replicas}')
-    echo "📊 Réplicas atuais: $CURRENT_REPLICAS"
+    echo "Current replicas: $CURRENT_REPLICAS"
     
-    # Atualizar imagem do deployment
-    echo "🔄 Atualizando imagem para: $FULL_IMAGE"
+    # Update deployment image
+    echo "Updating image to: $FULL_IMAGE"
     oc set image deployment/$IMAGE_NAME $IMAGE_NAME=$FULL_IMAGE -n $NAMESPACE
     
-    # Aguardar rollout com timeout maior
-    echo "⏳ Aguardando rollout (pode levar alguns minutos)..."
+    # Wait for rollout with longer timeout
+    echo "Waiting for rollout (may take a few minutes)..."
     if check_pods_ready $IMAGE_NAME $NAMESPACE 600; then
-        echo "✅ Rollout concluído com sucesso!"
+        echo "SUCCESS: Rollout completed successfully!"
         
-        # Verificar saúde da aplicação
+        # Check application health
         if check_app_health "${IMAGE_NAME}-service" $NAMESPACE; then
-            echo "🎉 Deploy zero-downtime concluído com sucesso!"
+            echo "Zero downtime deploy completed successfully!"
         else
-            echo "⚠️  Deploy concluído, mas aplicação pode não estar saudável"
-            echo "🔍 Verifique os logs: oc logs -f deployment/$IMAGE_NAME -n $NAMESPACE"
+            echo "WARNING: Deploy completed, but application may not be healthy"
+            echo "Check logs: oc logs -f deployment/$IMAGE_NAME -n $NAMESPACE"
         fi
     else
-        echo "❌ Rollout falhou ou timeout"
-        echo "🔍 Verificando status dos pods:"
+        echo "ERROR: Rollout failed or timeout"
+        echo "Checking pod status:"
         oc get pods -n $NAMESPACE -l app.kubernetes.io/name=$IMAGE_NAME
         exit 1
     fi
 else
-    echo "🆕 Deployment não existe. Criando novo deployment..."
+    echo "Deployment does not exist. Creating new deployment..."
     oc apply -f k8s/deployment.yaml
     oc apply -f k8s/service.yaml
     oc apply -f k8s/route.yaml
     
-    # Aguardar pods ficarem prontos
+    # Wait for pods to be ready
     if check_pods_ready $IMAGE_NAME $NAMESPACE 300; then
-        echo "✅ Novo deployment criado com sucesso!"
+        echo "SUCCESS: New deployment created successfully!"
     else
-        echo "❌ Falha ao criar deployment"
+        echo "ERROR: Failed to create deployment"
         exit 1
     fi
 fi
 
-# Verificar status final
+# Check final status
 echo ""
-echo "📊 STATUS FINAL:"
-echo "================"
+echo "FINAL STATUS:"
+echo "============="
 oc get deployment $IMAGE_NAME -n $NAMESPACE
 echo ""
 oc get pods -n $NAMESPACE -l app.kubernetes.io/name=$IMAGE_NAME
 echo ""
 
-# Obter URL da rota
+# Get route URL
 ROUTE_URL=$(oc get route $IMAGE_NAME-route -n $NAMESPACE -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
 if [ -n "$ROUTE_URL" ]; then
-    echo "🌐 URLs de acesso:"
+    echo "Access URLs:"
     echo "   OpenShift: https://$ROUTE_URL"
-    echo "   Port-forward: http://localhost:8080 (se ativo)"
+    echo "   Port-forward: http://localhost:8080 (if active)"
     echo ""
-    echo "💡 Para iniciar port-forward: oc port-forward service/${IMAGE_NAME}-service 8080:8080 -n $NAMESPACE"
+    echo "To start port-forward: oc port-forward service/${IMAGE_NAME}-service 8080:8080 -n $NAMESPACE"
 fi
 
 echo ""
-echo "✅ Deploy zero-downtime concluído!"
-echo "🔄 Estratégia: Rolling Update com maxUnavailable=0 (zero downtime)"
+echo "Zero downtime deploy completed!"
+echo "Strategy: Rolling Update with maxUnavailable=0 (zero downtime)"

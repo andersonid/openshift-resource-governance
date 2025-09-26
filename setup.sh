@@ -1,67 +1,67 @@
 #!/bin/bash
 
-# Script de setup para OpenShift Resource Governance Tool
+# Setup script for OpenShift Resource Governance Tool
 set -e
 
-# Cores para output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Setting up OpenShift Resource Governance Tool${NC}"
+echo -e "${BLUE}Setting up OpenShift Resource Governance Tool${NC}"
 
-# Verificar se Python está instalado
+# Check if Python is installed
 if ! command -v python3 &> /dev/null; then
-    echo -e "${RED}❌ Python 3 não está instalado.${NC}"
-    echo -e "${YELLOW}Instale Python 3.11+ e tente novamente.${NC}"
+    echo -e "${RED}ERROR: Python 3 is not installed.${NC}"
+    echo -e "${YELLOW}Install Python 3.11+ and try again.${NC}"
     exit 1
 fi
 
-# Verificar se pip está instalado
+# Check if pip is installed
 if ! command -v pip3 &> /dev/null; then
-    echo -e "${RED}❌ pip3 não está instalado.${NC}"
-    echo -e "${YELLOW}Instale pip3 e tente novamente.${NC}"
+    echo -e "${RED}ERROR: pip3 is not installed.${NC}"
+    echo -e "${YELLOW}Install pip3 and try again.${NC}"
     exit 1
 fi
 
-# Instalar dependências Python
-echo -e "${YELLOW}📦 Installing Python dependencies...${NC}"
+# Install Python dependencies
+echo -e "${YELLOW}Installing Python dependencies...${NC}"
 pip3 install -r requirements.txt
 
-# Tornar scripts executáveis
-echo -e "${YELLOW}🔧 Making scripts executable...${NC}"
+# Make scripts executable
+echo -e "${YELLOW}Making scripts executable...${NC}"
 chmod +x scripts/*.sh
 
-# Criar diretório de relatórios
-echo -e "${YELLOW}📁 Creating reports directory...${NC}"
+# Create reports directory
+echo -e "${YELLOW}Creating reports directory...${NC}"
 mkdir -p reports
 
-# Verificar se Docker está instalado
+# Check if Docker is installed
 if command -v docker &> /dev/null; then
-    echo -e "${GREEN}✅ Docker encontrado${NC}"
+    echo -e "${GREEN}SUCCESS: Docker found${NC}"
 else
-    echo -e "${YELLOW}⚠️  Docker não encontrado. Instale para fazer build da imagem.${NC}"
+    echo -e "${YELLOW}WARNING: Docker not found. Install to build image.${NC}"
 fi
 
-# Verificar se oc está instalado
+# Check if oc is installed
 if command -v oc &> /dev/null; then
-    echo -e "${GREEN}✅ OpenShift CLI (oc) encontrado${NC}"
+    echo -e "${GREEN}SUCCESS: OpenShift CLI (oc) found${NC}"
 else
-    echo -e "${YELLOW}⚠️  OpenShift CLI (oc) não encontrado. Instale para fazer deploy.${NC}"
+    echo -e "${YELLOW}WARNING: OpenShift CLI (oc) not found. Install to deploy.${NC}"
 fi
 
-echo -e "${GREEN}🎉 Setup completed successfully!${NC}"
+echo -e "${GREEN}SUCCESS: Setup completed successfully!${NC}"
 echo ""
-echo -e "${BLUE}Próximos passos:${NC}"
-echo -e "1. ${YELLOW}Desenvolvimento local:${NC} make dev"
-echo -e "2. ${YELLOW}Build da imagem:${NC} make build"
-echo -e "3. ${YELLOW}Deploy no OpenShift:${NC} make deploy"
-echo -e "4. ${YELLOW}Ver documentação:${NC} cat README.md"
+echo -e "${BLUE}Next steps:${NC}"
+echo -e "1. ${YELLOW}Local development:${NC} make dev"
+echo -e "2. ${YELLOW}Build image:${NC} make build"
+echo -e "3. ${YELLOW}Deploy to OpenShift:${NC} make deploy"
+echo -e "4. ${YELLOW}View documentation:${NC} cat README.md"
 echo ""
-echo -e "${BLUE}Comandos úteis:${NC}"
-echo -e "  make help     - Mostrar todos os comandos"
-echo -e "  make test     - Executar testes"
-echo -e "  make logs     - Ver logs da aplicação"
-echo -e "  make status   - Ver status da aplicação"
+echo -e "${BLUE}Useful commands:${NC}"
+echo -e "  make help     - Show all commands"
+echo -e "  make test     - Run tests"
+echo -e "  make logs     - View application logs"
+echo -e "  make status   - View application status"

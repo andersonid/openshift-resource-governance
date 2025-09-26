@@ -1,46 +1,46 @@
 #!/bin/bash
 
-# Script para criar releases e tags do OpenShift Resource Governance
+# Script to create releases and tags for OpenShift Resource Governance
 
 set -e
 
-# Cores para output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Função para mostrar ajuda
+# Function to show help
 show_help() {
-    echo "🚀 OpenShift Resource Governance - Release Script"
-    echo "=================================================="
+    echo "OpenShift Resource Governance - Release Script"
+    echo "=============================================="
     echo ""
-    echo "Uso: $0 [COMANDO] [VERSÃO]"
+    echo "Usage: $0 [COMMAND] [VERSION]"
     echo ""
-    echo "Comandos:"
-    echo "  patch     Criar release patch (ex: 1.0.0 -> 1.0.1)"
-    echo "  minor     Criar release minor (ex: 1.0.0 -> 1.1.0)"
-    echo "  major     Criar release major (ex: 1.0.0 -> 2.0.0)"
-    echo "  custom    Criar release com versão customizada"
-    echo "  list      Listar releases existentes"
-    echo "  help      Mostrar esta ajuda"
+    echo "Commands:"
+    echo "  patch     Create patch release (ex: 1.0.0 -> 1.0.1)"
+    echo "  minor     Create minor release (ex: 1.0.0 -> 1.1.0)"
+    echo "  major     Create major release (ex: 1.0.0 -> 2.0.0)"
+    echo "  custom    Create release with custom version"
+    echo "  list      List existing releases"
+    echo "  help      Show this help"
     echo ""
-    echo "Exemplos:"
+    echo "Examples:"
     echo "  $0 patch                    # 1.0.0 -> 1.0.1"
     echo "  $0 minor                    # 1.0.0 -> 1.1.0"
-    echo "  $0 custom 2.0.0-beta.1     # Versão customizada"
-    echo "  $0 list                     # Listar releases"
+    echo "  $0 custom 2.0.0-beta.1     # Custom version"
+    echo "  $0 list                     # List releases"
     echo ""
 }
 
-# Função para obter a versão atual
+# Function to get current version
 get_current_version() {
     local latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-    echo "${latest_tag#v}"  # Remove o 'v' do início
+    echo "${latest_tag#v}"  # Remove 'v' prefix
 }
 
-# Função para incrementar versão
+# Function to increment version
 increment_version() {
     local version=$1
     local type=$2
@@ -66,78 +66,78 @@ increment_version() {
     esac
 }
 
-# Função para validar versão
+# Function to validate version
 validate_version() {
     local version=$1
     if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
-        echo -e "${RED}❌ Versão inválida: $version${NC}"
-        echo "Formato esperado: X.Y.Z ou X.Y.Z-suffix"
+        echo -e "${RED}ERROR: Invalid version: $version${NC}"
+        echo "Expected format: X.Y.Z or X.Y.Z-suffix"
         exit 1
     fi
 }
 
-# Função para criar release
+# Function to create release
 create_release() {
     local version=$1
     local tag="v$version"
     
-    echo -e "${BLUE}🚀 Criando release $tag${NC}"
+    echo -e "${BLUE}Creating release $tag${NC}"
     echo ""
     
-    # Verificar se já existe
+    # Check if already exists
     if git tag -l | grep -q "^$tag$"; then
-        echo -e "${RED}❌ Tag $tag já existe!${NC}"
+        echo -e "${RED}ERROR: Tag $tag already exists!${NC}"
         exit 1
     fi
     
-    # Verificar se há mudanças não commitadas
+    # Check for uncommitted changes
     if ! git diff-index --quiet HEAD --; then
-        echo -e "${YELLOW}⚠️  Há mudanças não commitadas. Deseja continuar? (y/N)${NC}"
+        echo -e "${YELLOW}WARNING: There are uncommitted changes. Continue? (y/N)${NC}"
         read -r response
         if [[ ! "$response" =~ ^[Yy]$ ]]; then
-            echo "Cancelado."
+            echo "Cancelled."
             exit 1
         fi
     fi
     
-    # Fazer commit das mudanças se houver
+    # Commit changes if any
     if ! git diff-index --quiet HEAD --; then
-        echo -e "${BLUE}📝 Fazendo commit das mudanças...${NC}"
+        echo -e "${BLUE}Committing changes...${NC}"
         git add .
         git commit -m "Release $tag"
     fi
     
-    # Criar tag
-    echo -e "${BLUE}🏷️  Criando tag $tag...${NC}"
+    # Create tag
+    echo -e "${BLUE}Creating tag $tag...${NC}"
     git tag -a "$tag" -m "Release $tag"
     
-    # Push da tag
-    echo -e "${BLUE}📤 Fazendo push da tag...${NC}"
+    # Push tag
+    echo -e "${BLUE}Pushing tag...${NC}"
     git push origin "$tag"
     
     echo ""
-    echo -e "${GREEN}✅ Release $tag criado com sucesso!${NC}"
+    echo -e "${GREEN}SUCCESS: Release $tag created successfully!${NC}"
     echo ""
-    echo "🔗 Links úteis:"
+    echo "Useful links:"
     echo "   GitHub: https://github.com/andersonid/openshift-resource-governance/releases/tag/$tag"
     echo "   Docker Hub: https://hub.docker.com/r/andersonid/resource-governance/tags"
     echo ""
-    echo "🚀 O GitHub Actions irá automaticamente:"
-    echo "   1. Buildar a imagem Docker"
-    echo "   2. Fazer push para Docker Hub"
-    echo "   3. Criar release no GitHub"
+    echo "GitHub Actions will automatically:"
+    echo "   1. Build Docker image"
+    echo "   2. Push to Docker Hub"
+    echo "   3. Create GitHub release"
     echo ""
-    echo "⏳ Aguarde alguns minutos e verifique:"
+    echo "Wait a few minutes and check:"
     echo "   gh run list --repo andersonid/openshift-resource-governance --workflow='build-only.yml'"
 }
 
-# Função para listar releases
+# Function to list releases
 list_releases() {
-    echo -e "${BLUE}📋 Releases existentes:${NC}"
+    echo -e "${BLUE}Existing releases:${NC}"
     echo ""
     git tag -l --sort=-version:refname | head -10
     echo ""
-    echo "💡 Para ver todos: git tag -l --sort=-version:refname"
+    echo "To see all: git tag -l --sort=-version:refname"
 }
 
 # Main
@@ -162,8 +162,8 @@ case "${1:-help}" in
         ;;
     "custom")
         if [ -z "$2" ]; then
-            echo -e "${RED}❌ Versão customizada não fornecida!${NC}"
-            echo "Uso: $0 custom 2.0.0-beta.1"
+            echo -e "${RED}ERROR: Custom version not provided!${NC}"
+            echo "Usage: $0 custom 2.0.0-beta.1"
             exit 1
         fi
         validate_version "$2"
