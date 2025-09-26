@@ -423,6 +423,32 @@ async def get_cluster_historical_summary(
         logger.error(f"Error getting historical summary: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/namespace/{namespace}/historical-analysis")
+async def get_namespace_historical_analysis(
+    namespace: str,
+    time_range: str = "24h",
+    prometheus_client=Depends(get_prometheus_client)
+):
+    """Get historical analysis for a specific namespace"""
+    try:
+        historical_service = HistoricalAnalysisService()
+        
+        # Get historical analysis for the namespace
+        analysis = await historical_service.get_namespace_historical_analysis(
+            namespace, time_range, prometheus_client
+        )
+        
+        return {
+            "namespace": namespace,
+            "time_range": time_range,
+            "analysis": analysis,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting historical analysis for namespace {namespace}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/health")
 async def health_check():
     """API health check"""
