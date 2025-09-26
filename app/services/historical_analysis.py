@@ -569,3 +569,140 @@ class HistoricalAnalysisService:
                 'error': str(e),
                 'recommendations': []
             }
+
+    async def get_pod_historical_analysis(self, namespace: str, pod_name: str, time_range: str, prometheus_client):
+        """Get historical analysis for a specific pod"""
+        try:
+            logger.info(f"Getting historical analysis for pod: {pod_name} in namespace: {namespace}")
+            
+            # Query for CPU usage by pod
+            cpu_query = f'''
+            sum(rate(container_cpu_usage_seconds_total{{
+                namespace="{namespace}",
+                pod="{pod_name}",
+                container!="POD",
+                container!=""
+            }}[{time_range}]))
+            '''
+            
+            # Query for memory usage by pod
+            memory_query = f'''
+            sum(container_memory_working_set_bytes{{
+                namespace="{namespace}",
+                pod="{pod_name}",
+                container!="POD",
+                container!=""
+            }})
+            '''
+            
+            # Query for CPU requests by pod
+            cpu_requests_query = f'''
+            sum(kube_pod_container_resource_requests{{
+                namespace="{namespace}",
+                pod="{pod_name}",
+                resource="cpu"
+            }})
+            '''
+            
+            # Query for memory requests by pod
+            memory_requests_query = f'''
+            sum(kube_pod_container_resource_requests{{
+                namespace="{namespace}",
+                pod="{pod_name}",
+                resource="memory"
+            }})
+            '''
+            
+            # Query for container count by pod
+            container_count_query = f'''
+            count(container_memory_working_set_bytes{{
+                namespace="{namespace}",
+                pod="{pod_name}",
+                container!="POD",
+                container!=""
+            }})
+            '''
+            
+            # Execute queries
+            cpu_usage = await self._query_prometheus(cpu_query, 
+                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                datetime.now(), prometheus_client)
+            memory_usage = await self._query_prometheus(memory_query, 
+                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                datetime.now(), prometheus_client)
+            cpu_requests = await self._query_prometheus(cpu_requests_query, 
+                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                datetime.now(), prometheus_client)
+            memory_requests = await self._query_prometheus(memory_requests_query, 
+                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                datetime.now(), prometheus_client)
+            container_count = await self._query_prometheus(container_count_query, 
+                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                datetime.now(), prometheus_client)
+            
+            # Calculate utilization percentages
+            cpu_utilization = 0
+            memory_utilization = 0
+            
+            if cpu_usage and cpu_requests and cpu_requests[0][1] != '0':
+                cpu_utilization = (float(cpu_usage[0][1]) / float(cpu_requests[0][1])) * 100
+                
+            if memory_usage and memory_requests and memory_requests[0][1] != '0':
+                memory_utilization = (float(memory_usage[0][1]) / float(memory_requests[0][1])) * 100
+            
+            # Generate recommendations based on utilization
+            recommendations = []
+            
+            if cpu_utilization > 80:
+                recommendations.append({
+                    "type": "cpu_high_utilization",
+                    "severity": "warning",
+                    "message": f"High CPU utilization: {cpu_utilization:.1f}%",
+                    "recommendation": "Consider increasing CPU requests or optimizing application performance"
+                })
+            elif cpu_utilization < 20:
+                recommendations.append({
+                    "type": "cpu_low_utilization", 
+                    "severity": "info",
+                    "message": f"Low CPU utilization: {cpu_utilization:.1f}%",
+                    "recommendation": "Consider reducing CPU requests to optimize resource allocation"
+                })
+                
+            if memory_utilization > 80:
+                recommendations.append({
+                    "type": "memory_high_utilization",
+                    "severity": "warning", 
+                    "message": f"High memory utilization: {memory_utilization:.1f}%",
+                    "recommendation": "Consider increasing memory requests or optimizing memory usage"
+                })
+            elif memory_utilization < 20:
+                recommendations.append({
+                    "type": "memory_low_utilization",
+                    "severity": "info",
+                    "message": f"Low memory utilization: {memory_utilization:.1f}%", 
+                    "recommendation": "Consider reducing memory requests to optimize resource allocation"
+                })
+            
+            return {
+                'namespace': namespace,
+                'pod_name': pod_name,
+                'time_range': time_range,
+                'cpu_usage': float(cpu_usage[0][1]) if cpu_usage else 0,
+                'memory_usage': float(memory_usage[0][1]) if memory_usage else 0,
+                'cpu_requests': float(cpu_requests[0][1]) if cpu_requests else 0,
+                'memory_requests': float(memory_requests[0][1]) if memory_requests else 0,
+                'cpu_utilization': cpu_utilization,
+                'memory_utilization': memory_utilization,
+                'container_count': int(container_count[0][1]) if container_count else 0,
+                'recommendations': recommendations
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting historical analysis for pod {pod_name} in namespace {namespace}: {e}")
+            return {
+                'namespace': namespace,
+                'pod_name': pod_name,
+                'time_range': time_range,
+                'error': str(e),
+                'recommendations': []
+            }

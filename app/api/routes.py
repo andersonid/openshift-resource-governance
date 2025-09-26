@@ -449,6 +449,34 @@ async def get_namespace_historical_analysis(
         logger.error(f"Error getting historical analysis for namespace {namespace}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/namespace/{namespace}/pod/{pod_name}/historical-analysis")
+async def get_pod_historical_analysis(
+    namespace: str,
+    pod_name: str,
+    time_range: str = "24h",
+    prometheus_client=Depends(get_prometheus_client)
+):
+    """Get historical analysis for a specific pod"""
+    try:
+        historical_service = HistoricalAnalysisService()
+        
+        # Get historical analysis for the pod
+        analysis = await historical_service.get_pod_historical_analysis(
+            namespace, pod_name, time_range, prometheus_client
+        )
+        
+        return {
+            "namespace": namespace,
+            "pod_name": pod_name,
+            "time_range": time_range,
+            "analysis": analysis,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting historical analysis for pod {pod_name} in namespace {namespace}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/health")
 async def health_check():
     """API health check"""

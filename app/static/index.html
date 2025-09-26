@@ -1042,7 +1042,6 @@
                                 <div class="accordion-stat">${totalValidations} analysis</div>
                                 <div class="accordion-stat" style="color: #dc3545;">${errorCount} errors</div>
                                 <div class="accordion-stat" style="color: #ffc107;">${warningCount} warnings</div>
-                                <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-left: 0.5rem;" onclick="event.stopPropagation(); loadNamespaceHistoricalAnalysis('${namespace.namespace}')">Historical Analysis</button>
                             </div>
                             <div class="accordion-arrow">▶</div>
                         </div>
@@ -1056,7 +1055,10 @@
                             <div class="pod-item">
                                 <div class="pod-header">
                                     <div class="pod-name">${pod.pod_name}</div>
-                                    <div class="pod-validations-count">${pod.validations.length} validations</div>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <div class="pod-validations-count">${pod.validations.length} validations</div>
+                                        <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="loadPodHistoricalAnalysis('${namespace.namespace}', '${pod.pod_name}')">Historical Analysis</button>
+                                    </div>
                                 </div>
                                 <div class="validation-list">
                         `;
@@ -1356,6 +1358,28 @@
         }
 
         // Historical Analysis Modal Functions
+        async function loadPodHistoricalAnalysis(namespace, podName) {
+            showLoading();
+            
+            try {
+                const timeRange = '24h'; // Default time range
+                const response = await fetch(`/api/v1/namespace/${namespace}/pod/${podName}/historical-analysis?time_range=${timeRange}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displayPodHistoricalAnalysis(data);
+                showHistoricalModal(`${namespace}/${podName}`);
+                
+            } catch (error) {
+                showError('Error loading historical analysis: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
         async function loadNamespaceHistoricalAnalysis(namespace) {
             showLoading();
             
@@ -1376,6 +1400,84 @@
             } finally {
                 hideLoading();
             }
+        }
+
+        function displayPodHistoricalAnalysis(data) {
+            const container = document.getElementById('historicalModalBody');
+            
+            if (data.analysis.error) {
+                container.innerHTML = `
+                    <div class="error">
+                        <h3>Error loading historical data</h3>
+                        <p>${data.analysis.error}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const analysis = data.analysis;
+            const recommendations = analysis.recommendations || [];
+            
+            let html = `
+                <div class="historical-summary">
+                    <h3>Pod: ${analysis.pod_name}</h3>
+                    <p><strong>Namespace:</strong> ${analysis.namespace}</p>
+                    <p><strong>Time Range:</strong> ${analysis.time_range}</p>
+                    <p><strong>Containers:</strong> ${analysis.container_count}</p>
+                </div>
+                
+                <div class="historical-stats">
+                    <div class="historical-stat">
+                        <h4>CPU Usage</h4>
+                        <div class="value">${analysis.cpu_usage.toFixed(3)} cores</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>Memory Usage</h4>
+                        <div class="value">${(analysis.memory_usage / (1024*1024*1024)).toFixed(2)} GiB</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>CPU Utilization</h4>
+                        <div class="value" style="color: ${analysis.cpu_utilization > 80 ? '#dc3545' : analysis.cpu_utilization < 20 ? '#28a745' : '#007bff'}">${analysis.cpu_utilization.toFixed(1)}%</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>Memory Utilization</h4>
+                        <div class="value" style="color: ${analysis.memory_utilization > 80 ? '#dc3545' : analysis.memory_utilization < 20 ? '#28a745' : '#007bff'}">${analysis.memory_utilization.toFixed(1)}%</div>
+                    </div>
+                </div>
+            `;
+
+            if (recommendations.length > 0) {
+                html += `
+                    <div class="historical-summary">
+                        <h3>Recommendations</h3>
+                `;
+                
+                recommendations.forEach(rec => {
+                    const severityClass = rec.severity;
+                    html += `
+                        <div class="historical-validation ${severityClass}">
+                            <div class="validation-header">
+                                <span class="severity-badge severity-${severityClass}">${severityClass}</span>
+                                ${rec.message}
+                            </div>
+                            <div class="validation-recommendation">
+                                <strong>Recommendation:</strong> ${rec.recommendation}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            } else {
+                html += `
+                    <div class="historical-summary">
+                        <h3>Recommendations</h3>
+                        <p>No specific recommendations at this time. Resource utilization appears to be within normal ranges.</p>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
         }
 
         function displayNamespaceHistoricalAnalysis(data) {
