@@ -30,7 +30,27 @@ class K8sClient:
                 config.load_kube_config(config_file=settings.kubeconfig_path)
             else:
                 # Use in-cluster configuration
-                config.load_incluster_config()
+                try:
+                    config.load_incluster_config()
+                except config.ConfigException:
+                    # If in-cluster config fails, try to use service account token
+                    try:
+                        with open('/var/run/secrets/kubernetes.io/serviceaccount/token', 'r') as f:
+                            token = f.read().strip()
+                        
+                        with open('/var/run/secrets/kubernetes.io/serviceaccount/namespace', 'r') as f:
+                            namespace = f.read().strip()
+                        
+                        # Create configuration with token
+                        configuration = client.Configuration()
+                        configuration.host = f"https://kubernetes.default.svc"
+                        configuration.ssl_ca_cert = '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
+                        configuration.api_key = {"authorization": f"Bearer {token}"}
+                        client.Configuration.set_default(configuration)
+                        
+                    except FileNotFoundError:
+                        # Fallback to default configuration
+                        config.load_kube_config()
             
             # Initialize API clients
             self.v1 = client.CoreV1Api()

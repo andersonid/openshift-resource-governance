@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Script completo de deploy para OpenShift Resource Governance Tool
-# Para ser executado por qualquer cluster-admin
+# Script completo de deploy do OpenShift Resource Governance Tool
+# Inclui criação de namespace, RBAC, ConfigMap, Secret e Deployment
+
 set -e
 
 # Cores para output
@@ -13,101 +14,88 @@ NC='\033[0m' # No Color
 
 # Configurações
 NAMESPACE="resource-governance"
-APP_NAME="resource-governance"
-SECRET_NAME="docker-hub-secret"
+SERVICE_ACCOUNT="resource-governance-sa"
+SECRET_NAME="resource-governance-sa-token"
 
-echo -e "${BLUE}🚀 Deploy Completo - OpenShift Resource Governance Tool${NC}"
-echo -e "${BLUE}====================================================${NC}"
+echo -e "${BLUE}🚀 Deploying OpenShift Resource Governance Tool${NC}"
 
-# Verificar se está logado no OpenShift
+# Verificar se está conectado ao cluster
 if ! oc whoami > /dev/null 2>&1; then
-    echo -e "${RED}❌ Não está logado no OpenShift. Faça login primeiro.${NC}"
-    echo -e "${YELLOW}💡 Execute: oc login <cluster-url>${NC}"
+    echo -e "${RED}❌ Not connected to OpenShift cluster. Please run 'oc login' first.${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✅ Logado como: $(oc whoami)${NC}"
+echo -e "${GREEN}✅ Connected to OpenShift cluster as $(oc whoami)${NC}"
 
-# Verificar se tem permissões de cluster-admin
-if ! oc auth can-i create namespaces > /dev/null 2>&1; then
-    echo -e "${RED}❌ Permissões insuficientes. Este script requer cluster-admin.${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}✅ Permissões de cluster-admin confirmadas${NC}"
-
-# Criar namespace
-echo -e "${YELLOW}📁 Criando namespace $NAMESPACE...${NC}"
-oc apply -f k8s/namespace.yaml
+# Criar namespace se não existir
+echo -e "${YELLOW}📦 Creating namespace...${NC}"
+oc create namespace $NAMESPACE --dry-run=client -o yaml | oc apply -f -
 
 # Aplicar RBAC
-echo -e "${YELLOW}🔐 Configurando RBAC...${NC}"
+echo -e "${YELLOW}🔐 Applying RBAC...${NC}"
 oc apply -f k8s/rbac.yaml
 
 # Aplicar ConfigMap
-echo -e "${YELLOW}⚙️  Configurando ConfigMap...${NC}"
+echo -e "${YELLOW}⚙️  Applying ConfigMap...${NC}"
 oc apply -f k8s/configmap.yaml
 
-# Configurar ImagePullSecret
-echo -e "${YELLOW}🔑 Configurando ImagePullSecret para Docker Hub...${NC}"
-echo -e "${BLUE}💡 Digite suas credenciais do Docker Hub:${NC}"
-read -p "Username: " DOCKER_USERNAME
-read -s -p "Password/Token: " DOCKER_PASSWORD
-echo
+# Criar secret do token do ServiceAccount
+echo -e "${YELLOW}🔑 Creating ServiceAccount token...${NC}"
 
-# Criar o secret
-oc create secret docker-registry $SECRET_NAME \
-    --docker-server=docker.io \
-    --docker-username=$DOCKER_USERNAME \
-    --docker-password=$DOCKER_PASSWORD \
-    --docker-email=$DOCKER_USERNAME@example.com \
-    -n $NAMESPACE \
-    --dry-run=client -o yaml | oc apply -f -
+# Verificar se o secret já existe
+if oc get secret $SECRET_NAME -n $NAMESPACE > /dev/null 2>&1; then
+    echo -e "${YELLOW}⚠️  Secret $SECRET_NAME already exists, skipping creation${NC}"
+else
+    # Criar token do ServiceAccount
+    TOKEN=$(oc create token $SERVICE_ACCOUNT -n $NAMESPACE --duration=8760h)
+    
+    # Criar secret com o token
+    oc create secret generic $SECRET_NAME -n $NAMESPACE \
+        --from-literal=token="$TOKEN" \
+        --from-literal=ca.crt="$(oc get secret -n $NAMESPACE -o jsonpath='{.items[0].data.ca\.crt}' | base64 -d)" \
+        --from-literal=namespace="$NAMESPACE"
+    
+    echo -e "${GREEN}✅ ServiceAccount token created${NC}"
+fi
 
-# Adicionar o secret ao service account
-oc patch serviceaccount resource-governance-sa -n $NAMESPACE -p '{"imagePullSecrets": [{"name": "'$SECRET_NAME'"}]}'
-
-echo -e "${GREEN}✅ ImagePullSecret configurado${NC}"
-
-# Aplicar DaemonSet
-echo -e "${YELLOW}📦 Deployando DaemonSet...${NC}"
-oc apply -f k8s/daemonset.yaml
+# Aplicar Deployment
+echo -e "${YELLOW}🚀 Applying Deployment...${NC}"
+oc apply -f k8s/deployment.yaml
 
 # Aplicar Service
-echo -e "${YELLOW}🌐 Configurando Service...${NC}"
+echo -e "${YELLOW}🌐 Applying Service...${NC}"
 oc apply -f k8s/service.yaml
 
 # Aplicar Route
-echo -e "${YELLOW}🛣️  Configurando Route...${NC}"
+echo -e "${YELLOW}🛣️  Applying Route...${NC}"
 oc apply -f k8s/route.yaml
 
-# Aguardar pods ficarem prontos
-echo -e "${YELLOW}⏳ Aguardando pods ficarem prontos...${NC}"
-oc wait --for=condition=ready pod -l app.kubernetes.io/name=$APP_NAME -n $NAMESPACE --timeout=300s
+# Aguardar deployment estar pronto
+echo -e "${YELLOW}⏳ Waiting for deployment to be ready...${NC}"
+oc rollout status deployment/resource-governance -n $NAMESPACE --timeout=300s
 
-# Verificar status
-echo -e "${YELLOW}📊 Verificando status do deploy...${NC}"
-oc get all -n $NAMESPACE
+# Verificar status dos pods
+echo -e "${YELLOW}📊 Checking pod status...${NC}"
+oc get pods -n $NAMESPACE -l app.kubernetes.io/name=resource-governance
+
+# Verificar logs para erros
+echo -e "${YELLOW}📋 Checking application logs...${NC}"
+POD_NAME=$(oc get pods -n $NAMESPACE -l app.kubernetes.io/name=resource-governance -o jsonpath='{.items[0].metadata.name}')
+if [ -n "$POD_NAME" ]; then
+    echo -e "${BLUE}Recent logs from $POD_NAME:${NC}"
+    oc logs $POD_NAME -n $NAMESPACE --tail=10
+fi
 
 # Obter URL da aplicação
-ROUTE_URL=$(oc get route $APP_NAME -n $NAMESPACE -o jsonpath='{.spec.host}' 2>/dev/null || echo "N/A")
-
-echo -e "${GREEN}🎉 Deploy concluído com sucesso!${NC}"
-echo -e "${BLUE}====================================================${NC}"
-echo -e "${GREEN}✅ Namespace: $NAMESPACE${NC}"
-echo -e "${GREEN}✅ DaemonSet: $APP_NAME${NC}"
-echo -e "${GREEN}✅ Service: $APP_NAME${NC}"
-echo -e "${GREEN}✅ Route: $APP_NAME${NC}"
-if [ "$ROUTE_URL" != "N/A" ]; then
-    echo -e "${GREEN}🌐 URL da aplicação: https://$ROUTE_URL${NC}"
+echo -e "${YELLOW}🌍 Getting application URL...${NC}"
+ROUTE_URL=$(oc get route resource-governance -n $NAMESPACE -o jsonpath='{.spec.host}')
+if [ -n "$ROUTE_URL" ]; then
+    echo -e "${GREEN}✅ Application deployed successfully!${NC}"
+    echo -e "${GREEN}🌐 URL: https://$ROUTE_URL${NC}"
+    echo -e "${GREEN}📊 Health check: https://$ROUTE_URL/api/v1/health${NC}"
+else
+    echo -e "${YELLOW}⚠️  Route not found, checking service...${NC}"
+    oc get svc -n $NAMESPACE
 fi
-echo -e "${BLUE}====================================================${NC}"
 
-# Mostrar comandos úteis
-echo -e "${YELLOW}📋 Comandos úteis:${NC}"
-echo -e "${BLUE}  Ver logs: oc logs -f daemonset/$APP_NAME -n $NAMESPACE${NC}"
-echo -e "${BLUE}  Ver pods: oc get pods -n $NAMESPACE${NC}"
-echo -e "${BLUE}  Ver status: oc get all -n $NAMESPACE${NC}"
-echo -e "${BLUE}  Acessar API: curl https://$ROUTE_URL/api/health${NC}"
-
-echo -e "${GREEN}🎯 Aplicação pronta para uso!${NC}"
+echo -e "${GREEN}🎉 Deployment completed successfully!${NC}"

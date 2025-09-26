@@ -23,7 +23,23 @@ Uma ferramenta de governança de recursos para clusters OpenShift que vai além 
 
 ## 🛠️ Instalação
 
-### 1. Build da Imagem
+### 🚀 Deploy Rápido (Recomendado)
+
+```bash
+# 1. Clone o repositório
+git clone <repository-url>
+cd RequestsAndLimits
+
+# 2. Faça login no OpenShift
+oc login <cluster-url>
+
+# 3. Deploy completo (cria tudo automaticamente)
+./scripts/deploy-complete.sh
+```
+
+### 📋 Deploy Manual
+
+#### 1. Build da Imagem
 
 ```bash
 # Build local
@@ -36,7 +52,15 @@ Uma ferramenta de governança de recursos para clusters OpenShift que vai além 
 ./scripts/build.sh latest seu-usuario
 ```
 
-### 2. Deploy no OpenShift
+#### 2. Deploy no OpenShift
+
+```bash
+# Aplicar todos os recursos
+oc apply -f k8s/
+
+# Aguardar deployment
+oc rollout status deployment/resource-governance -n resource-governance
+```
 
 #### 🚀 CI/CD Automático (Recomendado para Produção)
 ```bash

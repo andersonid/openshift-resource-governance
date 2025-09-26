@@ -60,33 +60,18 @@ subjects:
   name: resource-governance-sa
   namespace: resource-governance
 ---
-# Role para acessar recursos do Prometheus (se necessário)
+# ClusterRoleBinding para acessar o Prometheus
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRoleBinding
 metadata:
-  name: resource-governance-prometheus-role
-  namespace: resource-governance
-  labels:
-    app.kubernetes.io/name: resource-governance
-    app.kubernetes.io/component: governance
-rules:
-# Permissões para acessar serviços do Prometheus
-- apiGroups: [""]
-  resources: ["services", "endpoints"]
-  verbs: ["get", "list", "watch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: resource-governance-prometheus-binding
-  namespace: resource-governance
+  name: resource-governance-monitoring
   labels:
     app.kubernetes.io/name: resource-governance
     app.kubernetes.io/component: governance
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: resource-governance-prometheus-role
+  kind: ClusterRole
+  name: cluster-monitoring-view
 subjects:
 - kind: ServiceAccount
   name: resource-governance-sa

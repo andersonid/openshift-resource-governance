@@ -22,7 +22,23 @@ class PrometheusClient:
     async def initialize(self):
         """Initialize Prometheus client"""
         try:
-            self.session = aiohttp.ClientSession()
+            # Create session with SSL verification disabled for self-signed certificates
+            connector = aiohttp.TCPConnector(ssl=False)
+            
+            # Get service account token for authentication
+            token = None
+            try:
+                with open('/var/run/secrets/kubernetes.io/serviceaccount/token', 'r') as f:
+                    token = f.read().strip()
+            except FileNotFoundError:
+                logger.warning("Service account token not found, proceeding without authentication")
+            
+            # Create headers with token if available
+            headers = {}
+            if token:
+                headers['Authorization'] = f'Bearer {token}'
+            
+            self.session = aiohttp.ClientSession(connector=connector, headers=headers)
             
             # Test connection
             async with self.session.get(f"{self.base_url}/api/v1/query?query=up") as response:

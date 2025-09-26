@@ -125,7 +125,14 @@ spec:
         volumeMounts:
         - name: reports
           mountPath: /tmp/reports
+        - name: service-account-token
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          readOnly: true
       volumes:
       - name: reports
         emptyDir: {}
+      - name: service-account-token
+        secret:
+          secretName: resource-governance-sa-token
+          optional: false
       restartPolicy: Always

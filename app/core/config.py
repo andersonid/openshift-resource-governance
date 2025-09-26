@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     token: Optional[str] = None
     
     # Prometheus settings
-    prometheus_url: str = "http://prometheus.openshift-monitoring.svc.cluster.local:9090"
+    prometheus_url: str = "http://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091"
     
     # Validation settings
     cpu_limit_ratio: float = 3.0  # Default limit:request ratio for CPU

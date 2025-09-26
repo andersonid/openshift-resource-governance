@@ -21,7 +21,7 @@ data:
   SYSTEM_NAMESPACE_PREFIXES: '["kube-", "openshift-", "knative-", "default", "kube-system", "kube-public", "kube-node-lease"]'
   
   # URL do Prometheus
-  PROMETHEUS_URL: "http://prometheus.openshift-monitoring.svc.cluster.local:9090"
+  PROMETHEUS_URL: "https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091"
   
   # Configurações de relatório
   REPORT_EXPORT_PATH: "/tmp/reports"
