@@ -1,201 +1,201 @@
 # OpenShift Resource Governance Tool
 
-Uma ferramenta de governança de recursos para clusters OpenShift que vai além do que o Metrics Server e VPA oferecem, fornecendo validações, relatórios e recomendações consolidadas.
+A resource governance tool for OpenShift clusters that goes beyond what Metrics Server and VPA offer, providing validations, reports and consolidated recommendations.
 
-## 🚀 Características
+## 🚀 Features
 
-- **Coleta Automática**: Coleta requests/limits de todos os pods/containers no cluster
-- **Validações Red Hat**: Valida best practices de capacity management
-- **Integração VPA**: Consome recomendações do VPA em modo Off
-- **Integração Prometheus**: Coleta métricas reais de consumo
-- **Relatórios Consolidados**: Gera relatórios em JSON, CSV e PDF
-- **UI Web**: Interface simples para visualização e interação
-- **Aplicação de Recomendações**: Permite aprovar e aplicar recomendações
+- **Automatic Collection**: Collects requests/limits from all pods/containers in the cluster
+- **Red Hat Validations**: Validates capacity management best practices
+- **VPA Integration**: Consumes VPA recommendations in Off mode
+- **Prometheus Integration**: Collects real consumption metrics
+- **Consolidated Reports**: Generates reports in JSON, CSV and PDF
+- **Web UI**: Simple interface for visualization and interaction
+- **Recommendation Application**: Allows approving and applying recommendations
 
-## 📋 Requisitos
+## 📋 Requirements
 
 - OpenShift 4.x
-- Prometheus (nativo no OCP)
-- VPA (opcional, para recomendações)
+- Prometheus (native in OCP)
+- VPA (optional, for recommendations)
 - Python 3.11+
 - Docker
 - OpenShift CLI (oc)
 
-## 🛠️ Instalação
+## 🛠️ Installation
 
-### 🚀 Deploy Rápido (Recomendado)
+### 🚀 Quick Deploy (Recommended)
 
 ```bash
-# 1. Clone o repositório
+# 1. Clone the repository
 git clone <repository-url>
 cd RequestsAndLimits
 
-# 2. Faça login no OpenShift
+# 2. Login to OpenShift
 oc login <cluster-url>
 
-# 3. Deploy completo (cria tudo automaticamente)
+# 3. Complete deploy (creates everything automatically)
 ./scripts/deploy-complete.sh
 ```
 
-### 📋 Deploy Manual
+### 📋 Manual Deploy
 
-#### 1. Build da Imagem
+#### 1. Image Build
 
 ```bash
-# Build local
+# Local build
 ./scripts/build.sh
 
-# Build com tag específica
+# Build with specific tag
 ./scripts/build.sh v1.0.0
 
-# Build para registry específico
-./scripts/build.sh latest seu-usuario
+# Build for specific registry
+./scripts/build.sh latest your-username
 ```
 
-#### 2. Deploy no OpenShift
+#### 2. Deploy to OpenShift
 
 ```bash
-# Aplicar todos os recursos
+# Apply all resources
 oc apply -f k8s/
 
-# Aguardar deployment
+# Wait for deployment
 oc rollout status deployment/resource-governance -n resource-governance
 ```
 
-#### 🚀 CI/CD Automático (Recomendado para Produção)
+#### 🚀 Automatic CI/CD (Recommended for Production)
 ```bash
-# 1. Configurar secrets do GitHub
+# 1. Configure GitHub secrets
 ./scripts/setup-github-secrets.sh
 
-# 2. Fazer commit e push
+# 2. Commit and push
 git add .
-git commit -m "Nova funcionalidade"
+git commit -m "New feature"
 git push origin main
 
-# 3. GitHub Actions fará deploy automático!
+# 3. GitHub Actions will do automatic deploy!
 ```
 
-**Fluxo Automático:**
-- ✅ **Push para main** → GitHub Actions detecta mudança
-- ✅ **Build automático** → Nova imagem no Docker Hub
-- ✅ **Deploy automático** → OpenShift atualiza deployment
+**Automatic Flow:**
+- ✅ **Push to main** → GitHub Actions detects change
+- ✅ **Automatic build** → New image on Docker Hub
+- ✅ **Automatic deploy** → OpenShift updates deployment
 - ✅ **Rolling Update** → Zero downtime
-- ✅ **Health Checks** → Validação automática
+- ✅ **Health Checks** → Automatic validation
 
-#### 🔧 Deploy Manual (Desenvolvimento)
+#### 🔧 Manual Deploy (Development)
 ```bash
-# Deploy com estratégia Blue-Green
+# Deploy with Blue-Green strategy
 ./scripts/blue-green-deploy.sh
 
-# Deploy com tag específica
+# Deploy with specific tag
 ./scripts/blue-green-deploy.sh v1.2.0
 
-# Testar fluxo CI/CD localmente
+# Test CI/CD flow locally
 ./scripts/test-ci-cd.sh
 ```
 
-**Scripts para Desenvolvimento:**
-- ✅ **Controle total** sobre o processo
-- ✅ **Iteração rápida** durante desenvolvimento
-- ✅ **Debugging** mais fácil
-- ✅ **Testes locais** antes de fazer push
+**Development Scripts:**
+- ✅ **Full control** over the process
+- ✅ **Fast iteration** during development
+- ✅ **Easier debugging**
+- ✅ **Local tests** before pushing
 
-#### Deploy Completo (Inicial)
+#### Complete Deploy (Initial)
 ```bash
-# Deploy completo com ImagePullSecret (primeira vez)
+# Complete deploy with ImagePullSecret (first time)
 ./scripts/deploy-complete.sh
 ```
 
-Este script irá:
-- ✅ Criar namespace e RBAC
-- ✅ Configurar ImagePullSecret para Docker Hub
-- ✅ Deploy da aplicação
-- ✅ Configurar Service e Route
-- ✅ Verificar se tudo está funcionando
+This script will:
+- ✅ Create namespace and RBAC
+- ✅ Configure ImagePullSecret for Docker Hub
+- ✅ Deploy application
+- ✅ Configure Service and Route
+- ✅ Verify everything is working
 
-#### Deploy Manual
+#### Manual Deploy
 ```bash
-# Deploy padrão
+# Default deploy
 ./scripts/deploy.sh
 
-# Deploy com tag específica
+# Deploy with specific tag
 ./scripts/deploy.sh v1.0.0
 
-# Deploy para registry específico
-./scripts/deploy.sh latest seu-usuario
+# Deploy to specific registry
+./scripts/deploy.sh latest your-username
 ```
 
 #### Undeploy
 ```bash
-# Remover completamente a aplicação
+# Completely remove application
 ./scripts/undeploy-complete.sh
 ```
 
-### 3. Acesso à Aplicação
+### 3. Application Access
 
-Após o deploy, acesse a aplicação através da rota criada:
+After deploy, access the application through the created route:
 
 ```bash
-# Obter URL da rota
+# Get route URL
 oc get route resource-governance-route -n resource-governance
 
-# Acessar via browser
+# Access via browser
 # https://resource-governance-route-resource-governance.apps.openshift.local
 ```
 
-## 🔧 Configuração
+## 🔧 Configuration
 
 ### ConfigMap
 
-A aplicação é configurada através do ConfigMap `resource-governance-config`:
+The application is configured through the ConfigMap `resource-governance-config`:
 
 ```yaml
 data:
-  CPU_LIMIT_RATIO: "3.0"                    # Ratio padrão limit:request para CPU
-  MEMORY_LIMIT_RATIO: "3.0"                 # Ratio padrão limit:request para memória
-  MIN_CPU_REQUEST: "10m"                    # Mínimo de CPU request
-  MIN_MEMORY_REQUEST: "32Mi"                # Mínimo de memória request
-  CRITICAL_NAMESPACES: |                    # Namespaces críticos para VPA
+  CPU_LIMIT_RATIO: "3.0"                    # Default limit:request ratio for CPU
+  MEMORY_LIMIT_RATIO: "3.0"                 # Default limit:request ratio for memory
+  MIN_CPU_REQUEST: "10m"                    # Minimum CPU request
+  MIN_MEMORY_REQUEST: "32Mi"                # Minimum memory request
+  CRITICAL_NAMESPACES: |                    # Critical namespaces for VPA
     openshift-monitoring
     openshift-ingress
     openshift-apiserver
   PROMETHEUS_URL: "http://prometheus.openshift-monitoring.svc.cluster.local:9090"
 ```
 
-### Variáveis de Ambiente
+### Environment Variables
 
-- `KUBECONFIG`: Caminho para kubeconfig (usado em desenvolvimento)
-- `PROMETHEUS_URL`: URL do Prometheus
-- `CPU_LIMIT_RATIO`: Ratio CPU limit:request
-- `MEMORY_LIMIT_RATIO`: Ratio memória limit:request
-- `MIN_CPU_REQUEST`: Mínimo de CPU request
-- `MIN_MEMORY_REQUEST`: Mínimo de memória request
+- `KUBECONFIG`: Path to kubeconfig (used in development)
+- `PROMETHEUS_URL`: Prometheus URL
+- `CPU_LIMIT_RATIO`: CPU limit:request ratio
+- `MEMORY_LIMIT_RATIO`: Memory limit:request ratio
+- `MIN_CPU_REQUEST`: Minimum CPU request
+- `MIN_MEMORY_REQUEST`: Minimum memory request
 
-## 📊 Uso
+## 📊 Usage
 
 ### API Endpoints
 
-#### Status do Cluster
+#### Cluster Status
 ```bash
 GET /api/v1/cluster/status
 ```
 
-#### Status de Namespace
+#### Namespace Status
 ```bash
 GET /api/v1/namespace/{namespace}/status
 ```
 
-#### Validações
+#### Validations
 ```bash
 GET /api/v1/validations?namespace=default&severity=error
 ```
 
-#### Recomendações VPA
+#### VPA Recommendations
 ```bash
 GET /api/v1/vpa/recommendations?namespace=default
 ```
 
-#### Exportar Relatório
+#### Export Report
 ```bash
 POST /api/v1/export
 Content-Type: application/json
@@ -208,55 +208,55 @@ Content-Type: application/json
 }
 ```
 
-### Exemplos de Uso
+### Usage Examples
 
-#### 1. Verificar Status do Cluster
+#### 1. Check Cluster Status
 ```bash
 curl https://resource-governance-route-resource-governance.apps.openshift.local/api/v1/cluster/status
 ```
 
-#### 2. Exportar Relatório CSV
+#### 2. Export CSV Report
 ```bash
 curl -X POST https://resource-governance-route-resource-governance.apps.openshift.local/api/v1/export \
   -H "Content-Type: application/json" \
   -d '{"format": "csv", "includeVPA": true}'
 ```
 
-#### 3. Ver Validações Críticas
+#### 3. View Critical Validations
 ```bash
 curl "https://resource-governance-route-resource-governance.apps.openshift.local/api/v1/validations?severity=critical"
 ```
 
-## 🔍 Validações Implementadas
+## 🔍 Implemented Validations
 
-### 1. Requests Obrigatórios
-- **Problema**: Pods sem requests definidos
-- **Severidade**: Error
-- **Recomendação**: Definir requests de CPU e memória
+### 1. Required Requests
+- **Problem**: Pods without defined requests
+- **Severity**: Error
+- **Recommendation**: Define CPU and memory requests
 
-### 2. Limits Recomendados
-- **Problema**: Pods sem limits definidos
-- **Severidade**: Warning
-- **Recomendação**: Definir limits para evitar consumo excessivo
+### 2. Recommended Limits
+- **Problem**: Pods without defined limits
+- **Severity**: Warning
+- **Recommendation**: Define limits to avoid excessive consumption
 
-### 3. Ratio Limit:Request
-- **Problema**: Ratio muito alto ou baixo
-- **Severidade**: Warning/Error
-- **Recomendação**: Ajustar para ratio 3:1
+### 3. Limit:Request Ratio
+- **Problem**: Ratio too high or low
+- **Severity**: Warning/Error
+- **Recommendation**: Adjust to 3:1 ratio
 
-### 4. Valores Mínimos
-- **Problema**: Requests muito baixos
-- **Severidade**: Warning
-- **Recomendação**: Aumentar para valores mínimos
+### 4. Minimum Values
+- **Problem**: Requests too low
+- **Severity**: Warning
+- **Recommendation**: Increase to minimum values
 
 ### 5. Overcommit
-- **Problema**: Requests excedem capacidade do cluster
-- **Severidade**: Critical
-- **Recomendação**: Reduzir requests ou adicionar nós
+- **Problem**: Requests exceed cluster capacity
+- **Severity**: Critical
+- **Recommendation**: Reduce requests or add nodes
 
-## 📈 Relatórios
+## 📈 Reports
 
-### Formato JSON
+### JSON Format
 ```json
 {
   "timestamp": "2024-01-15T10:30:00Z",
@@ -274,16 +274,16 @@ curl "https://resource-governance-route-resource-governance.apps.openshift.local
 }
 ```
 
-### Formato CSV
+### CSV Format
 ```csv
 Pod Name,Namespace,Container Name,Validation Type,Severity,Message,Recommendation
-pod-1,default,nginx,missing_requests,error,Container sem requests definidos,Definir requests de CPU e memória
+pod-1,default,nginx,missing_requests,error,Container without defined requests,Define CPU and memory requests
 ```
 
-## 🔐 Segurança
+## 🔐 Security
 
 ### RBAC
-A aplicação usa um ServiceAccount dedicado com permissões mínimas:
+The application uses a dedicated ServiceAccount with minimal permissions:
 
 - **Pods**: get, list, watch, patch, update
 - **Namespaces**: get, list, watch
@@ -292,93 +292,92 @@ A aplicação usa um ServiceAccount dedicado com permissões mínimas:
 - **Deployments/ReplicaSets**: get, list, watch, patch, update
 
 ### Security Context
-- Executa como usuário não-root (UID 1000)
-- Usa SecurityContext com runAsNonRoot: true
-- Limita recursos com requests/limits
+- Runs as non-root user (UID 1000)
+- Uses SecurityContext with runAsNonRoot: true
+- Limits resources with requests/limits
 
 ## 🐛 Troubleshooting
 
-### Verificar Logs
+### Check Logs
 ```bash
 oc logs -f daemonset/resource-governance -n resource-governance
 ```
 
-### Verificar Status dos Pods
+### Check Pod Status
 ```bash
 oc get pods -n resource-governance
 oc describe pod <pod-name> -n resource-governance
 ```
 
-### Verificar RBAC
+### Check RBAC
 ```bash
 oc auth can-i get pods --as=system:serviceaccount:resource-governance:resource-governance-sa
 ```
 
-### Testar Conectividade
+### Test Connectivity
 ```bash
 # Health check
 curl https://resource-governance-route-resource-governance.apps.openshift.local/health
 
-# Teste de API
+# API test
 curl https://resource-governance-route-resource-governance.apps.openshift.local/api/v1/cluster/status
 ```
 
-## 🚀 Desenvolvimento
+## 🚀 Development
 
-### Executar Localmente
+### Run Locally
 ```bash
-# Instalar dependências
+# Install dependencies
 pip install -r requirements.txt
 
-# Executar aplicação
+# Run application
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
 
-### Executar com Docker
+### Run with Docker
 ```bash
 # Build
 docker build -t resource-governance .
 
-# Executar
+# Run
 docker run -p 8080:8080 resource-governance
 ```
 
-### Testes
+### Tests
 ```bash
-# Testar importação
+# Test import
 python -c "import app.main; print('OK')"
 
-# Testar API
+# Test API
 curl http://localhost:8080/health
 ```
 
 ## 📝 Roadmap
 
-### Próximas Versões
-- [ ] UI Web com gráficos interativos
-- [ ] Relatórios PDF com gráficos
-- [ ] Regras customizadas por namespace
-- [ ] Integração com GitOps (ArgoCD)
-- [ ] Notificações via Slack/Teams
-- [ ] Métricas customizadas do Prometheus
-- [ ] Suporte a múltiplos clusters
+### Upcoming Versions
+- [ ] Web UI with interactive charts
+- [ ] PDF reports with charts
+- [ ] Custom rules per namespace
+- [ ] GitOps integration (ArgoCD)
+- [ ] Slack/Teams notifications
+- [ ] Custom Prometheus metrics
+- [ ] Multi-cluster support
 
-## 🤝 Contribuição
+## 🤝 Contributing
 
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+1. Fork the project
+2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📄 Licença
+## 📄 License
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
+This project is under the MIT license. See the [LICENSE](LICENSE) file for details.
 
-## 📞 Suporte
+## 📞 Support
 
-Para suporte e dúvidas:
-- Abra uma issue no GitHub
-- Consulte a documentação do OpenShift
-- Verifique os logs da aplicação
-# Teste das secrets do GitHub Actions
+For support and questions:
+- Open an issue on GitHub
+- Consult OpenShift documentation
+- Check application logs
