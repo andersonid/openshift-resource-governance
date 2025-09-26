@@ -55,16 +55,74 @@ async def get_cluster_status(
         # Get VPA recommendations
         vpa_recommendations = await k8s_client.get_vpa_recommendations()
         
-        # Generate report
-        report = report_service.generate_cluster_report(
-            pods=pods,
-            validations=all_validations,
-            vpa_recommendations=vpa_recommendations,
-            overcommit_info=overcommit_info,
-            nodes_info=nodes_info
-        )
+        # Group pods by namespace for the frontend
+        namespaces_data = {}
+        for pod in pods:
+            namespace = pod.namespace
+            if namespace not in namespaces_data:
+                namespaces_data[namespace] = {
+                    'namespace': namespace,
+                    'pods': {},
+                    'total_validations': 0,
+                    'severity_breakdown': {'error': 0, 'warning': 0, 'info': 0}
+                }
+            
+            # Add pod to namespace
+            pod_name = pod.name
+            pod_validations = validation_service.validate_pod_resources(pod)
+            
+            # Convert pod to the format expected by frontend
+            pod_data = {
+                'pod_name': pod_name,
+                'namespace': namespace,
+                'phase': pod.phase,
+                'node_name': pod.node_name,
+                'containers': [],
+                'validations': []
+            }
+            
+            # Add containers
+            for container in pod.containers:
+                container_data = {
+                    'name': container['name'],
+                    'image': container['image'],
+                    'resources': container['resources']
+                }
+                pod_data['containers'].append(container_data)
+            
+            # Add validations for this pod
+            for validation in pod_validations:
+                validation_data = {
+                    'rule_name': validation.validation_type,
+                    'namespace': namespace,
+                    'message': validation.message,
+                    'recommendation': validation.recommendation,
+                    'severity': validation.severity
+                }
+                pod_data['validations'].append(validation_data)
+                
+                # Update namespace severity breakdown
+                namespaces_data[namespace]['severity_breakdown'][validation.severity] += 1
+                namespaces_data[namespace]['total_validations'] += 1
+            
+            namespaces_data[namespace]['pods'][pod_name] = pod_data
         
-        return report
+        # Convert to list format expected by frontend
+        namespaces_list = list(namespaces_data.values())
+        
+        # Count total errors and warnings
+        total_errors = sum(ns['severity_breakdown']['error'] for ns in namespaces_list)
+        total_warnings = sum(ns['severity_breakdown']['warning'] for ns in namespaces_list)
+        
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "total_pods": len(pods),
+            "total_namespaces": len(namespaces_list),
+            "total_nodes": len(nodes_info) if nodes_info else 0,
+            "total_errors": total_errors,
+            "total_warnings": total_warnings,
+            "namespaces": namespaces_list
+        }
         
     except Exception as e:
         logger.error(f"Error getting cluster status: {e}")
@@ -449,6 +507,34 @@ async def get_namespace_historical_analysis(
         logger.error(f"Error getting historical analysis for namespace {namespace}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/namespace/{namespace}/workload/{workload}/historical-analysis")
+async def get_workload_historical_analysis(
+    namespace: str,
+    workload: str,
+    time_range: str = "24h",
+    prometheus_client=Depends(get_prometheus_client)
+):
+    """Get historical analysis for a specific workload/deployment"""
+    try:
+        historical_service = HistoricalAnalysisService()
+        
+        # Get historical analysis for the workload
+        analysis = await historical_service.get_workload_historical_analysis(
+            namespace, workload, time_range, prometheus_client
+        )
+        
+        return {
+            "namespace": namespace,
+            "workload": workload,
+            "time_range": time_range,
+            "analysis": analysis,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting historical analysis for workload {workload} in namespace {namespace}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/namespace/{namespace}/pod/{pod_name}/historical-analysis")
 async def get_pod_historical_analysis(
     namespace: str,
@@ -456,7 +542,7 @@ async def get_pod_historical_analysis(
     time_range: str = "24h",
     prometheus_client=Depends(get_prometheus_client)
 ):
-    """Get historical analysis for a specific pod"""
+    """Get historical analysis for a specific pod (legacy endpoint)"""
     try:
         historical_service = HistoricalAnalysisService()
         

@@ -570,54 +570,224 @@ class HistoricalAnalysisService:
                 'recommendations': []
             }
 
+    async def get_workload_historical_analysis(self, namespace: str, workload: str, time_range: str, prometheus_client):
+        """Get historical analysis for a specific workload/deployment"""
+        try:
+            logger.info(f"Getting historical analysis for workload: {workload} in namespace: {namespace}")
+            
+            # Query for CPU usage by workload (aggregated by workload)
+            cpu_query = f'''
+            sum(
+                node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{{
+                    cluster="", 
+                    namespace="{namespace}"
+                }}
+                * on(namespace,pod)
+                group_left(workload, workload_type) 
+                namespace_workload_pod:kube_pod_owner:relabel{{
+                    cluster="", 
+                    namespace="{namespace}", 
+                    workload="{workload}",
+                    workload_type=~".+"
+                }}
+            ) by (workload, workload_type)
+            '''
+            
+            # Query for memory usage by workload (aggregated by workload)
+            memory_query = f'''
+            sum(
+                container_memory_working_set_bytes{{
+                    namespace="{namespace}",
+                    container!="POD",
+                    container!=""
+                }}
+                * on(namespace,pod)
+                group_left(workload, workload_type) 
+                namespace_workload_pod:kube_pod_owner:relabel{{
+                    cluster="", 
+                    namespace="{namespace}", 
+                    workload="{workload}",
+                    workload_type=~".+"
+                }}
+            ) by (workload, workload_type)
+            '''
+            
+            # Query for CPU requests by namespace (using resource quota)
+            cpu_requests_query = f'''
+            scalar(kube_resourcequota{{
+                cluster="", 
+                namespace="{namespace}", 
+                type="hard",
+                resource="requests.cpu"
+            }})
+            '''
+            
+            # Query for memory requests by namespace (using resource quota)
+            memory_requests_query = f'''
+            scalar(kube_resourcequota{{
+                cluster="", 
+                namespace="{namespace}", 
+                type="hard",
+                resource="requests.memory"
+            }})
+            '''
+            
+            # Query for CPU limits by namespace (using resource quota)
+            cpu_limits_query = f'''
+            scalar(kube_resourcequota{{
+                cluster="", 
+                namespace="{namespace}", 
+                type="hard",
+                resource="limits.cpu"
+            }})
+            '''
+            
+            # Query for memory limits by namespace (using resource quota)
+            memory_limits_query = f'''
+            scalar(kube_resourcequota{{
+                cluster="", 
+                namespace="{namespace}", 
+                type="hard",
+                resource="limits.memory"
+            }})
+            '''
+            
+            # Execute queries
+            cpu_usage = await self._query_prometheus(cpu_query, 
+                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                datetime.now())
+            memory_usage = await self._query_prometheus(memory_query, 
+                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                datetime.now())
+            cpu_requests = await self._query_prometheus(cpu_requests_query, 
+                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                datetime.now())
+            memory_requests = await self._query_prometheus(memory_requests_query, 
+                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                datetime.now())
+            cpu_limits = await self._query_prometheus(cpu_limits_query, 
+                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                datetime.now())
+            memory_limits = await self._query_prometheus(memory_limits_query, 
+                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                datetime.now())
+            
+            # Calculate utilization percentages
+            cpu_utilization = 0
+            memory_utilization = 0
+            
+            if cpu_usage and cpu_requests and cpu_requests[0][1] != '0':
+                cpu_utilization = (float(cpu_usage[0][1]) / float(cpu_requests[0][1])) * 100
+                
+            if memory_usage and memory_requests and memory_requests[0][1] != '0':
+                memory_utilization = (float(memory_usage[0][1]) / float(memory_requests[0][1])) * 100
+            
+            # Generate recommendations based on utilization
+            recommendations = []
+            
+            if cpu_utilization > 80:
+                recommendations.append({
+                    "type": "cpu_high_utilization",
+                    "severity": "warning",
+                    "message": f"High CPU utilization: {cpu_utilization:.1f}%",
+                    "recommendation": "Consider increasing CPU requests or optimizing application performance"
+                })
+            elif cpu_utilization < 20 and cpu_utilization > 0:
+                recommendations.append({
+                    "type": "cpu_low_utilization", 
+                    "severity": "info",
+                    "message": f"Low CPU utilization: {cpu_utilization:.1f}%",
+                    "recommendation": "Consider reducing CPU requests to optimize resource allocation"
+                })
+                
+            if memory_utilization > 80:
+                recommendations.append({
+                    "type": "memory_high_utilization",
+                    "severity": "warning", 
+                    "message": f"High memory utilization: {memory_utilization:.1f}%",
+                    "recommendation": "Consider increasing memory requests or optimizing memory usage"
+                })
+            elif memory_utilization < 20 and memory_utilization > 0:
+                recommendations.append({
+                    "type": "memory_low_utilization",
+                    "severity": "info",
+                    "message": f"Low memory utilization: {memory_utilization:.1f}%", 
+                    "recommendation": "Consider reducing memory requests to optimize resource allocation"
+                })
+            
+            return {
+                'namespace': namespace,
+                'workload': workload,
+                'time_range': time_range,
+                'cpu_usage': float(cpu_usage[0][1]) if cpu_usage else 0,
+                'memory_usage': float(memory_usage[0][1]) if memory_usage else 0,
+                'cpu_requests': float(cpu_requests[0][1]) if cpu_requests else 0,
+                'memory_requests': float(memory_requests[0][1]) if memory_requests else 0,
+                'cpu_limits': float(cpu_limits[0][1]) if cpu_limits else 0,
+                'memory_limits': float(memory_limits[0][1]) if memory_limits else 0,
+                'cpu_utilization': cpu_utilization,
+                'memory_utilization': memory_utilization,
+                'recommendations': recommendations
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting historical analysis for workload {workload} in namespace {namespace}: {e}")
+            return {
+                'namespace': namespace,
+                'workload': workload,
+                'time_range': time_range,
+                'error': str(e),
+                'recommendations': []
+            }
+
     async def get_pod_historical_analysis(self, namespace: str, pod_name: str, time_range: str, prometheus_client):
         """Get historical analysis for a specific pod"""
         try:
             logger.info(f"Getting historical analysis for pod: {pod_name} in namespace: {namespace}")
             
-            # Query for CPU usage by pod
+            # Query for CPU usage by pod (more generic query)
             cpu_query = f'''
             sum(rate(container_cpu_usage_seconds_total{{
                 namespace="{namespace}",
-                pod="{pod_name}",
+                pod=~"{pod_name}.*",
                 container!="POD",
                 container!=""
             }}[{time_range}]))
             '''
             
-            # Query for memory usage by pod
+            # Query for memory usage by pod (more generic query)
             memory_query = f'''
             sum(container_memory_working_set_bytes{{
                 namespace="{namespace}",
-                pod="{pod_name}",
+                pod=~"{pod_name}.*",
                 container!="POD",
                 container!=""
             }})
             '''
             
-            # Query for CPU requests by pod
+            # Query for CPU requests by pod (more generic query)
             cpu_requests_query = f'''
             sum(kube_pod_container_resource_requests{{
                 namespace="{namespace}",
-                pod="{pod_name}",
+                pod=~"{pod_name}.*",
                 resource="cpu"
             }})
             '''
             
-            # Query for memory requests by pod
+            # Query for memory requests by pod (more generic query)
             memory_requests_query = f'''
             sum(kube_pod_container_resource_requests{{
                 namespace="{namespace}",
-                pod="{pod_name}",
+                pod=~"{pod_name}.*",
                 resource="memory"
             }})
             '''
             
-            # Query for container count by pod
+            # Query for container count by pod (more generic query)
             container_count_query = f'''
             count(container_memory_working_set_bytes{{
                 namespace="{namespace}",
-                pod="{pod_name}",
+                pod=~"{pod_name}.*",
                 container!="POD",
                 container!=""
             }})
@@ -626,19 +796,19 @@ class HistoricalAnalysisService:
             # Execute queries
             cpu_usage = await self._query_prometheus(cpu_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
-                datetime.now(), prometheus_client)
+                datetime.now())
             memory_usage = await self._query_prometheus(memory_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
-                datetime.now(), prometheus_client)
+                datetime.now())
             cpu_requests = await self._query_prometheus(cpu_requests_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
-                datetime.now(), prometheus_client)
+                datetime.now())
             memory_requests = await self._query_prometheus(memory_requests_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
-                datetime.now(), prometheus_client)
+                datetime.now())
             container_count = await self._query_prometheus(container_count_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
-                datetime.now(), prometheus_client)
+                datetime.now())
             
             # Calculate utilization percentages
             cpu_utilization = 0

@@ -153,6 +153,34 @@
             margin-top: 1.5rem;
         }
 
+        .time-range-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+        }
+
+        .time-range-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .time-range-btn:hover {
+            background: #e9ecef;
+        }
+
+        .time-range-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
         .page-header {
             padding: 0 1rem;
         }
@@ -938,14 +966,21 @@
         </div>
 
         <!-- Historical Analysis Modal -->
-        <div class="modal hidden" id="historicalModal" style="display: none;">
+        <div class="modal hidden" id="historicalModal">
             <div class="modal-content">
                 <div class="modal-header">
                     <h2 id="historicalModalTitle">Historical Analysis</h2>
                     <button class="modal-close" onclick="closeHistoricalModal()">&times;</button>
                 </div>
                 <div class="modal-body" id="historicalModalBody">
-                    <!-- Content will be loaded here -->
+                    <div class="time-range-selector">
+                        <button class="time-range-btn active" data-range="24h">1 Day</button>
+                        <button class="time-range-btn" data-range="7d">7 Days</button>
+                        <button class="time-range-btn" data-range="30d">30 Days</button>
+                    </div>
+                    <div id="historicalAnalysisContent">
+                        <p>Loading historical analysis...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1217,7 +1252,7 @@
                                     <div class="pod-name">${pod.pod_name}</div>
                                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                                         <div class="pod-validations-count">${pod.validations.length} validations</div>
-                                        <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="loadPodHistoricalAnalysis('${namespace.namespace}', '${pod.pod_name}')">Historical Analysis</button>
+                                        <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="loadWorkloadHistoricalAnalysis('${namespace.namespace}', '${pod.pod_name.split('-').slice(0, -2).join('-')}')">Historical Analysis</button>
                                     </div>
                                 </div>
                                 <div class="validation-list">
@@ -1518,11 +1553,38 @@
         }
 
         // Historical Analysis Modal Functions
-        async function loadPodHistoricalAnalysis(namespace, podName) {
+        let currentNamespace = null;
+        let currentWorkload = null;
+
+        async function loadWorkloadHistoricalAnalysis(namespace, workload, timeRange = '24h') {
             showLoading();
+            currentNamespace = namespace;
+            currentWorkload = workload;
             
             try {
-                const timeRange = '24h'; // Default time range
+                const response = await fetch(`/api/v1/namespace/${namespace}/workload/${workload}/historical-analysis?time_range=${timeRange}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displayWorkloadHistoricalAnalysis(data);
+                showHistoricalModal(`${namespace}/${workload}`);
+                
+            } catch (error) {
+                showError('Error loading historical analysis: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadPodHistoricalAnalysis(namespace, podName, timeRange = '24h') {
+            showLoading();
+            currentNamespace = namespace;
+            currentWorkload = podName; // For backward compatibility
+            
+            try {
                 const response = await fetch(`/api/v1/namespace/${namespace}/pod/${podName}/historical-analysis?time_range=${timeRange}`);
                 
                 if (!response.ok) {
@@ -1560,6 +1622,88 @@
             } finally {
                 hideLoading();
             }
+        }
+
+        function displayWorkloadHistoricalAnalysis(data) {
+            const container = document.getElementById('historicalAnalysisContent');
+            
+            if (data.analysis.error) {
+                container.innerHTML = `
+                    <div class="error">
+                        <h3>Error loading historical data</h3>
+                        <p>${data.analysis.error}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const analysis = data.analysis;
+            const recommendations = analysis.recommendations || [];
+            
+            let html = `
+                <div class="historical-summary">
+                    <h3>Workload: ${analysis.workload}</h3>
+                    <p><strong>Namespace:</strong> ${analysis.namespace}</p>
+                    <p><strong>Time Range:</strong> ${analysis.time_range}</p>
+                </div>
+                
+                <div class="historical-stats">
+                    <div class="historical-stat">
+                        <h4>CPU Usage</h4>
+                        <div class="value">${analysis.cpu_usage.toFixed(3)} cores</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>Memory Usage</h4>
+                        <div class="value">${(analysis.memory_usage / (1024*1024*1024)).toFixed(2)} GiB</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>CPU Utilization</h4>
+                        <div class="value" style="color: ${analysis.cpu_utilization > 80 ? '#dc3545' : analysis.cpu_utilization < 20 ? '#28a745' : '#007bff'}">${analysis.cpu_utilization.toFixed(1)}%</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>Memory Utilization</h4>
+                        <div class="value" style="color: ${analysis.memory_utilization > 80 ? '#dc3545' : analysis.memory_utilization < 20 ? '#28a745' : '#007bff'}">${analysis.memory_utilization.toFixed(1)}%</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>CPU Requests</h4>
+                        <div class="value">${analysis.cpu_requests.toFixed(3)} cores</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>Memory Requests</h4>
+                        <div class="value">${(analysis.memory_requests / (1024*1024*1024)).toFixed(2)} GiB</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>CPU Limits</h4>
+                        <div class="value">${analysis.cpu_limits.toFixed(3)} cores</div>
+                    </div>
+                    <div class="historical-stat">
+                        <h4>Memory Limits</h4>
+                        <div class="value">${(analysis.memory_limits / (1024*1024*1024)).toFixed(2)} GiB</div>
+                    </div>
+                </div>
+            `;
+
+            if (recommendations.length > 0) {
+                html += `
+                    <div class="historical-summary">
+                        <h3>Recommendations</h3>
+                `;
+                
+                recommendations.forEach(rec => {
+                    const severityClass = rec.severity === 'error' ? 'error' : rec.severity === 'warning' ? 'warning' : 'info';
+                    html += `
+                        <div class="recommendation ${severityClass}">
+                            <span class="badge ${severityClass}">${rec.severity}</span>
+                            <strong>${rec.message}</strong>
+                            <p>${rec.recommendation}</p>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+
+            container.innerHTML = html;
         }
 
         function displayPodHistoricalAnalysis(data) {
@@ -1719,17 +1863,39 @@
 
         function showHistoricalModal(namespace) {
             document.getElementById('historicalModalTitle').textContent = `Historical Analysis - ${namespace}`;
-            document.getElementById('historicalModal').classList.add('show');
+            const modal = document.getElementById('historicalModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('show');
         }
 
         function closeHistoricalModal() {
-            document.getElementById('historicalModal').classList.remove('show');
+            const modal = document.getElementById('historicalModal');
+            modal.classList.remove('show');
+            modal.classList.add('hidden');
         }
 
         // Close modal when clicking outside
         document.getElementById('historicalModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeHistoricalModal();
+            }
+        });
+
+        // Time range button event listeners
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('time-range-btn')) {
+                const timeRange = e.target.getAttribute('data-range');
+                
+                // Update active button
+                document.querySelectorAll('.time-range-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                
+                // Reload data with new time range
+                if (currentNamespace && currentWorkload) {
+                    loadWorkloadHistoricalAnalysis(currentNamespace, currentWorkload, timeRange);
+                }
             }
         });
 
