@@ -153,21 +153,8 @@
             margin-top: 1.5rem;
         }
 
-        .header {
-            background: linear-gradient(135deg, #cc0000, #8b0000);
-            color: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .header h1 {
-            font-size: 1.8rem;
-            font-weight: 600;
-        }
-
-        .header p {
-            margin-top: 0.5rem;
-            opacity: 0.9;
+        .page-header {
+            padding: 0 1rem;
         }
 
         .container {
@@ -778,28 +765,23 @@
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" data-section="dashboard">
                 <span class="nav-icon">📊</span>
-                <span class="nav-text">Resource Analysis</span>
+                <span class="nav-text">Request&Limits Analysis</span>
+            </a>
+            <a href="#" class="nav-item" data-section="historical-analysis">
+                <span class="nav-icon">📈</span>
+                <span class="nav-text">Historical Resource Usage</span>
             </a>
             <a href="#" class="nav-item" data-section="vpa-recommendations">
                 <span class="nav-icon">🎯</span>
                 <span class="nav-text">VPA Recommendations</span>
-            </a>
-            <a href="#" class="nav-item" data-section="historical-analysis">
-                <span class="nav-icon">📈</span>
-                <span class="nav-text">Historical Analysis</span>
-            </a>
-            <a href="#" class="nav-item" data-section="vpa-health">
-                <span class="nav-icon">⚡</span>
-                <span class="nav-text">VPA Health</span>
             </a>
         </nav>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
-        <div class="header">
-            <h1>OpenShift Resource Governance Tool</h1>
-            <p>Resource governance tool for OpenShift clusters</p>
+        <div class="page-header">
+            <h1 style="color: #cc0000; margin: 1rem 0;">OpenShift Resource Governance Tool</h1>
         </div>
 
         <!-- Export Button -->
