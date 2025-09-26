@@ -40,8 +40,8 @@ class PrometheusClient:
             
             self.session = aiohttp.ClientSession(connector=connector, headers=headers)
             
-            # Test connection
-            async with self.session.get(f"{self.base_url}/api/v1/query?query=up") as response:
+            # Test connection with SSL verification disabled
+            async with self.session.get(f"{self.base_url}/api/v1/query?query=up", ssl=False) as response:
                 if response.status == 200:
                     self.initialized = True
                     logger.info("Prometheus client initialized successfully")
@@ -65,7 +65,8 @@ class PrometheusClient:
             
             async with self.session.get(
                 f"{self.base_url}/api/v1/query",
-                params=params
+                params=params,
+                ssl=False
             ) as response:
                 if response.status == 200:
                     data = await response.json()
