@@ -731,6 +731,72 @@ async def get_smart_validations(
         logger.error(f"Error getting smart validations: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/cluster-health")
+async def get_cluster_health(k8s_client=Depends(get_k8s_client)):
+    """Get cluster health overview with overcommit analysis"""
+    try:
+        pods = await k8s_client.get_all_pods()
+        cluster_health = await validation_service.get_cluster_health(pods)
+        return cluster_health
+    except Exception as e:
+        logger.error(f"Error getting cluster health: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/qos-classification")
+async def get_qos_classification(
+    namespace: Optional[str] = None,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Get QoS classification for pods"""
+    try:
+        if namespace:
+            namespace_resources = await k8s_client.get_namespace_resources(namespace)
+            pods = namespace_resources.pods
+        else:
+            pods = await k8s_client.get_all_pods()
+        
+        qos_classifications = []
+        for pod in pods:
+            qos = validation_service.classify_qos(pod)
+            qos_classifications.append(qos)
+        
+        return {
+            "qos_classifications": qos_classifications,
+            "total_pods": len(pods),
+            "distribution": {
+                "Guaranteed": len([q for q in qos_classifications if q.qos_class == "Guaranteed"]),
+                "Burstable": len([q for q in qos_classifications if q.qos_class == "Burstable"]),
+                "BestEffort": len([q for q in qos_classifications if q.qos_class == "BestEffort"])
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error getting QoS classification: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/resource-quotas")
+async def get_resource_quotas(
+    namespace: Optional[str] = None,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Get Resource Quota analysis"""
+    try:
+        if namespace:
+            namespaces = [namespace]
+        else:
+            pods = await k8s_client.get_all_pods()
+            namespaces = list(set(pod.namespace for pod in pods))
+        
+        quotas = await validation_service.analyze_resource_quotas(namespaces)
+        
+        return {
+            "resource_quotas": quotas,
+            "total_namespaces": len(namespaces),
+            "coverage_percentage": len([q for q in quotas if q.status == "Active"]) / len(namespaces) * 100
+        }
+    except Exception as e:
+        logger.error(f"Error getting resource quotas: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/health")
 async def health_check():
     """API health check"""

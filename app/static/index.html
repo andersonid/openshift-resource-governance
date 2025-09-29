@@ -802,6 +802,212 @@
             width: auto;
         }
 
+        /* Cluster Health Dashboard Styles */
+        .cluster-health-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .health-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .health-indicator {
+            font-size: 3rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .health-text h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .health-text p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+        }
+
+        .health-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-label {
+            display: block;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .metric-value.critical {
+            color: #ff6b6b;
+        }
+
+        .resource-overview {
+            margin-bottom: 2rem;
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .resource-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .resource-card h4 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+
+        .resource-bar {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .resource-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+            transition: width 0.3s ease;
+        }
+
+        .resource-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .top-consumers {
+            margin-bottom: 2rem;
+        }
+
+        .consumers-list {
+            display: grid;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .consumer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+
+        .consumer-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .consumer-rank {
+            font-weight: 700;
+            color: #007bff;
+        }
+
+        .consumer-name {
+            font-weight: 600;
+        }
+
+        .consumer-namespace {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .consumer-resources {
+            text-align: right;
+            font-size: 0.9rem;
+        }
+
+        .qos-distribution {
+            margin-bottom: 2rem;
+        }
+
+        .qos-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .qos-stat {
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .qos-stat.guaranteed {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .qos-stat.burstable {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+
+        .qos-stat.besteffort {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .qos-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .qos-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .resource-analysis-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e9ecef;
+        }
+
         /* Smart Recommendations Styles */
         .validation-details {
             display: flex;
@@ -993,8 +1199,8 @@
         </div>
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" data-section="dashboard">
-                <span class="nav-icon">📊</span>
-                <span class="nav-text">Request&Limits Analysis</span>
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Cluster Health</span>
             </a>
             <a href="#" class="nav-item" data-section="historical-analysis">
                 <span class="nav-icon">📈</span>
@@ -1082,9 +1288,96 @@
             <div id="historicalValidationsList"></div>
         </div>
 
-        <!-- Resource Analysis -->
-        <div class="card" id="validationsCard" style="display: none;">
-            <h2>Resource Analysis</h2>
+        <!-- Cluster Health Dashboard -->
+        <div class="card" id="validationsCard" style="display: block;">
+            <h2>🏠 Cluster Health Overview</h2>
+            
+            <!-- Cluster Health Status -->
+            <div class="cluster-health-section">
+                <div class="health-status" id="clusterHealthStatus">
+                    <div class="health-indicator" id="healthIndicator">🟢</div>
+                    <div class="health-text">
+                        <h3 id="healthTitle">Cluster Healthy</h3>
+                        <p id="healthSubtitle">All systems operational</p>
+                    </div>
+                </div>
+                <div class="health-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Pods:</span>
+                        <span class="metric-value" id="totalPods">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Namespaces:</span>
+                        <span class="metric-value" id="totalNamespaces">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Critical Issues:</span>
+                        <span class="metric-value critical" id="criticalIssues">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Overcommit:</span>
+                        <span class="metric-value" id="overcommitStatus">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resource Overview -->
+            <div class="resource-overview">
+                <h3>📊 Resource Consumption</h3>
+                <div class="resource-grid">
+                    <div class="resource-card">
+                        <h4>CPU</h4>
+                        <div class="resource-bar">
+                            <div class="resource-fill" id="cpuUsageBar" style="width: 0%"></div>
+                        </div>
+                        <div class="resource-text">
+                            <span id="cpuUsageText">0 / 0 cores</span>
+                            <span id="cpuOvercommitText">0% overcommit</span>
+                        </div>
+                    </div>
+                    <div class="resource-card">
+                        <h4>Memory</h4>
+                        <div class="resource-bar">
+                            <div class="resource-fill" id="memoryUsageBar" style="width: 0%"></div>
+                        </div>
+                        <div class="resource-text">
+                            <span id="memoryUsageText">0 / 0 GiB</span>
+                            <span id="memoryOvercommitText">0% overcommit</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Resource Consumers -->
+            <div class="top-consumers">
+                <h3>🥇 Top Resource Consumers</h3>
+                <div id="topConsumersList" class="consumers-list">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- QoS Distribution -->
+            <div class="qos-distribution">
+                <h3>⚡ QoS Distribution</h3>
+                <div class="qos-stats">
+                    <div class="qos-stat guaranteed">
+                        <span class="qos-label">Guaranteed:</span>
+                        <span class="qos-value" id="guaranteedCount">0</span>
+                    </div>
+                    <div class="qos-stat burstable">
+                        <span class="qos-label">Burstable:</span>
+                        <span class="qos-value" id="burstableCount">0</span>
+                    </div>
+                    <div class="qos-stat besteffort">
+                        <span class="qos-label">BestEffort:</span>
+                        <span class="qos-value" id="besteffortCount">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resource Analysis (Original) -->
+            <div class="resource-analysis-section">
+                <h3>🔍 Detailed Resource Analysis</h3>
             
             <!-- Filters -->
             <div class="filters">
@@ -2241,6 +2534,141 @@
             }
         });
 
+        // Cluster Health Functions
+        async function loadClusterHealth() {
+            showLoading();
+            
+            try {
+                // Load cluster health data
+                const healthResponse = await fetch('/api/cluster-health');
+                if (!healthResponse.ok) {
+                    throw new Error(`HTTP ${healthResponse.status}: ${healthResponse.statusText}`);
+                }
+                const healthData = await healthResponse.json();
+                
+                // Load QoS classification
+                const qosResponse = await fetch('/api/qos-classification');
+                if (!qosResponse.ok) {
+                    throw new Error(`HTTP ${qosResponse.status}: ${qosResponse.statusText}`);
+                }
+                const qosData = await qosResponse.json();
+                
+                // Update cluster health display
+                updateClusterHealthDisplay(healthData, qosData);
+                
+                // Also load detailed validations
+                loadValidationsByNamespace();
+                
+            } catch (error) {
+                showError('Error loading cluster health: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function updateClusterHealthDisplay(healthData, qosData) {
+            // Update health status
+            const healthIndicator = document.getElementById('healthIndicator');
+            const healthTitle = document.getElementById('healthTitle');
+            const healthSubtitle = document.getElementById('healthSubtitle');
+            
+            if (healthData.overall_health === 'Critical') {
+                healthIndicator.textContent = '🔴';
+                healthTitle.textContent = 'Cluster Critical';
+                healthSubtitle.textContent = 'Immediate attention required';
+            } else if (healthData.overall_health === 'Warning') {
+                healthIndicator.textContent = '🟡';
+                healthTitle.textContent = 'Cluster Warning';
+                healthSubtitle.textContent = 'Some issues detected';
+            } else {
+                healthIndicator.textContent = '🟢';
+                healthTitle.textContent = 'Cluster Healthy';
+                healthSubtitle.textContent = 'All systems operational';
+            }
+            
+            // Update metrics
+            document.getElementById('totalPods').textContent = healthData.total_pods;
+            document.getElementById('totalNamespaces').textContent = healthData.total_namespaces;
+            document.getElementById('criticalIssues').textContent = healthData.critical_issues;
+            
+            // Update overcommit status
+            const cpuOvercommit = healthData.cpu_overcommit_percentage;
+            const memoryOvercommit = healthData.memory_overcommit_percentage;
+            const maxOvercommit = Math.max(cpuOvercommit, memoryOvercommit);
+            
+            let overcommitText = '';
+            if (maxOvercommit > 150) {
+                overcommitText = '🔴 Critical';
+            } else if (maxOvercommit > 120) {
+                overcommitText = '🟡 High';
+            } else {
+                overcommitText = '🟢 Normal';
+            }
+            document.getElementById('overcommitStatus').textContent = overcommitText;
+            
+            // Update resource consumption
+            updateResourceConsumption(healthData);
+            
+            // Update top consumers
+            updateTopConsumers(healthData.top_resource_consumers);
+            
+            // Update QoS distribution
+            updateQoSDistribution(qosData.distribution);
+        }
+
+        function updateResourceConsumption(healthData) {
+            // CPU
+            const cpuUsagePercent = (healthData.cluster_cpu_requests / healthData.cluster_cpu_capacity) * 100;
+            document.getElementById('cpuUsageBar').style.width = Math.min(cpuUsagePercent, 100) + '%';
+            document.getElementById('cpuUsageText').textContent = 
+                `${healthData.cluster_cpu_requests.toFixed(1)} / ${healthData.cluster_cpu_capacity.toFixed(1)} cores`;
+            document.getElementById('cpuOvercommitText').textContent = 
+                `${healthData.cpu_overcommit_percentage.toFixed(1)}% overcommit`;
+            
+            // Memory
+            const memoryUsagePercent = (healthData.cluster_memory_requests / healthData.cluster_memory_capacity) * 100;
+            document.getElementById('memoryUsageBar').style.width = Math.min(memoryUsagePercent, 100) + '%';
+            document.getElementById('memoryUsageText').textContent = 
+                `${healthData.cluster_memory_requests.toFixed(1)} / ${healthData.cluster_memory_capacity.toFixed(1)} GiB`;
+            document.getElementById('memoryOvercommitText').textContent = 
+                `${healthData.memory_overcommit_percentage.toFixed(1)}% overcommit`;
+        }
+
+        function updateTopConsumers(consumers) {
+            const container = document.getElementById('topConsumersList');
+            container.innerHTML = '';
+            
+            consumers.slice(0, 5).forEach((consumer, index) => {
+                const item = document.createElement('div');
+                item.className = 'consumer-item';
+                
+                const rank = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][index];
+                
+                item.innerHTML = `
+                    <div class="consumer-info">
+                        <span class="consumer-rank">${rank}</span>
+                        <div>
+                            <div class="consumer-name">${consumer.name}</div>
+                            <div class="consumer-namespace">${consumer.namespace}</div>
+                        </div>
+                    </div>
+                    <div class="consumer-resources">
+                        <div>CPU: ${consumer.cpu_requests.toFixed(1)} cores</div>
+                        <div>Memory: ${consumer.memory_requests.toFixed(1)} GiB</div>
+                        <div class="qos-badge qos-${consumer.qos_class.toLowerCase()}">${consumer.qos_class}</div>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        function updateQoSDistribution(distribution) {
+            document.getElementById('guaranteedCount').textContent = distribution.Guaranteed || 0;
+            document.getElementById('burstableCount').textContent = distribution.Burstable || 0;
+            document.getElementById('besteffortCount').textContent = distribution.BestEffort || 0;
+        }
+
         // Smart Recommendations Functions
         async function loadSmartRecommendations() {
             showLoading();
@@ -2485,11 +2913,11 @@
             // Add active class to clicked nav item
             document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
             
-            // Load data for the section
-            switch(sectionName) {
-                case 'dashboard':
-                    loadValidationsByNamespace();
-                    break;
+        // Load data for the section
+        switch(sectionName) {
+            case 'dashboard':
+                loadClusterHealth();
+                break;
                 case 'historical-analysis':
                     loadHistoricalValidations();
                     break;

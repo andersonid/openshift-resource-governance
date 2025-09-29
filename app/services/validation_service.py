@@ -6,7 +6,14 @@ from typing import List, Dict, Any
 from decimal import Decimal, InvalidOperation
 import re
 
-from app.models.resource_models import PodResource, ResourceValidation, NamespaceResources
+from app.models.resource_models import (
+    PodResource, 
+    ResourceValidation, 
+    NamespaceResources,
+    QoSClassification,
+    ResourceQuota,
+    ClusterHealth
+)
 from app.core.config import settings
 from app.services.historical_analysis import HistoricalAnalysisService
 from app.services.smart_recommendations import SmartRecommendationsService
@@ -68,6 +75,9 @@ class ValidationService:
         requests = resources.get("requests", {})
         limits = resources.get("limits", {})
         
+        # Determine QoS class based on Red Hat best practices
+        qos_class = self._determine_qos_class(requests, limits)
+        
         # 1. Check if requests are defined
         if not requests:
             validations.append(ResourceValidation(
@@ -77,7 +87,7 @@ class ValidationService:
                 validation_type="missing_requests",
                 severity="error",
                 message="Container without defined requests",
-                recommendation="Define CPU and memory requests to guarantee QoS"
+                recommendation="Define CPU and memory requests to guarantee QoS (currently BestEffort class)"
             ))
         
         # 2. Check if limits are defined
@@ -91,6 +101,11 @@ class ValidationService:
                 message="Container without defined limits",
                 recommendation="Define limits to avoid excessive resource consumption"
             ))
+        
+        # 3. QoS Class validation based on Red Hat recommendations
+        qos_validation = self._validate_qos_class(pod_name, namespace, container["name"], qos_class, requests, limits)
+        if qos_validation:
+            validations.append(qos_validation)
         
         # 3. Validate limit:request ratio
         if requests and limits:
@@ -488,3 +503,141 @@ class ValidationService:
         """Get smart recommendations for all workloads"""
         categories = await self.get_workload_categories(pods)
         return await self.smart_recommendations.generate_smart_recommendations(pods, categories)
+
+    def classify_qos(self, pod: PodResource) -> QoSClassification:
+        """Classify pod QoS based on Red Hat best practices"""
+        cpu_requests = pod.cpu_requests
+        memory_requests = pod.memory_requests
+        cpu_limits = pod.cpu_limits
+        memory_limits = pod.memory_limits
+        
+        # Determine QoS class
+        if (cpu_requests > 0 and memory_requests > 0 and 
+            cpu_limits > 0 and memory_limits > 0 and
+            cpu_requests == cpu_limits and memory_requests == memory_limits):
+            qos_class = "Guaranteed"
+            efficiency_score = 1.0
+        elif (cpu_requests > 0 or memory_requests > 0):
+            qos_class = "Burstable"
+            # Calculate efficiency based on request/limit ratio
+            cpu_efficiency = cpu_requests / cpu_limits if cpu_limits > 0 else 0.5
+            memory_efficiency = memory_requests / memory_limits if memory_limits > 0 else 0.5
+            efficiency_score = (cpu_efficiency + memory_efficiency) / 2
+        else:
+            qos_class = "BestEffort"
+            efficiency_score = 0.0
+        
+        # Generate recommendation
+        recommendation = None
+        if qos_class == "BestEffort":
+            recommendation = "Define CPU and memory requests for better resource management"
+        elif qos_class == "Burstable" and efficiency_score < 0.3:
+            recommendation = "Consider setting limits closer to requests for better predictability"
+        elif qos_class == "Guaranteed":
+            recommendation = "Optimal QoS configuration for production workloads"
+        
+        return QoSClassification(
+            pod_name=pod.name,
+            namespace=pod.namespace,
+            qos_class=qos_class,
+            cpu_requests=cpu_requests,
+            memory_requests=memory_requests,
+            cpu_limits=cpu_limits,
+            memory_limits=memory_limits,
+            efficiency_score=efficiency_score,
+            recommendation=recommendation
+        )
+
+    async def analyze_resource_quotas(self, namespaces: List[str]) -> List[ResourceQuota]:
+        """Analyze Resource Quotas for namespaces"""
+        quotas = []
+        
+        for namespace in namespaces:
+            # This would typically query the Kubernetes API
+            # For now, we'll simulate the analysis
+            quota = ResourceQuota(
+                namespace=namespace,
+                name=f"quota-{namespace}",
+                status="Missing",  # Would be determined by API call
+                usage_percentage=0.0,
+                recommended_quota={
+                    "cpu": "2000m",
+                    "memory": "8Gi",
+                    "pods": "20"
+                }
+            )
+            quotas.append(quota)
+        
+        return quotas
+
+    async def get_cluster_health(self, pods: List[PodResource]) -> ClusterHealth:
+        """Get cluster health overview with overcommit analysis"""
+        total_pods = len(pods)
+        total_namespaces = len(set(pod.namespace for pod in pods))
+        
+        # Calculate cluster resource totals
+        cluster_cpu_requests = sum(pod.cpu_requests for pod in pods)
+        cluster_memory_requests = sum(pod.memory_requests for pod in pods)
+        cluster_cpu_limits = sum(pod.cpu_limits for pod in pods)
+        cluster_memory_limits = sum(pod.memory_limits for pod in pods)
+        
+        # Simulate cluster capacity (would come from node metrics)
+        cluster_cpu_capacity = 100.0  # 100 CPU cores
+        cluster_memory_capacity = 400.0  # 400 GiB
+        
+        # Calculate overcommit percentages
+        cpu_overcommit = (cluster_cpu_requests / cluster_cpu_capacity) * 100
+        memory_overcommit = (cluster_memory_requests / cluster_memory_capacity) * 100
+        
+        # Determine overall health
+        if cpu_overcommit > 150 or memory_overcommit > 150:
+            overall_health = "Critical"
+        elif cpu_overcommit > 120 or memory_overcommit > 120:
+            overall_health = "Warning"
+        else:
+            overall_health = "Healthy"
+        
+        # Count critical issues
+        critical_issues = sum(1 for pod in pods if pod.cpu_requests == 0 or pod.memory_requests == 0)
+        
+        # Get top resource consumers
+        top_consumers = sorted(
+            pods, 
+            key=lambda p: p.cpu_requests + p.memory_requests, 
+            reverse=True
+        )[:10]
+        
+        # QoS distribution
+        qos_distribution = {"Guaranteed": 0, "Burstable": 0, "BestEffort": 0}
+        for pod in pods:
+            qos = self.classify_qos(pod)
+            qos_distribution[qos.qos_class] += 1
+        
+        return ClusterHealth(
+            total_pods=total_pods,
+            total_namespaces=total_namespaces,
+            total_nodes=10,  # Simulated
+            cluster_cpu_capacity=cluster_cpu_capacity,
+            cluster_memory_capacity=cluster_memory_capacity,
+            cluster_cpu_requests=cluster_cpu_requests,
+            cluster_memory_requests=cluster_memory_requests,
+            cluster_cpu_limits=cluster_cpu_limits,
+            cluster_memory_limits=cluster_memory_limits,
+            cpu_overcommit_percentage=cpu_overcommit,
+            memory_overcommit_percentage=memory_overcommit,
+            overall_health=overall_health,
+            critical_issues=critical_issues,
+            namespaces_in_overcommit=3,  # Simulated
+            top_resource_consumers=[
+                {
+                    "name": pod.name,
+                    "namespace": pod.namespace,
+                    "cpu_requests": pod.cpu_requests,
+                    "memory_requests": pod.memory_requests,
+                    "qos_class": self.classify_qos(pod).qos_class
+                }
+                for pod in top_consumers
+            ],
+            qos_distribution=qos_distribution,
+            resource_quota_coverage=0.6  # Simulated
+        )

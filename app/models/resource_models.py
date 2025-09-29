@@ -111,3 +111,48 @@ class SmartRecommendation(BaseModel):
     implementation_steps: Optional[List[str]] = None
     kubectl_commands: Optional[List[str]] = None
     vpa_yaml: Optional[str] = None
+
+class QoSClassification(BaseModel):
+    """QoS (Quality of Service) classification"""
+    pod_name: str
+    namespace: str
+    qos_class: str  # "Guaranteed", "Burstable", "BestEffort"
+    cpu_requests: float = 0.0
+    memory_requests: float = 0.0
+    cpu_limits: float = 0.0
+    memory_limits: float = 0.0
+    efficiency_score: float = 0.0  # 0.0-1.0
+    recommendation: Optional[str] = None
+
+class ResourceQuota(BaseModel):
+    """Resource Quota information"""
+    namespace: str
+    name: str
+    cpu_requests: Optional[str] = None
+    memory_requests: Optional[str] = None
+    cpu_limits: Optional[str] = None
+    memory_limits: Optional[str] = None
+    pods: Optional[str] = None
+    status: str = "Unknown"  # "Active", "Exceeded", "Missing"
+    usage_percentage: float = 0.0
+    recommended_quota: Optional[Dict[str, str]] = None
+
+class ClusterHealth(BaseModel):
+    """Cluster health overview"""
+    total_pods: int
+    total_namespaces: int
+    total_nodes: int
+    cluster_cpu_capacity: float
+    cluster_memory_capacity: float
+    cluster_cpu_requests: float
+    cluster_memory_requests: float
+    cluster_cpu_limits: float
+    cluster_memory_limits: float
+    cpu_overcommit_percentage: float
+    memory_overcommit_percentage: float
+    overall_health: str  # "Healthy", "Warning", "Critical"
+    critical_issues: int
+    namespaces_in_overcommit: int
+    top_resource_consumers: List[Dict[str, Any]]
+    qos_distribution: Dict[str, int]
+    resource_quota_coverage: float
