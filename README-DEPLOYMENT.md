@@ -4,6 +4,8 @@
 
 Esta aplicação monitora e analisa recursos (CPU/Memory) de pods em clusters OpenShift, fornecendo validações e recomendações baseadas em melhores práticas.
 
+**⚠️ NOTA: Este guia está desatualizado. Use o README.md principal para instruções atuais.**
+
 ## 🔧 Pré-requisitos
 
 - **OpenShift CLI (oc)** instalado e configurado

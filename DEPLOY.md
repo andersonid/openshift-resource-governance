@@ -2,6 +2,8 @@
 
 Este documento explica como fazer deploy da OpenShift Resource Governance Tool no seu cluster OpenShift.
 
+**⚠️ NOTA: Este guia está desatualizado. Use o README.md principal para instruções atuais.**
+
 ## 📋 Pré-requisitos
 
 - Cluster OpenShift 4.x

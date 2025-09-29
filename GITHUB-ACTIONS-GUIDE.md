@@ -4,6 +4,8 @@
 
 O GitHub Actions está configurado para **buildar e fazer push automático** da imagem Docker para o Docker Hub sempre que você fizer push para o repositório.
 
+**⚠️ NOTA: Este guia está desatualizado. Use o README.md principal para instruções atuais.**
+
 ## 🔧 Configuração Necessária
 
 ### 1. Secrets do GitHub

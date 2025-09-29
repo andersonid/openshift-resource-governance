@@ -4,6 +4,8 @@
 
 Para o GitHub Actions funcionar com Docker Hub, configure estes secrets:
 
+**⚠️ NOTA: Este guia está desatualizado. Use o README.md principal para instruções atuais.**
+
 ### 1. **DOCKERHUB_USERNAME**
 - **Nome**: `DOCKERHUB_USERNAME`
 - **Valor**: `andersonid`

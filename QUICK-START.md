@@ -1,5 +1,7 @@
 # 🚀 Quick Start - OpenShift Resource Governance Tool
 
+**⚠️ NOTA: Este guia está desatualizado. Use o README.md principal para instruções atuais.**
+
 ## ⚡ Deploy em 3 Passos
 
 ### 1. Clone o Repositório

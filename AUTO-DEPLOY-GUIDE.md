@@ -4,6 +4,8 @@
 
 Este guia explica como configurar deploy automático após o GitHub Actions criar a imagem no Docker Hub.
 
+**⚠️ NOTA: Este guia está desatualizado. Use o README.md principal para instruções atuais.**
+
 ## 🔍 **SITUAÇÃO ATUAL:**
 
 ### ✅ **GitHub Actions (Funcionando):**
