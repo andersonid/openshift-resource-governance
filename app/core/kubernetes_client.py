@@ -76,6 +76,44 @@ class K8sClient:
             logger.error(f"Error initializing Kubernetes client: {e}")
             raise
     
+    def _parse_cpu_value(self, value: str) -> float:
+        """Parse CPU value to cores"""
+        if not value or value == "0":
+            return 0.0
+        
+        value = value.replace("m", "").replace(" ", "")
+        
+        if value.endswith("n"):
+            return float(value[:-1]) / 1000000000
+        elif value.endswith("u"):
+            return float(value[:-1]) / 1000000
+        elif value.endswith("m"):
+            return float(value[:-1]) / 1000
+        else:
+            return float(value)
+    
+    def _parse_memory_value(self, value: str) -> float:
+        """Parse memory value to bytes"""
+        if not value or value == "0":
+            return 0.0
+        
+        value = value.upper()
+        
+        if value.endswith('KI'):
+            return float(value[:-2]) * 1024
+        elif value.endswith('MI'):
+            return float(value[:-2]) * 1024 * 1024
+        elif value.endswith('GI'):
+            return float(value[:-2]) * 1024 * 1024 * 1024
+        elif value.endswith('K'):
+            return float(value[:-1]) * 1000
+        elif value.endswith('M'):
+            return float(value[:-1]) * 1000 * 1000
+        elif value.endswith('G'):
+            return float(value[:-1]) * 1000 * 1000 * 1000
+        else:
+            return float(value)
+    
     def _is_system_namespace(self, namespace: str, include_system: bool = None) -> bool:
         """Check if a namespace is a system namespace"""
         # Use parameter if provided, otherwise use global configuration
@@ -104,15 +142,14 @@ class K8sClient:
                 # Filter system namespaces
                 if self._is_system_namespace(pod.metadata.namespace, include_system_namespaces):
                     continue
-                pod_resource = PodResource(
-                    name=pod.metadata.name,
-                    namespace=pod.metadata.namespace,
-                    node_name=pod.spec.node_name,
-                    phase=pod.status.phase,
-                    containers=[]
-                )
+                # Calculate total pod resources
+                total_cpu_requests = 0.0
+                total_memory_requests = 0.0
+                total_cpu_limits = 0.0
+                total_memory_limits = 0.0
                 
-                # Process pod containers
+                # Process pod containers first to calculate totals
+                containers_data = []
                 for container in pod.spec.containers:
                     container_resource = {
                         "name": container.name,
@@ -134,7 +171,31 @@ class K8sClient:
                                 k: v for k, v in container.resources.limits.items()
                             }
                     
-                    pod_resource.containers.append(container_resource)
+                    # Calculate container resources
+                    cpu_requests = self._parse_cpu_value(container_resource["resources"]["requests"].get("cpu", "0"))
+                    memory_requests = self._parse_memory_value(container_resource["resources"]["requests"].get("memory", "0"))
+                    cpu_limits = self._parse_cpu_value(container_resource["resources"]["limits"].get("cpu", "0"))
+                    memory_limits = self._parse_memory_value(container_resource["resources"]["limits"].get("memory", "0"))
+                    
+                    # Add to totals
+                    total_cpu_requests += cpu_requests
+                    total_memory_requests += memory_requests
+                    total_cpu_limits += cpu_limits
+                    total_memory_limits += memory_limits
+                    
+                    containers_data.append(container_resource)
+                
+                pod_resource = PodResource(
+                    name=pod.metadata.name,
+                    namespace=pod.metadata.namespace,
+                    node_name=pod.spec.node_name,
+                    phase=pod.status.phase,
+                    containers=containers_data,
+                    cpu_requests=total_cpu_requests,
+                    memory_requests=total_memory_requests,
+                    cpu_limits=total_cpu_limits,
+                    memory_limits=total_memory_limits
+                )
                 
                 pods_data.append(pod_resource)
             
