@@ -444,7 +444,7 @@ class HistoricalAnalysisService:
             logger.error(f"Error getting historical summary: {e}")
             return {}
 
-    async def get_namespace_historical_analysis(self, namespace: str, time_range: str, prometheus_client):
+    async def get_namespace_historical_analysis(self, namespace: str, time_range: str):
         """Get historical analysis for a specific namespace"""
         try:
             logger.info(f"Getting historical analysis for namespace: {namespace}")
@@ -570,7 +570,7 @@ class HistoricalAnalysisService:
                 'recommendations': []
             }
 
-    async def get_workload_historical_analysis(self, namespace: str, workload: str, time_range: str, prometheus_client):
+    async def get_workload_historical_analysis(self, namespace: str, workload: str, time_range: str):
         """Get historical analysis for a specific workload/deployment"""
         try:
             logger.info(f"Getting historical analysis for workload: {workload} in namespace: {namespace}")
@@ -740,7 +740,7 @@ class HistoricalAnalysisService:
                 'recommendations': []
             }
 
-    async def get_pod_historical_analysis(self, namespace: str, pod_name: str, time_range: str, prometheus_client):
+    async def get_pod_historical_analysis(self, namespace: str, pod_name: str, time_range: str):
         """Get historical analysis for a specific pod"""
         try:
             logger.info(f"Getting historical analysis for pod: {pod_name} in namespace: {namespace}")

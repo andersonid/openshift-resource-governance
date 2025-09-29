@@ -493,7 +493,7 @@ async def get_namespace_historical_analysis(
         
         # Get historical analysis for the namespace
         analysis = await historical_service.get_namespace_historical_analysis(
-            namespace, time_range, prometheus_client
+            namespace, time_range
         )
         
         return {
@@ -520,7 +520,7 @@ async def get_workload_historical_analysis(
         
         # Get historical analysis for the workload
         analysis = await historical_service.get_workload_historical_analysis(
-            namespace, workload, time_range, prometheus_client
+            namespace, workload, time_range
         )
         
         return {
@@ -548,7 +548,7 @@ async def get_pod_historical_analysis(
         
         # Get historical analysis for the pod
         analysis = await historical_service.get_pod_historical_analysis(
-            namespace, pod_name, time_range, prometheus_client
+            namespace, pod_name, time_range
         )
         
         return {
