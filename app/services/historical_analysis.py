@@ -609,7 +609,7 @@ class HistoricalAnalysisService:
                 'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests and len(memory_requests) > 0 else 0,
                 'cpu_utilization': cpu_utilization,
                 'memory_utilization': memory_utilization,
-                'pod_count': int(self._safe_float(pod_count[0][1])) if pod_count and len(pod_count) > 0 else 0,
+                'pod_count': pod_count,
                 'recommendations': recommendations
             }
             
