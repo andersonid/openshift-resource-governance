@@ -561,10 +561,10 @@ class HistoricalAnalysisService:
             cpu_utilization = 0
             memory_utilization = 0
             
-            if cpu_usage and cpu_requests and self._safe_float(cpu_requests[0][1]) != 0:
+            if cpu_usage and cpu_requests and len(cpu_usage) > 0 and len(cpu_requests) > 0 and self._safe_float(cpu_requests[0][1]) != 0:
                 cpu_utilization = (self._safe_float(cpu_usage[0][1]) / self._safe_float(cpu_requests[0][1])) * 100
                 
-            if memory_usage and memory_requests and self._safe_float(memory_requests[0][1]) != 0:
+            if memory_usage and memory_requests and len(memory_usage) > 0 and len(memory_requests) > 0 and self._safe_float(memory_requests[0][1]) != 0:
                 memory_utilization = (self._safe_float(memory_usage[0][1]) / self._safe_float(memory_requests[0][1])) * 100
             
             # Generate recommendations based on utilization
@@ -729,10 +729,10 @@ class HistoricalAnalysisService:
             cpu_utilization = 0
             memory_utilization = 0
             
-            if cpu_usage and cpu_requests and self._safe_float(cpu_requests[0][1]) != 0:
+            if cpu_usage and cpu_requests and len(cpu_usage) > 0 and len(cpu_requests) > 0 and self._safe_float(cpu_requests[0][1]) != 0:
                 cpu_utilization = (self._safe_float(cpu_usage[0][1]) / self._safe_float(cpu_requests[0][1])) * 100
                 
-            if memory_usage and memory_requests and self._safe_float(memory_requests[0][1]) != 0:
+            if memory_usage and memory_requests and len(memory_usage) > 0 and len(memory_requests) > 0 and self._safe_float(memory_requests[0][1]) != 0:
                 memory_utilization = (self._safe_float(memory_usage[0][1]) / self._safe_float(memory_requests[0][1])) * 100
             
             # Generate recommendations based on utilization
@@ -867,10 +867,10 @@ class HistoricalAnalysisService:
             cpu_utilization = 0
             memory_utilization = 0
             
-            if cpu_usage and cpu_requests and self._safe_float(cpu_requests[0][1]) != 0:
+            if cpu_usage and cpu_requests and len(cpu_usage) > 0 and len(cpu_requests) > 0 and self._safe_float(cpu_requests[0][1]) != 0:
                 cpu_utilization = (self._safe_float(cpu_usage[0][1]) / self._safe_float(cpu_requests[0][1])) * 100
                 
-            if memory_usage and memory_requests and self._safe_float(memory_requests[0][1]) != 0:
+            if memory_usage and memory_requests and len(memory_usage) > 0 and len(memory_requests) > 0 and self._safe_float(memory_requests[0][1]) != 0:
                 memory_utilization = (self._safe_float(memory_usage[0][1]) / self._safe_float(memory_requests[0][1])) * 100
             
             # Generate recommendations based on utilization
