@@ -548,14 +548,14 @@ class HistoricalAnalysisService:
                     pod_count_result = await self._query_prometheus(pod_count_query, 
                         datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
                         datetime.now())
-                    pod_count = int(self._safe_float(pod_count_result[0][1])) if pod_count_result else 0
+                    pod_count = int(self._safe_float(pod_count_result[0][1])) if pod_count_result and len(pod_count_result) > 0 else 0
             else:
                 # Fallback to Prometheus query if no k8s_client
                 pod_count_query = f'count(kube_pod_info{{namespace="{namespace}"}})'
                 pod_count_result = await self._query_prometheus(pod_count_query, 
                     datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
                     datetime.now())
-                pod_count = int(self._safe_float(pod_count_result[0][1])) if pod_count_result else 0
+                pod_count = int(self._safe_float(pod_count_result[0][1])) if pod_count_result and len(pod_count_result) > 0 else 0
             
             # Calculate utilization percentages
             cpu_utilization = 0
