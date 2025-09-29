@@ -629,6 +629,36 @@ class ValidationService:
         
         return quotas
 
+    async def _get_cluster_capacity(self) -> tuple[float, float, int]:
+        """Get real cluster capacity from nodes"""
+        try:
+            from kubernetes import client
+            v1 = client.CoreV1Api()
+            nodes = v1.list_node()
+            
+            total_cpu_cores = 0.0
+            total_memory_bytes = 0.0
+            total_nodes = len(nodes.items)
+            
+            for node in nodes.items:
+                # Parse CPU capacity
+                cpu_capacity = node.status.capacity.get("cpu", "0")
+                total_cpu_cores += self._parse_cpu_value(cpu_capacity)
+                
+                # Parse Memory capacity
+                memory_capacity = node.status.capacity.get("memory", "0")
+                total_memory_bytes += self._parse_memory_value(memory_capacity)
+            
+            # Convert memory to GiB
+            total_memory_gib = total_memory_bytes / (1024 * 1024 * 1024)
+            
+            return total_cpu_cores, total_memory_gib, total_nodes
+            
+        except Exception as e:
+            logger.warning(f"Could not get real cluster capacity: {e}. Using fallback values.")
+            # Fallback values based on typical OpenShift cluster
+            return 24.0, 70.0, 6
+
     async def get_cluster_health(self, pods: List[PodResource]) -> ClusterHealth:
         """Get cluster health overview with overcommit analysis"""
         total_pods = len(pods)
@@ -640,9 +670,8 @@ class ValidationService:
         cluster_cpu_limits = sum(pod.cpu_limits for pod in pods)
         cluster_memory_limits = sum(pod.memory_limits for pod in pods)
         
-        # Simulate cluster capacity (would come from node metrics)
-        cluster_cpu_capacity = 100.0  # 100 CPU cores
-        cluster_memory_capacity = 400.0  # 400 GiB
+        # Get real cluster capacity
+        cluster_cpu_capacity, cluster_memory_capacity, total_nodes = await self._get_cluster_capacity()
         
         # Calculate overcommit percentages
         cpu_overcommit = (cluster_cpu_requests / cluster_cpu_capacity) * 100
@@ -677,7 +706,7 @@ class ValidationService:
         return ClusterHealth(
             total_pods=total_pods,
             total_namespaces=total_namespaces,
-            total_nodes=10,  # Simulated
+            total_nodes=total_nodes,
             cluster_cpu_capacity=cluster_cpu_capacity,
             cluster_memory_capacity=cluster_memory_capacity,
             cluster_cpu_requests=cluster_cpu_requests,
@@ -688,7 +717,7 @@ class ValidationService:
             memory_overcommit_percentage=memory_overcommit,
             overall_health=overall_health,
             critical_issues=critical_issues,
-            namespaces_in_overcommit=3,  # Simulated
+            namespaces_in_overcommit=len([ns for ns in set(pod.namespace for pod in pods) if self._is_namespace_in_overcommit(ns, pods)]),
             top_resource_consumers=[
                 {
                     "name": pod.name,
@@ -700,5 +729,27 @@ class ValidationService:
                 for pod in top_consumers
             ],
             qos_distribution=qos_distribution,
-            resource_quota_coverage=0.6  # Simulated
+            resource_quota_coverage=self._calculate_resource_quota_coverage(pods)
         )
+
+    def _is_namespace_in_overcommit(self, namespace: str, pods: List[PodResource]) -> bool:
+        """Check if namespace is in overcommit"""
+        namespace_pods = [pod for pod in pods if pod.namespace == namespace]
+        if not namespace_pods:
+            return False
+        
+        # Simple overcommit check: if any pod has limits > requests
+        for pod in namespace_pods:
+            if pod.cpu_limits > pod.cpu_requests or pod.memory_limits > pod.memory_requests:
+                return True
+        return False
+
+    def _calculate_resource_quota_coverage(self, pods: List[PodResource]) -> float:
+        """Calculate resource quota coverage percentage"""
+        namespaces = set(pod.namespace for pod in pods)
+        if not namespaces:
+            return 0.0
+        
+        # For now, return a simple calculation based on namespace count
+        # In a real implementation, this would check actual ResourceQuota objects
+        return min(len(namespaces) * 0.2, 1.0)  # 20% per namespace, max 100%

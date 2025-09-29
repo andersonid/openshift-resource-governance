@@ -3001,23 +3001,41 @@
             updateQoSDistribution(qosData.distribution);
         }
 
+        function formatCpuValue(value) {
+            if (value >= 1.0) {
+                return `${value.toFixed(1)} cores`;
+            } else {
+                return `${(value * 1000).toFixed(0)}m`;
+            }
+        }
+
+        function formatMemoryValue(valueBytes) {
+            const valueGiB = valueBytes / (1024 * 1024 * 1024);
+            if (valueGiB >= 1.0) {
+                return `${valueGiB.toFixed(1)} GiB`;
+            } else {
+                const valueMiB = valueBytes / (1024 * 1024);
+                return `${valueMiB.toFixed(0)} MiB`;
+            }
+        }
+
         function updateResourceConsumption(healthData) {
             // CPU
             const cpuUsagePercent = (healthData.cluster_cpu_requests / healthData.cluster_cpu_capacity) * 100;
             document.getElementById('cpuUsageBar').style.width = Math.min(cpuUsagePercent, 100) + '%';
             document.getElementById('cpuUsageText').textContent = 
-                `${healthData.cluster_cpu_requests.toFixed(1)} / ${healthData.cluster_cpu_capacity.toFixed(1)} cores`;
+                `${formatCpuValue(healthData.cluster_cpu_requests)} / ${formatCpuValue(healthData.cluster_cpu_capacity)}`;
             document.getElementById('cpuOvercommitText').textContent = 
                 `${healthData.cpu_overcommit_percentage.toFixed(1)}% overcommit`;
             
-            // Memory - Convert bytes to GiB
+            // Memory - Convert bytes to appropriate unit
             const memoryRequestsGiB = healthData.cluster_memory_requests / (1024 * 1024 * 1024);
             const memoryCapacityGiB = healthData.cluster_memory_capacity; // Already in GiB from API
             const memoryUsagePercent = (memoryRequestsGiB / memoryCapacityGiB) * 100;
             
             document.getElementById('memoryUsageBar').style.width = Math.min(memoryUsagePercent, 100) + '%';
             document.getElementById('memoryUsageText').textContent = 
-                `${memoryRequestsGiB.toFixed(1)} / ${memoryCapacityGiB.toFixed(1)} GiB`;
+                `${formatMemoryValue(healthData.cluster_memory_requests)} / ${formatMemoryValue(healthData.cluster_memory_capacity * 1024 * 1024 * 1024)}`;
             document.getElementById('memoryOvercommitText').textContent = 
                 `${healthData.memory_overcommit_percentage.toFixed(1)}% overcommit`;
         }
@@ -3041,8 +3059,8 @@
                         </div>
                     </div>
                     <div class="consumer-resources">
-                        <div>CPU: ${consumer.cpu_requests.toFixed(1)} cores</div>
-                        <div>Memory: ${(consumer.memory_requests / (1024 * 1024 * 1024)).toFixed(1)} GiB</div>
+                        <div>CPU: ${formatCpuValue(consumer.cpu_requests)}</div>
+                        <div>Memory: ${formatMemoryValue(consumer.memory_requests)}</div>
                         <div class="qos-badge qos-${consumer.qos_class.toLowerCase()}">${consumer.qos_class}</div>
                     </div>
                 `;
