@@ -1008,6 +1008,88 @@
             border-top: 2px solid #e9ecef;
         }
 
+        /* Help Icon Styles */
+        .help-icon {
+            cursor: pointer;
+            color: #007bff;
+            font-size: 1.2rem;
+            margin-left: 0.5rem;
+            transition: color 0.2s ease;
+        }
+
+        .help-icon:hover {
+            color: #0056b3;
+        }
+
+        .help-icon-small {
+            cursor: pointer;
+            color: #007bff;
+            font-size: 0.9rem;
+            margin-left: 0.3rem;
+            transition: color 0.2s ease;
+        }
+
+        .help-icon-small:hover {
+            color: #0056b3;
+        }
+
+        /* Help Modal Styles */
+        .help-modal-content {
+            max-width: 600px;
+        }
+
+        .help-content {
+            line-height: 1.6;
+        }
+
+        .help-content h3 {
+            color: #007bff;
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.2rem;
+        }
+
+        .help-content h4 {
+            color: #333;
+            margin: 1rem 0 0.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .help-content p {
+            margin: 0.5rem 0;
+            color: #555;
+        }
+
+        .help-content ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .help-content li {
+            margin: 0.3rem 0;
+            color: #555;
+        }
+
+        .help-content .highlight {
+            background: #fff3cd;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+
+        .help-content .warning {
+            background: #f8d7da;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+
+        .help-content .success {
+            background: #d4edda;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+
         /* Smart Recommendations Styles */
         .validation-details {
             display: flex;
@@ -1303,19 +1385,19 @@
                 </div>
                 <div class="health-metrics">
                     <div class="metric">
-                        <span class="metric-label">Pods:</span>
+                        <span class="metric-label">Pods <span class="help-icon-small" onclick="showHelpModal('pods-metric')">❓</span>:</span>
                         <span class="metric-value" id="totalPods">-</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Namespaces:</span>
+                        <span class="metric-label">Namespaces <span class="help-icon-small" onclick="showHelpModal('namespaces-metric')">❓</span>:</span>
                         <span class="metric-value" id="totalNamespaces">-</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Critical Issues:</span>
+                        <span class="metric-label">Critical Issues <span class="help-icon-small" onclick="showHelpModal('critical-issues')">❓</span>:</span>
                         <span class="metric-value critical" id="criticalIssues">-</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Overcommit:</span>
+                        <span class="metric-label">Overcommit <span class="help-icon-small" onclick="showHelpModal('overcommit-metric')">❓</span>:</span>
                         <span class="metric-value" id="overcommitStatus">-</span>
                     </div>
                 </div>
@@ -1323,10 +1405,10 @@
 
             <!-- Resource Overview -->
             <div class="resource-overview">
-                <h3>📊 Resource Consumption</h3>
+                <h3>📊 Resource Consumption <span class="help-icon" onclick="showHelpModal('resource-consumption')">❓</span></h3>
                 <div class="resource-grid">
                     <div class="resource-card">
-                        <h4>CPU</h4>
+                        <h4>CPU <span class="help-icon" onclick="showHelpModal('cpu-resources')">❓</span></h4>
                         <div class="resource-bar">
                             <div class="resource-fill" id="cpuUsageBar" style="width: 0%"></div>
                         </div>
@@ -1336,7 +1418,7 @@
                         </div>
                     </div>
                     <div class="resource-card">
-                        <h4>Memory</h4>
+                        <h4>Memory <span class="help-icon" onclick="showHelpModal('memory-resources')">❓</span></h4>
                         <div class="resource-bar">
                             <div class="resource-fill" id="memoryUsageBar" style="width: 0%"></div>
                         </div>
@@ -1350,7 +1432,7 @@
 
             <!-- Top Resource Consumers -->
             <div class="top-consumers">
-                <h3>🥇 Top Resource Consumers</h3>
+                <h3>🥇 Top Resource Consumers <span class="help-icon" onclick="showHelpModal('top-consumers')">❓</span></h3>
                 <div id="topConsumersList" class="consumers-list">
                     <!-- Will be populated by JavaScript -->
                 </div>
@@ -1358,18 +1440,18 @@
 
             <!-- QoS Distribution -->
             <div class="qos-distribution">
-                <h3>⚡ QoS Distribution</h3>
+                <h3>⚡ QoS Distribution <span class="help-icon" onclick="showHelpModal('qos-distribution')">❓</span></h3>
                 <div class="qos-stats">
                     <div class="qos-stat guaranteed">
-                        <span class="qos-label">Guaranteed:</span>
+                        <span class="qos-label">Guaranteed <span class="help-icon-small" onclick="showHelpModal('qos-guaranteed')">❓</span>:</span>
                         <span class="qos-value" id="guaranteedCount">0</span>
                     </div>
                     <div class="qos-stat burstable">
-                        <span class="qos-label">Burstable:</span>
+                        <span class="qos-label">Burstable <span class="help-icon-small" onclick="showHelpModal('qos-burstable')">❓</span>:</span>
                         <span class="qos-value" id="burstableCount">0</span>
                     </div>
                     <div class="qos-stat besteffort">
-                        <span class="qos-label">BestEffort:</span>
+                        <span class="qos-label">BestEffort <span class="help-icon-small" onclick="showHelpModal('qos-besteffort')">❓</span>:</span>
                         <span class="qos-value" id="besteffortCount">0</span>
                     </div>
                 </div>
@@ -1539,9 +1621,24 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div>
 
-    <script>
+        <!-- Help Modal -->
+        <div class="modal hidden" id="helpModal">
+            <div class="modal-content help-modal-content">
+                <div class="modal-header">
+                    <h2 id="helpModalTitle">Help</h2>
+                    <button class="modal-close" onclick="closeHelpModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="helpModalContent">
+                        <!-- Content will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
         let currentData = null;
         let currentPage = 1;
         let currentPageSize = 20;
@@ -2531,6 +2628,290 @@
         document.getElementById('exportModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeExportModal();
+            }
+        });
+
+        // Help Modal Functions
+        function showHelpModal(topic) {
+            const modal = document.getElementById('helpModal');
+            const title = document.getElementById('helpModalTitle');
+            const content = document.getElementById('helpModalContent');
+            
+            const helpData = getHelpContent(topic);
+            title.textContent = helpData.title;
+            content.innerHTML = helpData.content;
+            
+            modal.classList.add('show');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('show');
+        }
+
+        function getHelpContent(topic) {
+            const helpContents = {
+                'pods-metric': {
+                    title: 'Pods - What are they?',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Pods</strong> are the smallest deployable units in Kubernetes. Think of them as individual containers or groups of containers that work together.</p>
+                            
+                            <h4>What this metric shows:</h4>
+                            <ul>
+                                <li><span class="highlight">Total number of pods</span> currently running in your cluster</li>
+                                <li>Each pod represents an application or service</li>
+                                <li>More pods = more applications running</li>
+                            </ul>
+                            
+                            <h4>Why it matters:</h4>
+                            <p>Monitoring pod count helps you understand your cluster's workload density and resource utilization.</p>
+                        </div>
+                    `
+                },
+                'namespaces-metric': {
+                    title: 'Namespaces - Organization Units',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Namespaces</strong> are like folders that organize your cluster resources. They provide logical separation between different projects or teams.</p>
+                            
+                            <h4>What this metric shows:</h4>
+                            <ul>
+                                <li><span class="highlight">Total number of namespaces</span> in your cluster</li>
+                                <li>Each namespace can contain multiple pods</li>
+                                <li>Common namespaces: default, production, development, testing</li>
+                            </ul>
+                            
+                            <h4>Why it matters:</h4>
+                            <p>Namespaces help organize resources and provide isolation between different applications or teams.</p>
+                        </div>
+                    `
+                },
+                'critical-issues': {
+                    title: 'Critical Issues - Problems to Fix',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Critical Issues</strong> are problems that need immediate attention to ensure your applications run properly.</p>
+                            
+                            <h4>What this metric shows:</h4>
+                            <ul>
+                                <li><span class="warning">Number of critical problems</span> found in your cluster</li>
+                                <li>Common issues: Missing resource requests, excessive resource usage</li>
+                                <li>Issues that could cause application failures or poor performance</li>
+                            </ul>
+                            
+                            <h4>Why it matters:</h4>
+                            <p>Critical issues can lead to application crashes, poor performance, or resource conflicts. <span class="warning">Address them as soon as possible.</span></p>
+                        </div>
+                    `
+                },
+                'overcommit-metric': {
+                    title: 'Overcommit - Resource Allocation',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Overcommit</strong> occurs when the total resource requests exceed the cluster's actual capacity.</p>
+                            
+                            <h4>What this metric shows:</h4>
+                            <ul>
+                                <li><span class="highlight">🟢 Normal (0-120%)</span>: Safe resource allocation</li>
+                                <li><span class="warning">🟡 High (120-150%)</span>: Monitor closely</li>
+                                <li><span class="warning">🔴 Critical (150%+)</span>: Immediate attention needed</li>
+                            </ul>
+                            
+                            <h4>Why it matters:</h4>
+                            <p>High overcommit can lead to resource starvation, where applications can't get the resources they need to run properly.</p>
+                        </div>
+                    `
+                },
+                'resource-consumption': {
+                    title: 'Resource Consumption - CPU & Memory Usage',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Resource Consumption</strong> shows how much CPU and memory your cluster is using compared to its total capacity.</p>
+                            
+                            <h4>What you see:</h4>
+                            <ul>
+                                <li><strong>CPU Bar</strong>: Shows CPU usage vs. capacity</li>
+                                <li><strong>Memory Bar</strong>: Shows memory usage vs. capacity</li>
+                                <li><strong>Overcommit %</strong>: How much you're over-allocating resources</li>
+                            </ul>
+                            
+                            <h4>Reading the bars:</h4>
+                            <ul>
+                                <li><span class="success">Green</span>: Safe usage levels</li>
+                                <li><span class="highlight">Yellow</span>: Moderate usage, monitor</li>
+                                <li><span class="warning">Red</span>: High usage, take action</li>
+                            </ul>
+                        </div>
+                    `
+                },
+                'cpu-resources': {
+                    title: 'CPU Resources - Processing Power',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>CPU (Central Processing Unit)</strong> is the "brain" of your applications - it processes instructions and calculations.</p>
+                            
+                            <h4>What this shows:</h4>
+                            <ul>
+                                <li><span class="highlight">Current CPU requests</span> vs. total cluster capacity</li>
+                                <li>How much processing power your applications are asking for</li>
+                                <li>CPU overcommit percentage</li>
+                            </ul>
+                            
+                            <h4>Understanding the numbers:</h4>
+                            <ul>
+                                <li><strong>1 core</strong> = 1000 millicores (1000m)</li>
+                                <li><strong>0.5 cores</strong> = 500 millicores (500m)</li>
+                                <li>Higher numbers = more processing power needed</li>
+                            </ul>
+                        </div>
+                    `
+                },
+                'memory-resources': {
+                    title: 'Memory Resources - Storage Space',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Memory (RAM)</strong> is temporary storage where your applications keep data they're actively working with.</p>
+                            
+                            <h4>What this shows:</h4>
+                            <ul>
+                                <li><span class="highlight">Current memory requests</span> vs. total cluster capacity</li>
+                                <li>How much memory your applications are asking for</li>
+                                <li>Memory overcommit percentage</li>
+                            </ul>
+                            
+                            <h4>Understanding the numbers:</h4>
+                            <ul>
+                                <li><strong>1 GiB</strong> = 1024 MiB (mebibytes)</li>
+                                <li><strong>1 MiB</strong> = 1024 KiB (kibibytes)</li>
+                                <li>Higher numbers = more memory needed</li>
+                            </ul>
+                        </div>
+                    `
+                },
+                'top-consumers': {
+                    title: 'Top Resource Consumers - Biggest Users',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Top Resource Consumers</strong> shows which applications are using the most CPU and memory resources.</p>
+                            
+                            <h4>What you see:</h4>
+                            <ul>
+                                <li><span class="highlight">Ranking</span> from 🥇 (highest) to 5️⃣ (fifth highest)</li>
+                                <li><strong>Pod name</strong> and <strong>namespace</strong></li>
+                                <li><strong>Resource usage</strong> in CPU cores and memory GiB</li>
+                                <li><strong>QoS class</strong> (Guaranteed, Burstable, BestEffort)</li>
+                            </ul>
+                            
+                            <h4>Why it matters:</h4>
+                            <p>Identifying top consumers helps you understand which applications are using the most resources and may need optimization.</p>
+                        </div>
+                    `
+                },
+                'qos-distribution': {
+                    title: 'QoS Distribution - Quality of Service',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>QoS (Quality of Service)</strong> determines how Kubernetes prioritizes your applications when resources are limited.</p>
+                            
+                            <h4>Three QoS Classes:</h4>
+                            <ul>
+                                <li><span class="success">Guaranteed</span>: Highest priority, best resource guarantees</li>
+                                <li><span class="highlight">Burstable</span>: Medium priority, some resource guarantees</li>
+                                <li><span class="warning">BestEffort</span>: Lowest priority, no resource guarantees</li>
+                            </ul>
+                            
+                            <h4>Why it matters:</h4>
+                            <p>Higher QoS classes get better resource guarantees and are less likely to be terminated when resources are scarce.</p>
+                        </div>
+                    `
+                },
+                'qos-guaranteed': {
+                    title: 'Guaranteed QoS - Best Quality',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Guaranteed QoS</strong> provides the highest level of resource guarantees for your applications.</p>
+                            
+                            <h4>Requirements:</h4>
+                            <ul>
+                                <li>CPU requests = CPU limits</li>
+                                <li>Memory requests = Memory limits</li>
+                                <li>All containers must have both requests and limits defined</li>
+                            </ul>
+                            
+                            <h4>Benefits:</h4>
+                            <ul>
+                                <li><span class="success">Highest priority</span> when resources are limited</li>
+                                <li><span class="success">Guaranteed resources</span> - won't be starved</li>
+                                <li><span class="success">Last to be terminated</span> during resource pressure</li>
+                            </ul>
+                            
+                            <h4>Best for:</h4>
+                            <p>Production applications that need reliable performance and resource guarantees.</p>
+                        </div>
+                    `
+                },
+                'qos-burstable': {
+                    title: 'Burstable QoS - Flexible Quality',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Burstable QoS</strong> provides some resource guarantees with flexibility for bursts of activity.</p>
+                            
+                            <h4>Requirements:</h4>
+                            <ul>
+                                <li>At least one container has CPU or memory requests defined</li>
+                                <li>Requests can be different from limits</li>
+                                <li>Allows for resource bursting when available</li>
+                            </ul>
+                            
+                            <h4>Benefits:</h4>
+                            <ul>
+                                <li><span class="highlight">Medium priority</span> - better than BestEffort</li>
+                                <li><span class="highlight">Can burst</span> beyond requests when resources are available</li>
+                                <li><span class="highlight">Flexible</span> resource allocation</li>
+                            </ul>
+                            
+                            <h4>Best for:</h4>
+                            <p>Applications with variable workloads that can benefit from extra resources when available.</p>
+                        </div>
+                    `
+                },
+                'qos-besteffort': {
+                    title: 'BestEffort QoS - Basic Quality',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>BestEffort QoS</strong> provides no resource guarantees and is the lowest priority class.</p>
+                            
+                            <h4>Characteristics:</h4>
+                            <ul>
+                                <li>No CPU or memory requests defined</li>
+                                <li>No CPU or memory limits defined</li>
+                                <li>Gets whatever resources are available</li>
+                            </ul>
+                            
+                            <h4>Risks:</h4>
+                            <ul>
+                                <li><span class="warning">Lowest priority</span> - first to be terminated</li>
+                                <li><span class="warning">No guarantees</span> - may be starved of resources</li>
+                                <li><span class="warning">Unpredictable performance</span> during resource pressure</li>
+                            </ul>
+                            
+                            <h4>Best for:</h4>
+                            <p>Non-critical applications, batch jobs, or development workloads where performance isn't critical.</p>
+                        </div>
+                    `
+                }
+            };
+            
+            return helpContents[topic] || {
+                title: 'Help',
+                content: '<div class="help-content"><p>Help content not available for this topic.</p></div>'
+            };
+        }
+
+        // Close help modal when clicking outside
+        document.getElementById('helpModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeHelpModal();
             }
         });
 
