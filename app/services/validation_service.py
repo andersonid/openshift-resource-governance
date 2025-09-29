@@ -646,7 +646,9 @@ class ValidationService:
         
         # Calculate overcommit percentages
         cpu_overcommit = (cluster_cpu_requests / cluster_cpu_capacity) * 100
-        memory_overcommit = (cluster_memory_requests / cluster_memory_capacity) * 100
+        # Convert memory capacity from GiB to bytes for consistent calculation
+        cluster_memory_capacity_bytes = cluster_memory_capacity * (1024 * 1024 * 1024)
+        memory_overcommit = (cluster_memory_requests / cluster_memory_capacity_bytes) * 100
         
         # Determine overall health
         if cpu_overcommit > 150 or memory_overcommit > 150:
