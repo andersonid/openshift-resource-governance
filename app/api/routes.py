@@ -485,6 +485,7 @@ async def get_cluster_historical_summary(
 async def get_namespace_historical_analysis(
     namespace: str,
     time_range: str = "24h",
+    k8s_client=Depends(get_k8s_client),
     prometheus_client=Depends(get_prometheus_client)
 ):
     """Get historical analysis for a specific namespace"""
@@ -493,7 +494,7 @@ async def get_namespace_historical_analysis(
         
         # Get historical analysis for the namespace
         analysis = await historical_service.get_namespace_historical_analysis(
-            namespace, time_range
+            namespace, time_range, k8s_client
         )
         
         return {

@@ -471,7 +471,7 @@ class HistoricalAnalysisService:
             logger.error(f"Error getting historical summary: {e}")
             return {}
 
-    async def get_namespace_historical_analysis(self, namespace: str, time_range: str):
+    async def get_namespace_historical_analysis(self, namespace: str, time_range: str, k8s_client=None):
         """Get historical analysis for a specific namespace"""
         try:
             logger.info(f"Getting historical analysis for namespace: {namespace}")
@@ -520,11 +520,6 @@ class HistoricalAnalysisService:
             }})
             '''
             
-            # Query for pod count by namespace
-            pod_count_query = f'''
-            count(kube_pod_info{{namespace="{namespace}"}})
-            '''
-            
             # Execute queries
             cpu_usage = await self._query_prometheus(cpu_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
@@ -538,9 +533,29 @@ class HistoricalAnalysisService:
             memory_requests = await self._query_prometheus(memory_requests_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
                 datetime.now())
-            pod_count = await self._query_prometheus(pod_count_query, 
-                datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
-                datetime.now())
+            
+            # Get pod count using Kubernetes API (more reliable than Prometheus)
+            pod_count = 0
+            if k8s_client:
+                try:
+                    pods = await k8s_client.get_all_pods()
+                    namespace_pods = [pod for pod in pods if pod.namespace == namespace]
+                    pod_count = len(namespace_pods)
+                except Exception as e:
+                    logger.warning(f"Could not get pod count from Kubernetes API: {e}")
+                    # Fallback to Prometheus query
+                    pod_count_query = f'count(kube_pod_info{{namespace="{namespace}"}})'
+                    pod_count_result = await self._query_prometheus(pod_count_query, 
+                        datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                        datetime.now())
+                    pod_count = int(self._safe_float(pod_count_result[0][1])) if pod_count_result else 0
+            else:
+                # Fallback to Prometheus query if no k8s_client
+                pod_count_query = f'count(kube_pod_info{{namespace="{namespace}"}})'
+                pod_count_result = await self._query_prometheus(pod_count_query, 
+                    datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
+                    datetime.now())
+                pod_count = int(self._safe_float(pod_count_result[0][1])) if pod_count_result else 0
             
             # Calculate utilization percentages
             cpu_utilization = 0

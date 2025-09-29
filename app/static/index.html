@@ -1648,56 +1648,6 @@
         let currentNamespace = null;
         let currentWorkload = null;
 
-        async function loadNamespaceHistoricalAnalysis(namespace, timeRange = '24h') {
-            showLoading();
-            currentNamespace = namespace;
-            
-            try {
-                // Para análise por namespace, vamos buscar todos os workloads do namespace
-                const response = await fetch(`/api/v1/cluster/status`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                
-                // Encontrar o namespace específico
-                const targetNamespace = data.namespaces.find(ns => ns.namespace === namespace);
-                if (!targetNamespace) {
-                    showError('Namespace not found');
-                    return;
-                }
-                
-                // Agrupar pods por deployment
-                const deployments = {};
-                Object.values(targetNamespace.pods).forEach(pod => {
-                    if (pod.validations && pod.validations.length > 0) {
-                        const deploymentName = pod.pod_name.split('-').slice(0, -2).join('-') || 'unknown';
-                        if (!deployments[deploymentName]) {
-                            deployments[deploymentName] = [];
-                        }
-                        deployments[deploymentName].push(pod);
-                    }
-                });
-                
-                // Se há apenas um deployment, usar análise de workload
-                const deploymentNames = Object.keys(deployments);
-                if (deploymentNames.length === 1) {
-                    await loadWorkloadHistoricalAnalysis(namespace, deploymentNames[0], timeRange);
-                } else if (deploymentNames.length > 1) {
-                    // Para múltiplos deployments, usar o primeiro
-                    await loadWorkloadHistoricalAnalysis(namespace, deploymentNames[0], timeRange);
-                } else {
-                    showError('No workloads found in namespace');
-                }
-                
-            } catch (error) {
-                showError('Error loading namespace analysis: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
 
         async function loadWorkloadHistoricalAnalysis(namespace, workload, timeRange = '24h') {
             showLoading();
