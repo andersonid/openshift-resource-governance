@@ -491,19 +491,19 @@ class HistoricalAnalysisService:
             # Execute queries
             cpu_usage = await self._query_prometheus(cpu_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
-                datetime.now(), prometheus_client)
+                datetime.now())
             memory_usage = await self._query_prometheus(memory_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
-                datetime.now(), prometheus_client)
+                datetime.now())
             cpu_requests = await self._query_prometheus(cpu_requests_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
-                datetime.now(), prometheus_client)
+                datetime.now())
             memory_requests = await self._query_prometheus(memory_requests_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
-                datetime.now(), prometheus_client)
+                datetime.now())
             pod_count = await self._query_prometheus(pod_count_query, 
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
-                datetime.now(), prometheus_client)
+                datetime.now())
             
             # Calculate utilization percentages
             cpu_utilization = 0
