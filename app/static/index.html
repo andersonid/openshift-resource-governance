@@ -1664,7 +1664,7 @@
                 updateStats(data);
                 
                 // Update cluster health dashboard
-                updateClusterHealthDisplay(data, data);
+                updateClusterHealthDisplay(data, { distribution: data.qos_distribution });
                 
                 showSuccess('Cluster status loaded successfully. Loading analysis...');
                 
