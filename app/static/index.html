@@ -1850,7 +1850,7 @@
         }
 
         function displayPodHistoricalAnalysis(data) {
-            const container = document.getElementById('historicalModalBody');
+            const container = document.getElementById('historicalAnalysisContent');
             
             if (data.analysis.error) {
                 container.innerHTML = `
@@ -1928,7 +1928,7 @@
         }
 
         function displayNamespaceHistoricalAnalysis(data) {
-            const container = document.getElementById('historicalModalBody');
+            const container = document.getElementById('historicalAnalysisContent');
             
             if (data.analysis.error) {
                 container.innerHTML = `
