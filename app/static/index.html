@@ -1654,7 +1654,7 @@
             hideMessages();
             
             try {
-                const response = await fetch('/api/v1/cluster/status');
+                const response = await fetch('/api/v1/cluster-health');
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
