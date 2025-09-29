@@ -139,7 +139,7 @@ class ValidationService:
                         container_name=container_name,
                         validation_type="invalid_ratio",
                         severity="warning",
-                        message=f"CPU limit:request ratio too high ({ratio:.2f}:1)",
+                        message=f"CPU limit:request ratio too high ({ratio:.2f}:1) - Request: {requests['cpu']}, Limit: {limits['cpu']}",
                         recommendation=f"Consider reducing limits or increasing requests (recommended ratio: {self.cpu_ratio}:1)"
                     )
                 elif ratio < 1.0:
@@ -149,7 +149,7 @@ class ValidationService:
                         container_name=container_name,
                         validation_type="invalid_ratio",
                         severity="error",
-                        message=f"CPU limit less than request ({ratio:.2f}:1)",
+                        message=f"CPU limit less than request ({ratio:.2f}:1) - Request: {requests['cpu']}, Limit: {limits['cpu']}",
                         recommendation="CPU limit should be greater than or equal to request"
                     )
         
@@ -184,7 +184,7 @@ class ValidationService:
                         container_name=container_name,
                         validation_type="invalid_ratio",
                         severity="warning",
-                        message=f"Memory limit:request ratio too high ({ratio:.2f}:1)",
+                        message=f"Memory limit:request ratio too high ({ratio:.2f}:1) - Request: {requests['memory']}, Limit: {limits['memory']}",
                         recommendation=f"Consider reducing limits or increasing requests (recommended ratio: {self.memory_ratio}:1)"
                     )
                 elif ratio < 1.0:
@@ -194,7 +194,7 @@ class ValidationService:
                         container_name=container_name,
                         validation_type="invalid_ratio",
                         severity="error",
-                        message=f"Memory limit less than request ({ratio:.2f}:1)",
+                        message=f"Memory limit less than request ({ratio:.2f}:1) - Request: {requests['memory']}, Limit: {limits['memory']}",
                         recommendation="Memory limit should be greater than or equal to request"
                     )
         
