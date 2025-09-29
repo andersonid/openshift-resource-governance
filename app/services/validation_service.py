@@ -298,6 +298,26 @@ class ValidationService:
         else:
             return int(value)
     
+    def _determine_qos_class(self, requests: Dict[str, str], limits: Dict[str, str]) -> str:
+        """Determine QoS class based on requests and limits"""
+        cpu_requests = self._parse_cpu_value(requests.get("cpu", "0"))
+        memory_requests = self._parse_memory_value(requests.get("memory", "0")) / (1024 * 1024 * 1024)  # Convert to GB
+        cpu_limits = self._parse_cpu_value(limits.get("cpu", "0"))
+        memory_limits = self._parse_memory_value(limits.get("memory", "0")) / (1024 * 1024 * 1024)  # Convert to GB
+        
+        # Guaranteed: both CPU and memory requests and limits are set and equal
+        if (cpu_requests > 0 and memory_requests > 0 and 
+            cpu_requests == cpu_limits and memory_requests == memory_limits):
+            return "Guaranteed"
+        
+        # Burstable: at least one request is set
+        elif cpu_requests > 0 or memory_requests > 0:
+            return "Burstable"
+        
+        # BestEffort: no requests set
+        else:
+            return "BestEffort"
+    
     def validate_namespace_overcommit(
         self, 
         namespace_resources: NamespaceResources,
