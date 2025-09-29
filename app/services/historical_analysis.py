@@ -449,37 +449,47 @@ class HistoricalAnalysisService:
         try:
             logger.info(f"Getting historical analysis for namespace: {namespace}")
             
-            # Query for CPU usage by namespace
+            # Query for CPU usage by namespace (using correct OpenShift metrics)
             cpu_query = f'''
-            sum(rate(container_cpu_usage_seconds_total{{
-                namespace="{namespace}",
-                container!="POD",
-                container!=""
-            }}[{time_range}]))
+            sum(
+                node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{{
+                    cluster="", 
+                    namespace="{namespace}"
+                }}
+            ) by (namespace)
             '''
             
-            # Query for memory usage by namespace
+            # Query for memory usage by namespace (using correct OpenShift metrics)
             memory_query = f'''
-            sum(container_memory_working_set_bytes{{
-                namespace="{namespace}",
-                container!="POD",
-                container!=""
-            }})
+            sum(
+                container_memory_working_set_bytes{{
+                    job="kubelet", 
+                    metrics_path="/metrics/cadvisor", 
+                    cluster="", 
+                    namespace="{namespace}", 
+                    container!="", 
+                    image!=""
+                }}
+            ) by (namespace)
             '''
             
-            # Query for CPU requests by namespace
+            # Query for CPU requests by namespace (using correct OpenShift resource quota)
             cpu_requests_query = f'''
-            sum(kube_pod_container_resource_requests{{
-                namespace="{namespace}",
-                resource="cpu"
+            scalar(kube_resourcequota{{
+                cluster="", 
+                namespace="{namespace}", 
+                type="hard",
+                resource="requests.cpu"
             }})
             '''
             
-            # Query for memory requests by namespace
+            # Query for memory requests by namespace (using correct OpenShift resource quota)
             memory_requests_query = f'''
-            sum(kube_pod_container_resource_requests{{
-                namespace="{namespace}",
-                resource="memory"
+            scalar(kube_resourcequota{{
+                cluster="", 
+                namespace="{namespace}", 
+                type="hard",
+                resource="requests.memory"
             }})
             '''
             
@@ -575,7 +585,7 @@ class HistoricalAnalysisService:
         try:
             logger.info(f"Getting historical analysis for workload: {workload} in namespace: {namespace}")
             
-            # Query for CPU usage by workload (aggregated by workload)
+            # Query for CPU usage by workload (using correct OpenShift metrics)
             cpu_query = f'''
             sum(
                 node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{{
@@ -587,32 +597,33 @@ class HistoricalAnalysisService:
                 namespace_workload_pod:kube_pod_owner:relabel{{
                     cluster="", 
                     namespace="{namespace}", 
-                    workload="{workload}",
                     workload_type=~".+"
                 }}
             ) by (workload, workload_type)
             '''
             
-            # Query for memory usage by workload (aggregated by workload)
+            # Query for memory usage by workload (using correct OpenShift metrics)
             memory_query = f'''
             sum(
                 container_memory_working_set_bytes{{
-                    namespace="{namespace}",
-                    container!="POD",
-                    container!=""
+                    job="kubelet", 
+                    metrics_path="/metrics/cadvisor", 
+                    cluster="", 
+                    namespace="{namespace}", 
+                    container!="", 
+                    image!=""
                 }}
                 * on(namespace,pod)
                 group_left(workload, workload_type) 
                 namespace_workload_pod:kube_pod_owner:relabel{{
                     cluster="", 
                     namespace="{namespace}", 
-                    workload="{workload}",
                     workload_type=~".+"
                 }}
             ) by (workload, workload_type)
             '''
             
-            # Query for CPU requests by namespace (using resource quota)
+            # Query for CPU requests by namespace (using correct OpenShift resource quota)
             cpu_requests_query = f'''
             scalar(kube_resourcequota{{
                 cluster="", 
@@ -622,7 +633,7 @@ class HistoricalAnalysisService:
             }})
             '''
             
-            # Query for memory requests by namespace (using resource quota)
+            # Query for memory requests by namespace (using correct OpenShift resource quota)
             memory_requests_query = f'''
             scalar(kube_resourcequota{{
                 cluster="", 
@@ -632,7 +643,7 @@ class HistoricalAnalysisService:
             }})
             '''
             
-            # Query for CPU limits by namespace (using resource quota)
+            # Query for CPU limits by namespace (using correct OpenShift resource quota)
             cpu_limits_query = f'''
             scalar(kube_resourcequota{{
                 cluster="", 
@@ -642,7 +653,7 @@ class HistoricalAnalysisService:
             }})
             '''
             
-            # Query for memory limits by namespace (using resource quota)
+            # Query for memory limits by namespace (using correct OpenShift resource quota)
             memory_limits_query = f'''
             scalar(kube_resourcequota{{
                 cluster="", 
