@@ -159,3 +159,6 @@ kubeconfig
 
 # Docker
 .dockerignore
+
+# MCP
+.playwright-mcp/

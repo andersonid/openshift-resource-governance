@@ -24,15 +24,13 @@ spec:
         app.kubernetes.io/component: governance
     spec:
       serviceAccountName: resource-governance-sa
-      imagePullSecrets:
-      - name: docker-hub-secret
+      # imagePullSecrets:
+      # - name: docker-hub-secret
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000940000
-        fsGroup: 1000940000
       containers:
       - name: resource-governance
-        image: andersonid/openshift-resource-governance:latest
+        image: andersonid/resource-governance:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

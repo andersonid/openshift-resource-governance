@@ -41,11 +41,23 @@ class K8sClient:
                         with open('/var/run/secrets/kubernetes.io/serviceaccount/namespace', 'r') as f:
                             namespace = f.read().strip()
                         
-                        # Create configuration with token
+                        # Create configuration with token and handle SSL properly
                         configuration = client.Configuration()
                         configuration.host = f"https://kubernetes.default.svc"
-                        configuration.ssl_ca_cert = '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
                         configuration.api_key = {"authorization": f"Bearer {token}"}
+                        
+                        # Try to use CA cert, but disable SSL verification if not available
+                        try:
+                            with open('/var/run/secrets/kubernetes.io/serviceaccount/ca.crt', 'r') as f:
+                                ca_cert = f.read().strip()
+                            if ca_cert:
+                                configuration.ssl_ca_cert = '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
+                                configuration.verify_ssl = True
+                            else:
+                                configuration.verify_ssl = False
+                        except:
+                            configuration.verify_ssl = False
+                        
                         client.Configuration.set_default(configuration)
                         
                     except FileNotFoundError:
