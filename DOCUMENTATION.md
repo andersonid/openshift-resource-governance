@@ -6,13 +6,8 @@
 - **[README.md](README.md)** - 📖 **Documentação principal e completa**
 - **[AIAgents-Support.md](AIAgents-Support.md)** - 🤖 Suporte para agentes de IA
 
-### ⚠️ **Documentação Desatualizada (Referência)**
-- [AUTO-DEPLOY-GUIDE.md](AUTO-DEPLOY-GUIDE.md) - Deploy automático (desatualizado)
-- [GITHUB-ACTIONS-GUIDE.md](GITHUB-ACTIONS-GUIDE.md) - GitHub Actions (desatualizado)
-- [README-DEPLOYMENT.md](README-DEPLOYMENT.md) - Guia de deploy (desatualizado)
-- [DOCKERHUB-SETUP.md](DOCKERHUB-SETUP.md) - Configuração Docker Hub (desatualizado)
-- [DEPLOY.md](DEPLOY.md) - Deploy no OpenShift (desatualizado)
-- [QUICK-START.md](QUICK-START.md) - Quick Start (desatualizado)
+### ✅ **Documentação Limpa e Organizada**
+Todos os arquivos desatualizados foram removidos para manter apenas a documentação atual e relevante.
 
 ## 🚀 Como Usar
 
@@ -30,18 +25,15 @@
 |---------|--------|-------------------|-------------|
 | README.md | ✅ Ativo | 2025-01-27 | Documentação principal atualizada |
 | AIAgents-Support.md | ✅ Ativo | 2025-01-27 | Suporte para IA agents |
-| AUTO-DEPLOY-GUIDE.md | ⚠️ Desatualizado | - | Menciona daemonset, scripts antigos |
-| GITHUB-ACTIONS-GUIDE.md | ⚠️ Desatualizado | - | Nome da imagem incorreto |
-| README-DEPLOYMENT.md | ⚠️ Desatualizado | - | Menciona daemonset, scripts antigos |
-| DOCKERHUB-SETUP.md | ⚠️ Desatualizado | - | Nome da imagem incorreto |
-| DEPLOY.md | ⚠️ Desatualizado | - | Menciona daemonset, scripts antigos |
-| QUICK-START.md | ⚠️ Desatualizado | - | Menciona daemonset, scripts antigos |
+| DOCUMENTATION.md | ✅ Ativo | 2025-01-27 | Índice da documentação |
+
+**Arquivos removidos:** 6 arquivos desatualizados foram removidos para manter a documentação limpa e organizada.
 
 ## 🔄 Próximos Passos
 
 1. **Manter README.md atualizado** como fonte única da verdade
-2. **Considerar remover arquivos desatualizados** em versão futura
-3. **Atualizar AIAgents-Support.md** conforme necessário
+2. **Atualizar AIAgents-Support.md** conforme necessário
+3. **Manter DOCUMENTATION.md** como índice da documentação
 
 ## 📞 Suporte
 
