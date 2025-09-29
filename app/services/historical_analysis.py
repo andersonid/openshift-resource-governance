@@ -534,6 +534,12 @@ class HistoricalAnalysisService:
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
                 datetime.now())
             
+            # Debug logging
+            logger.info(f"Debug - cpu_usage type: {type(cpu_usage)}, value: {cpu_usage}")
+            logger.info(f"Debug - cpu_requests type: {type(cpu_requests)}, value: {cpu_requests}")
+            logger.info(f"Debug - memory_usage type: {type(memory_usage)}, value: {memory_usage}")
+            logger.info(f"Debug - memory_requests type: {type(memory_requests)}, value: {memory_requests}")
+            
             # Get pod count using Kubernetes API (more reliable than Prometheus)
             pod_count = 0
             if k8s_client:
