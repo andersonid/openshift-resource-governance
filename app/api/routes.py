@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 
 from app.models.resource_models import (
     ClusterReport, NamespaceReport, ExportRequest, 
-    ApplyRecommendationRequest
+    ApplyRecommendationRequest, WorkloadCategory, SmartRecommendation
 )
 from app.services.validation_service import ValidationService
 from app.services.report_service import ReportService
@@ -562,6 +562,173 @@ async def get_pod_historical_analysis(
         
     except Exception as e:
         logger.error(f"Error getting historical analysis for pod {pod_name} in namespace {namespace}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/smart-recommendations")
+async def get_smart_recommendations(
+    namespace: Optional[str] = None,
+    priority: Optional[str] = None,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Get smart recommendations for workloads"""
+    try:
+        # Collect pods
+        if namespace:
+            namespace_resources = await k8s_client.get_namespace_resources(namespace)
+            pods = namespace_resources.pods
+        else:
+            pods = await k8s_client.get_all_pods()
+        
+        # Get workload categories
+        categories = await validation_service.get_workload_categories(pods)
+        
+        # Get smart recommendations
+        recommendations = await validation_service.get_smart_recommendations(pods)
+        
+        # Filter by priority if specified
+        if priority:
+            recommendations = [
+                r for r in recommendations if r.priority == priority
+            ]
+        
+        return {
+            "recommendations": recommendations,
+            "categories": categories,
+            "total": len(recommendations)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting smart recommendations: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/workload-categories")
+async def get_workload_categories(
+    namespace: Optional[str] = None,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Get workload categories analysis"""
+    try:
+        # Collect pods
+        if namespace:
+            namespace_resources = await k8s_client.get_namespace_resources(namespace)
+            pods = namespace_resources.pods
+        else:
+            pods = await k8s_client.get_all_pods()
+        
+        # Get workload categories
+        categories = await validation_service.get_workload_categories(pods)
+        
+        # Group by category
+        category_summary = {}
+        for category in categories:
+            cat_type = category.category
+            if cat_type not in category_summary:
+                category_summary[cat_type] = {
+                    "count": 0,
+                    "total_priority_score": 0,
+                    "workloads": []
+                }
+            
+            category_summary[cat_type]["count"] += 1
+            category_summary[cat_type]["total_priority_score"] += category.priority_score
+            category_summary[cat_type]["workloads"].append({
+                "name": category.workload_name,
+                "namespace": category.namespace,
+                "priority_score": category.priority_score,
+                "estimated_impact": category.estimated_impact,
+                "vpa_candidate": category.vpa_candidate
+            })
+        
+        # Calculate average priority scores
+        for cat_type in category_summary:
+            if category_summary[cat_type]["count"] > 0:
+                category_summary[cat_type]["average_priority_score"] = (
+                    category_summary[cat_type]["total_priority_score"] / 
+                    category_summary[cat_type]["count"]
+                )
+        
+        return {
+            "categories": category_summary,
+            "total_workloads": len(categories),
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting workload categories: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/validations/smart")
+async def get_smart_validations(
+    namespace: Optional[str] = None,
+    severity: Optional[str] = None,
+    workload_category: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 50,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Get validations with smart analysis and categorization"""
+    try:
+        # Collect pods
+        if namespace:
+            namespace_resources = await k8s_client.get_namespace_resources(namespace)
+            pods = namespace_resources.pods
+        else:
+            pods = await k8s_client.get_all_pods()
+        
+        # Get smart validations
+        all_validations = []
+        for pod in pods:
+            pod_validations = await validation_service.validate_pod_resources_with_smart_analysis(pod)
+            all_validations.extend(pod_validations)
+        
+        # Filter by severity if specified
+        if severity:
+            all_validations = [
+                v for v in all_validations if v.severity == severity
+            ]
+        
+        # Filter by workload category if specified
+        if workload_category:
+            all_validations = [
+                v for v in all_validations if v.workload_category == workload_category
+            ]
+        
+        # Sort by priority score (descending)
+        all_validations.sort(key=lambda x: x.priority_score or 0, reverse=True)
+        
+        # Pagination
+        total = len(all_validations)
+        start = (page - 1) * page_size
+        end = start + page_size
+        paginated_validations = all_validations[start:end]
+        
+        return {
+            "validations": paginated_validations,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total": total,
+                "total_pages": (total + page_size - 1) // page_size
+            },
+            "summary": {
+                "total_validations": total,
+                "by_severity": {
+                    "critical": len([v for v in all_validations if v.severity == "critical"]),
+                    "error": len([v for v in all_validations if v.severity == "error"]),
+                    "warning": len([v for v in all_validations if v.severity == "warning"]),
+                    "info": len([v for v in all_validations if v.severity == "info"])
+                },
+                "by_category": {
+                    "new": len([v for v in all_validations if v.workload_category == "new"]),
+                    "established": len([v for v in all_validations if v.workload_category == "established"]),
+                    "outlier": len([v for v in all_validations if v.workload_category == "outlier"]),
+                    "compliant": len([v for v in all_validations if v.workload_category == "compliant"])
+                }
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting smart validations: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/health")

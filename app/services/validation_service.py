@@ -9,6 +9,7 @@ import re
 from app.models.resource_models import PodResource, ResourceValidation, NamespaceResources
 from app.core.config import settings
 from app.services.historical_analysis import HistoricalAnalysisService
+from app.services.smart_recommendations import SmartRecommendationsService
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ class ValidationService:
         self.min_cpu_request = settings.min_cpu_request
         self.min_memory_request = settings.min_memory_request
         self.historical_analysis = HistoricalAnalysisService()
+        self.smart_recommendations = SmartRecommendationsService()
     
     def validate_pod_resources(self, pod: PodResource) -> List[ResourceValidation]:
         """Validate pod resources"""
@@ -365,3 +367,124 @@ class ValidationService:
             )
         
         return recommendations
+    
+    async def validate_pod_resources_with_categorization(
+        self, 
+        pod: PodResource, 
+        workload_category: str = None,
+        priority_score: int = None
+    ) -> List[ResourceValidation]:
+        """Validate pod resources with enhanced categorization and scoring"""
+        validations = self.validate_pod_resources(pod)
+        
+        # Add categorization and scoring to validations
+        for validation in validations:
+            validation.workload_category = workload_category
+            validation.priority_score = priority_score or self._calculate_priority_score(validation)
+            validation.estimated_impact = self._determine_impact(validation.priority_score)
+        
+        return validations
+    
+    async def validate_pod_resources_with_smart_analysis(
+        self, 
+        pod: PodResource, 
+        time_range: str = '24h'
+    ) -> List[ResourceValidation]:
+        """Validate pod resources with smart analysis including historical data"""
+        # Static validations
+        static_validations = self.validate_pod_resources(pod)
+        
+        # Get workload category
+        workload_category = await self._categorize_workload(pod)
+        
+        # Get smart recommendations
+        smart_recommendations = await self.smart_recommendations.generate_smart_recommendations([pod], [workload_category])
+        
+        # Enhance validations with smart analysis
+        enhanced_validations = []
+        for validation in static_validations:
+            validation.workload_category = workload_category.category
+            validation.priority_score = self._calculate_priority_score(validation)
+            validation.estimated_impact = self._determine_impact(validation.priority_score)
+            enhanced_validations.append(validation)
+        
+        # Add smart recommendations as validations
+        for recommendation in smart_recommendations:
+            smart_validation = ResourceValidation(
+                pod_name=pod.name,
+                namespace=pod.namespace,
+                container_name="workload",
+                validation_type="smart_recommendation",
+                severity=recommendation.priority,
+                message=recommendation.title,
+                recommendation=recommendation.description,
+                priority_score=self._get_priority_score_from_string(recommendation.priority),
+                workload_category=workload_category.category,
+                estimated_impact=recommendation.estimated_impact
+            )
+            enhanced_validations.append(smart_validation)
+        
+        return enhanced_validations
+    
+    async def _categorize_workload(self, pod: PodResource) -> Any:
+        """Categorize a single workload"""
+        categories = await self.smart_recommendations.categorize_workloads([pod])
+        return categories[0] if categories else None
+    
+    def _get_priority_score_from_string(self, priority: str) -> int:
+        """Convert priority string to numeric score"""
+        priority_map = {
+            "critical": 10,
+            "high": 8,
+            "medium": 5,
+            "low": 2
+        }
+        return priority_map.get(priority, 5)
+    
+    def _calculate_priority_score(self, validation: ResourceValidation) -> int:
+        """Calculate priority score for validation (1-10)"""
+        score = 1
+        
+        # Base score by severity
+        if validation.severity == "critical":
+            score += 4
+        elif validation.severity == "error":
+            score += 3
+        elif validation.severity == "warning":
+            score += 1
+        
+        # Add score by validation type
+        if validation.validation_type == "missing_requests":
+            score += 3
+        elif validation.validation_type == "missing_limits":
+            score += 2
+        elif validation.validation_type == "invalid_ratio":
+            score += 1
+        elif validation.validation_type == "overcommit":
+            score += 4
+        
+        # Add score for production namespaces
+        if validation.namespace in ["default", "production", "prod"]:
+            score += 2
+        
+        return min(score, 10)
+    
+    def _determine_impact(self, priority_score: int) -> str:
+        """Determine estimated impact based on priority score"""
+        if priority_score >= 8:
+            return "critical"
+        elif priority_score >= 6:
+            return "high"
+        elif priority_score >= 4:
+            return "medium"
+        else:
+            return "low"
+    
+    async def get_workload_categories(self, pods: List[PodResource]) -> List[Any]:
+        """Get workload categories for all pods"""
+        return await self.smart_recommendations.categorize_workloads(pods)
+    
+    async def get_smart_recommendations(self, pods: List[PodResource]) -> List[Any]:
+        """Get smart recommendations for all workloads"""
+        categories = await self.get_workload_categories(pods)
+        return await self.smart_recommendations.generate_smart_recommendations(pods, categories)

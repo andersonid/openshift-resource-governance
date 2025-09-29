@@ -43,6 +43,9 @@ class ResourceValidation(BaseModel):
     severity: str  # "warning", "error", "critical"
     message: str
     recommendation: Optional[str] = None
+    priority_score: Optional[int] = None  # 1-10, higher = more critical
+    workload_category: Optional[str] = None  # "new", "established", "outlier", "compliant"
+    estimated_impact: Optional[str] = None  # "low", "medium", "high", "critical"
 
 class ClusterReport(BaseModel):
     """Cluster report"""
@@ -80,3 +83,31 @@ class ApplyRecommendationRequest(BaseModel):
     action: str  # "requests", "limits"
     value: str
     dry_run: bool = True
+
+class WorkloadCategory(BaseModel):
+    """Workload categorization"""
+    workload_name: str
+    namespace: str
+    category: str  # "new", "established", "outlier", "compliant"
+    age_days: int
+    resource_config_status: str  # "missing_requests", "missing_limits", "suboptimal_ratio", "compliant"
+    priority_score: int  # 1-10
+    estimated_impact: str  # "low", "medium", "high", "critical"
+    vpa_candidate: bool = False
+    historical_data_available: bool = False
+
+class SmartRecommendation(BaseModel):
+    """Smart recommendation based on analysis"""
+    workload_name: str
+    namespace: str
+    recommendation_type: str  # "resource_config", "vpa_activation", "ratio_adjustment"
+    priority: str  # "critical", "high", "medium", "low"
+    title: str
+    description: str
+    current_config: Optional[Dict[str, str]] = None
+    suggested_config: Optional[Dict[str, str]] = None
+    confidence_level: Optional[float] = None  # 0.0-1.0
+    estimated_impact: Optional[str] = None
+    implementation_steps: Optional[List[str]] = None
+    kubectl_commands: Optional[List[str]] = None
+    vpa_yaml: Optional[str] = None

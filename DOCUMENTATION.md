@@ -1,42 +1,71 @@
-# 📚 Documentação - OpenShift Resource Governance Tool
+# 📚 Documentation - OpenShift Resource Governance Tool
 
-## 🎯 Documentação Atual
+## 🎯 Current Documentation
 
-### ✅ **Documentação Ativa (Atualizada)**
-- **[README.md](README.md)** - 📖 **Documentação principal e completa**
-- **[AIAgents-Support.md](AIAgents-Support.md)** - 🤖 Suporte para agentes de IA
+### ✅ **Active Documentation (Updated)**
+- **[README.md](README.md)** - 📖 **Main and complete documentation**
+- **[AIAgents-Support.md](AIAgents-Support.md)** - 🤖 AI agents support
 
-### ✅ **Documentação Limpa e Organizada**
-Todos os arquivos desatualizados foram removidos para manter apenas a documentação atual e relevante.
+### ✅ **Clean and Organized Documentation**
+All outdated files have been removed to maintain only current and relevant documentation.
 
-## 🚀 Como Usar
+## 🚀 How to Use
 
-### Para Usuários
-1. **Leia o [README.md](README.md)** - Documentação completa e atualizada
-2. **Use o script de deploy**: `./scripts/deploy-complete.sh`
+### For Users
+1. **Read [README.md](README.md)** - Complete and updated documentation
+2. **Use deploy script**: `./scripts/deploy-complete.sh`
 
-### Para Desenvolvedores
-1. **Leia o [README.md](README.md)** - Instruções de desenvolvimento
-2. **Consulte [AIAgents-Support.md](AIAgents-Support.md)** - Contexto do projeto
+### For Developers
+1. **Read [README.md](README.md)** - Development instructions
+2. **Consult [AIAgents-Support.md](AIAgents-Support.md)** - Project context
 
-## 📋 Status da Documentação
+## 📋 Documentation Status
 
-| Arquivo | Status | Última Atualização | Observações |
-|---------|--------|-------------------|-------------|
-| README.md | ✅ Ativo | 2025-01-27 | Documentação principal atualizada |
-| AIAgents-Support.md | ✅ Ativo | 2025-01-27 | Suporte para IA agents |
-| DOCUMENTATION.md | ✅ Ativo | 2025-01-27 | Índice da documentação |
+| File | Status | Last Update | Notes |
+|------|--------|-------------|-------|
+| README.md | ✅ Active | 2025-01-29 | Main documentation with pragmatic roadmap |
+| AIAgents-Support.md | ✅ Active | 2025-01-29 | AI agents support and project context |
+| DOCUMENTATION.md | ✅ Active | 2025-01-29 | Documentation index |
 
-**Arquivos removidos:** 6 arquivos desatualizados foram removidos para manter a documentação limpa e organizada.
+**Removed files:** 6 outdated files were removed to keep documentation clean and organized.
 
-## 🔄 Próximos Passos
+## 🎯 **PRAGMATIC ROADMAP - Resource Governance Focus**
 
-1. **Manter README.md atualizado** como fonte única da verdade
-2. **Atualizar AIAgents-Support.md** conforme necessário
-3. **Manter DOCUMENTATION.md** como índice da documentação
+**Core Mission**: List projects without requests/limits + provide smart recommendations based on historical analysis + VPA integration
 
-## 📞 Suporte
+### **Phase 1: Enhanced Validation & Categorization (IMMEDIATE - 1-2 weeks)**
+- Enhanced Validation Engine with better categorization
+- Workload Categorization System (New, Established, Outlier, Compliant)
+- Smart Historical Analysis integration
 
-- **Documentação principal**: [README.md](README.md)
+### **Phase 2: Smart Recommendations Engine (SHORT TERM - 2-3 weeks)**
+- Dedicated Recommendations Section
+- Resource Configuration Recommendations
+- VPA Activation Recommendations
+- Priority Scoring System
+
+### **Phase 3: VPA Integration & Automation (MEDIUM TERM - 3-4 weeks)**
+- VPA Status Detection & Management
+- Smart VPA Activation
+- VPA Recommendation Integration
+
+### **Phase 4: Action Planning & Implementation (LONG TERM - 4-6 weeks)**
+- Action Plan Generation
+- Implementation Tracking
+- Advanced Analytics
+
+### **Phase 5: Enterprise Features (FUTURE - 6+ weeks)**
+- Advanced Governance
+- Multi-Cluster Support
+
+## 🔄 Next Steps
+
+1. **Keep README.md updated** as single source of truth
+2. **Update AIAgents-Support.md** as needed
+3. **Maintain DOCUMENTATION.md** as documentation index
+
+## 📞 Support
+
+- **Main documentation**: [README.md](README.md)
 - **Issues**: [GitHub Issues](https://github.com/andersonid/openshift-resource-governance/issues)
-- **Suporte IA**: [AIAgents-Support.md](AIAgents-Support.md)
+- **AI Support**: [AIAgents-Support.md](AIAgents-Support.md)

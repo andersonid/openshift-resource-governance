@@ -802,6 +802,157 @@
             width: auto;
         }
 
+        /* Smart Recommendations Styles */
+        .validation-details {
+            display: flex;
+            gap: 1rem;
+            margin: 0.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .detail-item {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .implementation-steps {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+
+        .implementation-steps ol {
+            margin: 0.5rem 0 0 1rem;
+        }
+
+        .implementation-steps li {
+            margin: 0.25rem 0;
+        }
+
+        .kubectl-commands {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+        }
+
+        .kubectl-commands pre {
+            margin: 0.5rem 0 0 0;
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 0.75rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+        }
+
+        .vpa-yaml {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .vpa-yaml pre {
+            margin: 0.5rem 0 0 0;
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 0.75rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+        }
+
+        /* Workload Categories Styles */
+        .workload-list {
+            padding: 1rem 0;
+        }
+
+        .workload-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .workload-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .workload-name {
+            font-weight: 600;
+            color: #cc0000;
+            font-size: 1.1rem;
+        }
+
+        .workload-namespace {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .workload-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .workload-stat {
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge.critical {
+            background: #f8d7da;
+            color: #721c24;
+            font-weight: bold;
+        }
+
+        /* Severity Info */
+        .severity-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .severity-badge.severity-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -849,9 +1000,17 @@
                 <span class="nav-icon">📈</span>
                 <span class="nav-text">Historical Resource Usage</span>
             </a>
-            <a href="#" class="nav-item" data-section="vpa-recommendations">
+            <a href="#" class="nav-item" data-section="smart-recommendations">
                 <span class="nav-icon">🎯</span>
-                <span class="nav-text">VPA Recommendations</span>
+                <span class="nav-text">Smart Recommendations</span>
+            </a>
+            <a href="#" class="nav-item" data-section="workload-categories">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Workload Analysis</span>
+            </a>
+            <a href="#" class="nav-item" data-section="vpa-recommendations">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">VPA Management</span>
             </a>
         </nav>
     </div>
@@ -960,9 +1119,62 @@
             <div id="pagination" class="pagination"></div>
         </div>
 
-        <!-- Recomendações VPA -->
+        <!-- Smart Recommendations -->
+        <div class="card" id="smartRecommendationsCard" style="display: none;">
+            <h2>Smart Recommendations</h2>
+            
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="recommendationPriorityFilter">Priority:</label>
+                    <select id="recommendationPriorityFilter">
+                        <option value="">All</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="recommendationTypeFilter">Type:</label>
+                    <select id="recommendationTypeFilter">
+                        <option value="">All</option>
+                        <option value="resource_config">Resource Configuration</option>
+                        <option value="vpa_activation">VPA Activation</option>
+                        <option value="ratio_adjustment">Ratio Adjustment</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="loadSmartRecommendations()">Apply Filters</button>
+            </div>
+            
+            <div id="smartRecommendationsList"></div>
+        </div>
+
+        <!-- Workload Categories -->
+        <div class="card" id="workloadCategoriesCard" style="display: none;">
+            <h2>Workload Analysis</h2>
+            
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="categoryFilter">Category:</label>
+                    <select id="categoryFilter">
+                        <option value="">All</option>
+                        <option value="new">New Workloads</option>
+                        <option value="established">Established</option>
+                        <option value="outlier">Outliers</option>
+                        <option value="compliant">Compliant</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="loadWorkloadCategories()">Apply Filters</button>
+            </div>
+            
+            <div id="workloadCategoriesList"></div>
+        </div>
+
+        <!-- VPA Management -->
         <div class="card" id="vpaCard" style="display: none;">
-            <h2>VPA Recommendations</h2>
+            <h2>VPA Management</h2>
             <div id="vpaList"></div>
         </div>
 
@@ -1215,8 +1427,28 @@
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
-                const result = await response.json();
-                showSuccess(`Report exported: ${result.filepath}`);
+                // Get filename from Content-Disposition header
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let filename = 'report.csv';
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                    if (filenameMatch) {
+                        filename = filenameMatch[1];
+                    }
+                }
+                
+                // Download the file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showSuccess(`Report exported: ${filename}`);
                 
             } catch (error) {
                 showError('Error exporting report: ' + error.message);
@@ -2001,60 +2233,287 @@
             document.getElementById('exportModal').classList.remove('show');
         }
 
-        async function exportReport() {
-            const format = document.getElementById('exportFormat').value;
-            const namespaces = document.getElementById('exportNamespaces').value;
-            const includeVPA = document.getElementById('includeVPA').checked;
-            const includeValidations = document.getElementById('includeValidations').checked;
-
-            try {
-                const response = await fetch('/api/v1/export', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        format: format,
-                        namespaces: namespaces ? namespaces.split(',').map(ns => ns.trim()) : null,
-                        include_vpa: includeVPA,
-                        include_validations: includeValidations
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                // Get filename from response headers
-                const contentDisposition = response.headers.get('Content-Disposition');
-                const filename = contentDisposition 
-                    ? contentDisposition.split('filename=')[1].replace(/"/g, '')
-                    : `report.${format}`;
-
-                // Download the file
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-
-                closeExportModal();
-                showSuccess('Report exported successfully!');
-
-            } catch (error) {
-                showError('Error exporting report: ' + error.message);
-            }
-        }
 
         // Close export modal when clicking outside
         document.getElementById('exportModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeExportModal();
             }
+        });
+
+        // Smart Recommendations Functions
+        async function loadSmartRecommendations() {
+            showLoading();
+            
+            try {
+                const priority = document.getElementById('recommendationPriorityFilter').value;
+                const type = document.getElementById('recommendationTypeFilter').value;
+                
+                const params = new URLSearchParams();
+                if (priority) params.append('priority', priority);
+                
+                const response = await fetch(`/api/v1/smart-recommendations?${params}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displaySmartRecommendations(data, type);
+                document.getElementById('smartRecommendationsCard').style.display = 'block';
+                
+            } catch (error) {
+                showError('Error loading smart recommendations: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displaySmartRecommendations(data, typeFilter) {
+            const container = document.getElementById('smartRecommendationsList');
+            
+            if (!data.recommendations || data.recommendations.length === 0) {
+                container.innerHTML = '<p>No smart recommendations found.</p>';
+                return;
+            }
+            
+            let recommendations = data.recommendations;
+            
+            // Filter by type if specified
+            if (typeFilter) {
+                recommendations = recommendations.filter(r => r.recommendation_type === typeFilter);
+            }
+            
+            if (recommendations.length === 0) {
+                container.innerHTML = '<p>No recommendations match the selected filters.</p>';
+                return;
+            }
+            
+            let html = '';
+            
+            recommendations.forEach(rec => {
+                const priorityClass = `severity-${rec.priority}`;
+                const confidenceLevel = rec.confidence_level ? `${(rec.confidence_level * 100).toFixed(0)}%` : 'N/A';
+                
+                html += `
+                    <div class="validation-item ${rec.priority}">
+                        <div class="validation-header">
+                            <span class="severity-badge ${priorityClass}">${rec.priority}</span>
+                            <strong>${rec.title}</strong>
+                            <span class="badge">${rec.recommendation_type}</span>
+                        </div>
+                        <div class="validation-message">
+                            <strong>Workload:</strong> ${rec.workload_name} (${rec.namespace})
+                        </div>
+                        <div class="validation-recommendation">
+                            <strong>Description:</strong> ${rec.description}
+                        </div>
+                        <div class="validation-details">
+                            <div class="detail-item">
+                                <strong>Confidence:</strong> ${confidenceLevel}
+                            </div>
+                            <div class="detail-item">
+                                <strong>Impact:</strong> ${rec.estimated_impact || 'N/A'}
+                            </div>
+                        </div>
+                `;
+                
+                if (rec.implementation_steps && rec.implementation_steps.length > 0) {
+                    html += `
+                        <div class="implementation-steps">
+                            <strong>Implementation Steps:</strong>
+                            <ol>
+                                ${rec.implementation_steps.map(step => `<li>${step}</li>`).join('')}
+                            </ol>
+                        </div>
+                    `;
+                }
+                
+                if (rec.kubectl_commands && rec.kubectl_commands.length > 0) {
+                    html += `
+                        <div class="kubectl-commands">
+                            <strong>Kubectl Commands:</strong>
+                            <pre><code>${rec.kubectl_commands.join('\n')}</code></pre>
+                        </div>
+                    `;
+                }
+                
+                if (rec.vpa_yaml) {
+                    html += `
+                        <div class="vpa-yaml">
+                            <strong>VPA Configuration:</strong>
+                            <pre><code>${rec.vpa_yaml}</code></pre>
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Workload Categories Functions
+        async function loadWorkloadCategories() {
+            showLoading();
+            
+            try {
+                const category = document.getElementById('categoryFilter').value;
+                
+                const params = new URLSearchParams();
+                if (category) params.append('category', category);
+                
+                const response = await fetch(`/api/v1/workload-categories?${params}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displayWorkloadCategories(data);
+                document.getElementById('workloadCategoriesCard').style.display = 'block';
+                
+            } catch (error) {
+                showError('Error loading workload categories: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displayWorkloadCategories(data) {
+            const container = document.getElementById('workloadCategoriesList');
+            
+            if (!data.categories || Object.keys(data.categories).length === 0) {
+                container.innerHTML = '<p>No workload categories found.</p>';
+                return;
+            }
+            
+            let html = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${data.total_workloads}</div>
+                        <div class="stat-label">Total Workloads</div>
+                    </div>
+                </div>
+            `;
+            
+            Object.keys(data.categories).forEach(categoryType => {
+                const category = data.categories[categoryType];
+                const categoryClass = categoryType === 'outlier' ? 'error' : 
+                                    categoryType === 'new' ? 'warning' : 
+                                    categoryType === 'compliant' ? 'success' : 'info';
+                
+                html += `
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <div class="accordion-title">
+                                <span class="badge ${categoryClass}">${categoryType}</span>
+                                ${category.count} workloads
+                            </div>
+                            <div class="accordion-stats">
+                                <div class="accordion-stat">Avg Priority: ${category.average_priority_score?.toFixed(1) || 'N/A'}</div>
+                                <div class="accordion-stat">VPA Candidates: ${category.workloads.filter(w => w.vpa_candidate).length}</div>
+                            </div>
+                            <div class="accordion-arrow">▶</div>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="workload-list">
+                `;
+                
+                category.workloads.forEach(workload => {
+                    const impactClass = workload.estimated_impact === 'critical' ? 'critical' :
+                                      workload.estimated_impact === 'high' ? 'error' :
+                                      workload.estimated_impact === 'medium' ? 'warning' : 'info';
+                    
+                    html += `
+                        <div class="workload-item">
+                            <div class="workload-header">
+                                <div class="workload-name">${workload.name}</div>
+                                <div class="workload-namespace">${workload.namespace}</div>
+                            </div>
+                            <div class="workload-details">
+                                <div class="workload-stat">
+                                    <strong>Priority Score:</strong> ${workload.priority_score}/10
+                                </div>
+                                <div class="workload-stat">
+                                    <strong>Impact:</strong> 
+                                    <span class="badge ${impactClass}">${workload.estimated_impact}</span>
+                                </div>
+                                <div class="workload-stat">
+                                    <strong>VPA Candidate:</strong> 
+                                    ${workload.vpa_candidate ? '✅ Yes' : '❌ No'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Navigation Functions
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.card').forEach(card => {
+                card.style.display = 'none';
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            const sectionMap = {
+                'dashboard': 'validationsCard',
+                'historical-analysis': 'historicalCard',
+                'smart-recommendations': 'smartRecommendationsCard',
+                'workload-categories': 'workloadCategoriesCard',
+                'vpa-recommendations': 'vpaCard'
+            };
+            
+            const cardId = sectionMap[sectionName];
+            if (cardId) {
+                document.getElementById(cardId).style.display = 'block';
+            }
+            
+            // Add active class to clicked nav item
+            document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+            
+            // Load data for the section
+            switch(sectionName) {
+                case 'dashboard':
+                    loadValidationsByNamespace();
+                    break;
+                case 'historical-analysis':
+                    loadHistoricalValidations();
+                    break;
+                case 'smart-recommendations':
+                    loadSmartRecommendations();
+                    break;
+                case 'workload-categories':
+                    loadWorkloadCategories();
+                    break;
+                case 'vpa-recommendations':
+                    loadVPARecommendations();
+                    break;
+            }
+        }
+
+        // Add click handlers for navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    showSection(section);
+                });
+            });
         });
     </script>
         </div> <!-- Close main-content -->
