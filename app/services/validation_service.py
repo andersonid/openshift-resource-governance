@@ -83,7 +83,7 @@ class ValidationService:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
                 namespace=namespace,
-                container_name=container["name"],
+                container_name=container.name,
                 validation_type="missing_requests",
                 severity="error",
                 message="Container without defined requests",
@@ -95,7 +95,7 @@ class ValidationService:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
                 namespace=namespace,
-                container_name=container["name"],
+                container_name=container.name,
                 validation_type="missing_limits",
                 severity="warning",
                 message="Container without defined limits",
@@ -103,20 +103,20 @@ class ValidationService:
             ))
         
         # 3. QoS Class validation based on Red Hat recommendations
-        qos_validation = self._validate_qos_class(pod_name, namespace, container["name"], qos_class, requests, limits)
+        qos_validation = self._validate_qos_class(pod_name, namespace, container.name, qos_class, requests, limits)
         if qos_validation:
             validations.append(qos_validation)
         
         # 3. Validate limit:request ratio
         if requests and limits:
             cpu_validation = self._validate_cpu_ratio(
-                pod_name, namespace, container["name"], requests, limits
+                pod_name, namespace, container.name, requests, limits
             )
             if cpu_validation:
                 validations.append(cpu_validation)
             
             memory_validation = self._validate_memory_ratio(
-                pod_name, namespace, container["name"], requests, limits
+                pod_name, namespace, container.name, requests, limits
             )
             if memory_validation:
                 validations.append(memory_validation)
@@ -124,7 +124,7 @@ class ValidationService:
         # 4. Validate minimum values
         if requests:
             min_validation = self._validate_minimum_values(
-                pod_name, namespace, container["name"], requests
+                pod_name, namespace, container.name, requests
             )
             validations.extend(min_validation)
         
