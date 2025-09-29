@@ -3012,7 +3012,7 @@
             
             // Memory - Convert bytes to GiB
             const memoryRequestsGiB = healthData.cluster_memory_requests / (1024 * 1024 * 1024);
-            const memoryCapacityGiB = healthData.cluster_memory_capacity / (1024 * 1024 * 1024);
+            const memoryCapacityGiB = healthData.cluster_memory_capacity; // Already in GiB from API
             const memoryUsagePercent = (memoryRequestsGiB / memoryCapacityGiB) * 100;
             
             document.getElementById('memoryUsageBar').style.width = Math.min(memoryUsagePercent, 100) + '%';
