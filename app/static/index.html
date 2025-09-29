@@ -1385,20 +1385,20 @@
                 </div>
                 <div class="health-metrics">
                     <div class="metric">
-                        <span class="metric-label">Pods <span class="help-icon-small" onclick="showHelpModal('pods-metric')">❓</span>:</span>
-                        <span class="metric-value" id="totalPods">-</span>
+                        <span class="metric-label">CPU Overcommit <span class="help-icon-small" onclick="showHelpModal('cpu-overcommit')">❓</span>:</span>
+                        <span class="metric-value" id="cpuOvercommitStatus">-</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Namespaces <span class="help-icon-small" onclick="showHelpModal('namespaces-metric')">❓</span>:</span>
-                        <span class="metric-value" id="totalNamespaces">-</span>
+                        <span class="metric-label">Memory Overcommit <span class="help-icon-small" onclick="showHelpModal('memory-overcommit')">❓</span>:</span>
+                        <span class="metric-value" id="memoryOvercommitStatus">-</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Critical Issues <span class="help-icon-small" onclick="showHelpModal('critical-issues')">❓</span>:</span>
-                        <span class="metric-value critical" id="criticalIssues">-</span>
+                        <span class="metric-label">Namespaces in Overcommit <span class="help-icon-small" onclick="showHelpModal('namespaces-overcommit')">❓</span>:</span>
+                        <span class="metric-value" id="namespacesInOvercommit">-</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Overcommit <span class="help-icon-small" onclick="showHelpModal('overcommit-metric')">❓</span>:</span>
-                        <span class="metric-value" id="overcommitStatus">-</span>
+                        <span class="metric-label">Resource Quota Coverage <span class="help-icon-small" onclick="showHelpModal('quota-coverage')">❓</span>:</span>
+                        <span class="metric-value" id="quotaCoverage">-</span>
                     </div>
                 </div>
             </div>
@@ -2903,6 +2903,94 @@
                             <p>Non-critical applications, batch jobs, or development workloads where performance isn't critical.</p>
                         </div>
                     `
+                },
+                'cpu-overcommit': {
+                    title: 'CPU Overcommit - Resource Allocation',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>CPU Overcommit</strong> shows how much CPU is requested compared to available capacity.</p>
+                            
+                            <h4>What this means:</h4>
+                            <ul>
+                                <li><span class="good">0-100%</span> - Normal allocation (requests ≤ capacity)</li>
+                                <li><span class="warning">100-150%</span> - Moderate overcommit (some risk)</li>
+                                <li><span class="critical">150%+</span> - High overcommit (high risk)</li>
+                            </ul>
+                            
+                            <h4>Why overcommit happens:</h4>
+                            <ul>
+                                <li>Applications don't always use their full CPU allocation</li>
+                                <li>Allows more workloads to run on limited hardware</li>
+                                <li>Kubernetes can schedule more pods than physical cores</li>
+                            </ul>
+                        </div>
+                    `
+                },
+                'memory-overcommit': {
+                    title: 'Memory Overcommit - Memory Allocation',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Memory Overcommit</strong> shows how much memory is requested compared to available capacity.</p>
+                            
+                            <h4>What this means:</h4>
+                            <ul>
+                                <li><span class="good">0-100%</span> - Normal allocation (requests ≤ capacity)</li>
+                                <li><span class="warning">100-150%</span> - Moderate overcommit (some risk)</li>
+                                <li><span class="critical">150%+</span> - High overcommit (high risk)</li>
+                            </ul>
+                            
+                            <h4>Memory vs CPU:</h4>
+                            <ul>
+                                <li>Memory overcommit is more dangerous than CPU overcommit</li>
+                                <li>Memory cannot be "borrowed" like CPU cycles</li>
+                                <li>High memory overcommit can cause OOM (Out of Memory) kills</li>
+                            </ul>
+                        </div>
+                    `
+                },
+                'namespaces-overcommit': {
+                    title: 'Namespaces in Overcommit',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Namespaces in Overcommit</strong> shows how many namespaces have resource limits exceeding their requests.</p>
+                            
+                            <h4>What this means:</h4>
+                            <ul>
+                                <li>Each namespace can have resource quotas</li>
+                                <li>When limits > requests, overcommit occurs</li>
+                                <li>This metric counts affected namespaces</li>
+                            </ul>
+                            
+                            <h4>Why monitor this:</h4>
+                            <ul>
+                                <li>Identifies which namespaces need attention</li>
+                                <li>Helps prioritize resource optimization</li>
+                                <li>Prevents resource starvation across namespaces</li>
+                            </ul>
+                        </div>
+                    `
+                },
+                'quota-coverage': {
+                    title: 'Resource Quota Coverage',
+                    content: `
+                        <div class="help-content">
+                            <p><strong>Resource Quota Coverage</strong> shows what percentage of namespaces have resource quotas defined.</p>
+                            
+                            <h4>What this means:</h4>
+                            <ul>
+                                <li><span class="good">80-100%</span> - Excellent coverage</li>
+                                <li><span class="warning">50-80%</span> - Good coverage</li>
+                                <li><span class="critical">0-50%</span> - Poor coverage</li>
+                            </ul>
+                            
+                            <h4>Why quotas matter:</h4>
+                            <ul>
+                                <li>Prevent one namespace from consuming all resources</li>
+                                <li>Ensure fair resource distribution</li>
+                                <li>Provide resource isolation and limits</li>
+                            </ul>
+                        </div>
+                    `
                 }
             };
             
@@ -2971,10 +3059,16 @@
                 healthSubtitle.textContent = 'All systems operational';
             }
             
-            // Update metrics
+            // Update basic metrics (cards superiores)
             document.getElementById('totalPods').textContent = healthData.total_pods;
             document.getElementById('totalNamespaces').textContent = healthData.total_namespaces;
             document.getElementById('criticalIssues').textContent = healthData.critical_issues;
+            
+            // Update health section metrics (métricas específicas de saúde)
+            document.getElementById('cpuOvercommitStatus').textContent = `${healthData.cpu_overcommit_percentage.toFixed(1)}%`;
+            document.getElementById('memoryOvercommitStatus').textContent = `${healthData.memory_overcommit_percentage.toFixed(1)}%`;
+            document.getElementById('namespacesInOvercommit').textContent = healthData.namespaces_in_overcommit;
+            document.getElementById('quotaCoverage').textContent = `${(healthData.resource_quota_coverage * 100).toFixed(0)}%`;
             
             // Update overcommit status
             const cpuOvercommit = healthData.cpu_overcommit_percentage;
