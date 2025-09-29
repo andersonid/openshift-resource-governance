@@ -162,3 +162,6 @@ kubeconfig
 
 # MCP
 .playwright-mcp/
+
+# AI Agent Support
+AIAgents-Support.md
