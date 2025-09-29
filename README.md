@@ -5,12 +5,12 @@ A resource governance tool for OpenShift clusters that goes beyond what Metrics 
 ## 🚀 Features
 
 - **Automatic Collection**: Collects requests/limits from all pods/containers in the cluster
-- **Red Hat Validations**: Validates capacity management best practices
-- **VPA Integration**: Consumes VPA recommendations in Off mode
-- **Prometheus Integration**: Collects real consumption metrics
-- **Consolidated Reports**: Generates reports in JSON, CSV and PDF
-- **Web UI**: Simple interface for visualization and interaction
-- **Recommendation Application**: Allows approving and applying recommendations
+- **Red Hat Validations**: Validates capacity management best practices with specific request/limit values
+- **Historical Analysis**: Workload-based historical resource usage analysis (1d, 7d, 30d)
+- **Prometheus Integration**: Collects real consumption metrics from OpenShift monitoring
+- **Export Reports**: Generates reports in JSON, CSV formats
+- **Web UI**: Modern interface with sidebar navigation and real-time updates
+- **Cluster Agnostic**: Works on any OpenShift cluster without configuration
 
 ## 📋 Requirements
 
@@ -37,110 +37,36 @@ oc login <cluster-url>
 ./scripts/deploy-complete.sh
 ```
 
-### 📋 Manual Deploy
-
-#### 1. Image Build
+### 📋 Manual Deploy (Development)
 
 ```bash
-# Local build
-./scripts/build.sh
+# Build and push image
+./scripts/build-and-push.sh
 
-# Build with specific tag
-./scripts/build.sh v1.0.0
-
-# Build for specific registry
-./scripts/build.sh latest your-username
-```
-
-#### 2. Deploy to OpenShift
-
-```bash
-# Apply all resources
+# Deploy to OpenShift
 oc apply -f k8s/
 
 # Wait for deployment
 oc rollout status deployment/resource-governance -n resource-governance
 ```
 
-#### 🚀 Automatic CI/CD (Recommended for Production)
-```bash
-# 1. Configure GitHub secrets
-./scripts/setup-github-secrets.sh
+### 🗑️ Undeploy
 
-# 2. Commit and push
-git add .
-git commit -m "New feature"
-git push origin main
-
-# 3. GitHub Actions will do automatic deploy!
-```
-
-**Automatic Flow:**
-- ✅ **Push to main** → GitHub Actions detects change
-- ✅ **Automatic build** → New image on Docker Hub
-- ✅ **Automatic deploy** → OpenShift updates deployment
-- ✅ **Rolling Update** → Zero downtime
-- ✅ **Health Checks** → Automatic validation
-
-#### 🔧 Manual Deploy (Development)
-```bash
-# Deploy with Blue-Green strategy
-./scripts/blue-green-deploy.sh
-
-# Deploy with specific tag
-./scripts/blue-green-deploy.sh v1.2.0
-
-# Test CI/CD flow locally
-./scripts/test-ci-cd.sh
-```
-
-**Development Scripts:**
-- ✅ **Full control** over the process
-- ✅ **Fast iteration** during development
-- ✅ **Easier debugging**
-- ✅ **Local tests** before pushing
-
-#### Complete Deploy (Initial)
-```bash
-# Complete deploy with ImagePullSecret (first time)
-./scripts/deploy-complete.sh
-```
-
-This script will:
-- ✅ Create namespace and RBAC
-- ✅ Configure ImagePullSecret for Docker Hub
-- ✅ Deploy application
-- ✅ Configure Service and Route
-- ✅ Verify everything is working
-
-#### Manual Deploy
-```bash
-# Default deploy
-./scripts/deploy.sh
-
-# Deploy with specific tag
-./scripts/deploy.sh v1.0.0
-
-# Deploy to specific registry
-./scripts/deploy.sh latest your-username
-```
-
-#### Undeploy
 ```bash
 # Completely remove application
 ./scripts/undeploy-complete.sh
 ```
 
-### 3. Application Access
+### 🌐 Application Access
 
 After deploy, access the application through the created route:
 
 ```bash
 # Get route URL
-oc get route resource-governance-route -n resource-governance
+oc get route -n resource-governance
 
-# Access via browser
-# https://resource-governance-route-resource-governance.apps.openshift.local
+# Access via browser (URL will be automatically generated)
+# Example: https://resource-governance-route-resource-governance.apps.your-cluster.com
 ```
 
 ## 🔧 Configuration
@@ -159,7 +85,7 @@ data:
     openshift-monitoring
     openshift-ingress
     openshift-apiserver
-  PROMETHEUS_URL: "http://prometheus.openshift-monitoring.svc.cluster.local:9090"
+  PROMETHEUS_URL: "http://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091"
 ```
 
 ### Environment Variables
@@ -190,9 +116,9 @@ GET /api/v1/namespace/{namespace}/status
 GET /api/v1/validations?namespace=default&severity=error
 ```
 
-#### VPA Recommendations
+#### Historical Analysis
 ```bash
-GET /api/v1/vpa/recommendations?namespace=default
+GET /api/v1/namespace/{namespace}/workload/{workload}/historical-analysis?time_range=24h
 ```
 
 #### Export Report
@@ -201,10 +127,10 @@ POST /api/v1/export
 Content-Type: application/json
 
 {
-  "format": "json",
+  "format": "csv",
   "namespaces": ["default", "kube-system"],
   "includeVPA": true,
-  "includeValidations": true
+  "includeAnalysis": true
 }
 ```
 
@@ -212,19 +138,19 @@ Content-Type: application/json
 
 #### 1. Check Cluster Status
 ```bash
-curl https://resource-governance-route-resource-governance.apps.openshift.local/api/v1/cluster/status
+curl https://your-route-url/api/v1/cluster/status
 ```
 
 #### 2. Export CSV Report
 ```bash
-curl -X POST https://resource-governance-route-resource-governance.apps.openshift.local/api/v1/export \
+curl -X POST https://your-route-url/api/v1/export \
   -H "Content-Type: application/json" \
-  -d '{"format": "csv", "includeVPA": true}'
+  -d '{"format": "csv", "includeAnalysis": true}'
 ```
 
 #### 3. View Critical Validations
 ```bash
-curl "https://resource-governance-route-resource-governance.apps.openshift.local/api/v1/validations?severity=critical"
+curl "https://your-route-url/api/v1/validations?severity=critical"
 ```
 
 ## 🔍 Implemented Validations
@@ -243,6 +169,7 @@ curl "https://resource-governance-route-resource-governance.apps.openshift.local
 - **Problem**: Ratio too high or low
 - **Severity**: Warning/Error
 - **Recommendation**: Adjust to 3:1 ratio
+- **Details**: Shows specific request and limit values (e.g., "Request: 100m, Limit: 500m")
 
 ### 4. Minimum Values
 - **Problem**: Requests too low
@@ -292,15 +219,16 @@ The application uses a dedicated ServiceAccount with minimal permissions:
 - **Deployments/ReplicaSets**: get, list, watch, patch, update
 
 ### Security Context
-- Runs as non-root user (UID 1000)
+- Runs as non-root user (OpenShift assigns UID automatically)
 - Uses SecurityContext with runAsNonRoot: true
 - Limits resources with requests/limits
+- Cluster-agnostic security context
 
 ## 🐛 Troubleshooting
 
 ### Check Logs
 ```bash
-oc logs -f daemonset/resource-governance -n resource-governance
+oc logs -f deployment/resource-governance -n resource-governance
 ```
 
 ### Check Pod Status
@@ -317,10 +245,10 @@ oc auth can-i get pods --as=system:serviceaccount:resource-governance:resource-g
 ### Test Connectivity
 ```bash
 # Health check
-curl https://resource-governance-route-resource-governance.apps.openshift.local/health
+curl https://your-route-url/health
 
 # API test
-curl https://resource-governance-route-resource-governance.apps.openshift.local/api/v1/cluster/status
+curl https://your-route-url/api/v1/cluster/status
 ```
 
 ## 🚀 Development
@@ -355,13 +283,13 @@ curl http://localhost:8080/health
 ## 📝 Roadmap
 
 ### Upcoming Versions
-- [ ] Web UI with interactive charts
+- [ ] VPA Integration and Health Monitoring
 - [ ] PDF reports with charts
-- [ ] Custom rules per namespace
-- [ ] GitOps integration (ArgoCD)
-- [ ] Slack/Teams notifications
-- [ ] Custom Prometheus metrics
+- [ ] Advanced filtering and search
+- [ ] Alerting system (email, Slack)
 - [ ] Multi-cluster support
+- [ ] RBAC integration
+- [ ] API documentation (OpenAPI/Swagger)
 
 ## 🤝 Contributing
 
