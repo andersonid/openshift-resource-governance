@@ -459,10 +459,10 @@ class HistoricalAnalysisService:
             
             return {
                 'time_range': time_range,
-                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage else 0,
-                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage else 0,
-                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests else 0,
-                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests else 0,
+                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage and len(cpu_usage) > 0 else 0,
+                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage and len(memory_usage) > 0 else 0,
+                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests and len(cpu_requests) > 0 else 0,
+                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests and len(memory_requests) > 0 else 0,
                 'cpu_utilization': (self._safe_float(cpu_usage[0][1]) / self._safe_float(cpu_requests[0][1]) * 100) if cpu_usage and cpu_requests and self._safe_float(cpu_requests[0][1]) != 0 else 0,
                 'memory_utilization': (self._safe_float(memory_usage[0][1]) / self._safe_float(memory_requests[0][1]) * 100) if memory_usage and memory_requests and self._safe_float(memory_requests[0][1]) != 0 else 0
             }
@@ -534,12 +534,6 @@ class HistoricalAnalysisService:
                 datetime.now() - timedelta(seconds=self.time_ranges[time_range]), 
                 datetime.now())
             
-            # Debug logging
-            logger.info(f"Debug - cpu_usage type: {type(cpu_usage)}, value: {cpu_usage}")
-            logger.info(f"Debug - cpu_requests type: {type(cpu_requests)}, value: {cpu_requests}")
-            logger.info(f"Debug - memory_usage type: {type(memory_usage)}, value: {memory_usage}")
-            logger.info(f"Debug - memory_requests type: {type(memory_requests)}, value: {memory_requests}")
-            
             # Get pod count using Kubernetes API (more reliable than Prometheus)
             pod_count = 0
             if k8s_client:
@@ -609,13 +603,13 @@ class HistoricalAnalysisService:
             return {
                 'namespace': namespace,
                 'time_range': time_range,
-                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage else 0,
-                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage else 0,
-                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests else 0,
-                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests else 0,
+                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage and len(cpu_usage) > 0 else 0,
+                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage and len(memory_usage) > 0 else 0,
+                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests and len(cpu_requests) > 0 else 0,
+                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests and len(memory_requests) > 0 else 0,
                 'cpu_utilization': cpu_utilization,
                 'memory_utilization': memory_utilization,
-                'pod_count': int(pod_count[0][1]) if pod_count else 0,
+                'pod_count': int(self._safe_float(pod_count[0][1])) if pod_count and len(pod_count) > 0 else 0,
                 'recommendations': recommendations
             }
             
@@ -778,12 +772,12 @@ class HistoricalAnalysisService:
                 'namespace': namespace,
                 'workload': workload,
                 'time_range': time_range,
-                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage else 0,
-                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage else 0,
-                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests else 0,
-                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests else 0,
-                'cpu_limits': self._safe_float(cpu_limits[0][1]) if cpu_limits else 0,
-                'memory_limits': self._safe_float(memory_limits[0][1]) if memory_limits else 0,
+                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage and len(cpu_usage) > 0 else 0,
+                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage and len(memory_usage) > 0 else 0,
+                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests and len(cpu_requests) > 0 else 0,
+                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests and len(memory_requests) > 0 else 0,
+                'cpu_limits': self._safe_float(cpu_limits[0][1]) if cpu_limits and len(cpu_limits) > 0 else 0,
+                'memory_limits': self._safe_float(memory_limits[0][1]) if memory_limits and len(memory_limits) > 0 else 0,
                 'cpu_utilization': cpu_utilization,
                 'memory_utilization': memory_utilization,
                 'recommendations': recommendations
@@ -916,13 +910,13 @@ class HistoricalAnalysisService:
                 'namespace': namespace,
                 'pod_name': pod_name,
                 'time_range': time_range,
-                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage else 0,
-                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage else 0,
-                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests else 0,
-                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests else 0,
+                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage and len(cpu_usage) > 0 else 0,
+                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage and len(memory_usage) > 0 else 0,
+                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests and len(cpu_requests) > 0 else 0,
+                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests and len(memory_requests) > 0 else 0,
                 'cpu_utilization': cpu_utilization,
                 'memory_utilization': memory_utilization,
-                'container_count': int(container_count[0][1]) if container_count else 0,
+                'container_count': int(self._safe_float(container_count[0][1])) if container_count and len(container_count) > 0 else 0,
                 'recommendations': recommendations
             }
             
