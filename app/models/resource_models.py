@@ -17,6 +17,10 @@ class PodResource(BaseModel):
     node_name: Optional[str] = None
     phase: str
     containers: List[ContainerResource]
+    cpu_requests: float = 0.0
+    memory_requests: float = 0.0
+    cpu_limits: float = 0.0
+    memory_limits: float = 0.0
 
 class NamespaceResources(BaseModel):
     """Namespace resources"""
