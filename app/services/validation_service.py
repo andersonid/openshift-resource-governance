@@ -67,11 +67,11 @@ class ValidationService:
         self, 
         pod_name: str, 
         namespace: str, 
-        container: Dict[str, Any]
+        container: Any
     ) -> List[ResourceValidation]:
         """Validate container resources"""
         validations = []
-        resources = container.get("resources", {})
+        resources = container.resources
         requests = resources.get("requests", {})
         limits = resources.get("limits", {})
         
