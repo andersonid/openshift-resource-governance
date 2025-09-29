@@ -26,6 +26,16 @@ class HistoricalAnalysisService:
             '30d': 2592000   # 30 days
         }
     
+    def _safe_float(self, value, default=0):
+        """Safely convert value to float, handling inf and NaN"""
+        try:
+            result = float(value)
+            if result == float('inf') or result == float('-inf') or result != result:  # NaN check
+                return default
+            return result
+        except (ValueError, TypeError):
+            return default
+    
     async def analyze_pod_historical_usage(
         self, 
         pod: PodResource, 
@@ -209,8 +219,8 @@ class HistoricalAnalysisService:
             return validations
         
         # Current values of requests/limits
-        current_requests = float(requests_data[0][1]) if requests_data else 0
-        current_limits = float(limits_data[0][1]) if limits_data else 0
+        current_requests = self._safe_float(requests_data[0][1]) if requests_data else 0
+        current_limits = self._safe_float(limits_data[0][1]) if limits_data else 0
         
         # Usage statistics
         avg_usage = sum(usage_values) / len(usage_values)
@@ -294,8 +304,8 @@ class HistoricalAnalysisService:
             return validations
         
         # Current values of requests/limits (in bytes)
-        current_requests = float(requests_data[0][1]) if requests_data else 0
-        current_limits = float(limits_data[0][1]) if limits_data else 0
+        current_requests = self._safe_float(requests_data[0][1]) if requests_data else 0
+        current_limits = self._safe_float(limits_data[0][1]) if limits_data else 0
         
         # Usage statistics
         avg_usage = sum(usage_values) / len(usage_values)
@@ -449,12 +459,12 @@ class HistoricalAnalysisService:
             
             return {
                 'time_range': time_range,
-                'cpu_usage': float(cpu_usage[0][1]) if cpu_usage else 0,
-                'memory_usage': float(memory_usage[0][1]) if memory_usage else 0,
-                'cpu_requests': float(cpu_requests[0][1]) if cpu_requests else 0,
-                'memory_requests': float(memory_requests[0][1]) if memory_requests else 0,
-                'cpu_utilization': (float(cpu_usage[0][1]) / float(cpu_requests[0][1]) * 100) if cpu_usage and cpu_requests and cpu_requests[0][1] != '0' else 0,
-                'memory_utilization': (float(memory_usage[0][1]) / float(memory_requests[0][1]) * 100) if memory_usage and memory_requests and memory_requests[0][1] != '0' else 0
+                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage else 0,
+                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage else 0,
+                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests else 0,
+                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests else 0,
+                'cpu_utilization': (self._safe_float(cpu_usage[0][1]) / self._safe_float(cpu_requests[0][1]) * 100) if cpu_usage and cpu_requests and self._safe_float(cpu_requests[0][1]) != 0 else 0,
+                'memory_utilization': (self._safe_float(memory_usage[0][1]) / self._safe_float(memory_requests[0][1]) * 100) if memory_usage and memory_requests and self._safe_float(memory_requests[0][1]) != 0 else 0
             }
             
         except Exception as e:
@@ -536,11 +546,11 @@ class HistoricalAnalysisService:
             cpu_utilization = 0
             memory_utilization = 0
             
-            if cpu_usage and cpu_requests and cpu_requests[0][1] != '0':
-                cpu_utilization = (float(cpu_usage[0][1]) / float(cpu_requests[0][1])) * 100
+            if cpu_usage and cpu_requests and self._safe_float(cpu_requests[0][1]) != 0:
+                cpu_utilization = (self._safe_float(cpu_usage[0][1]) / self._safe_float(cpu_requests[0][1])) * 100
                 
-            if memory_usage and memory_requests and memory_requests[0][1] != '0':
-                memory_utilization = (float(memory_usage[0][1]) / float(memory_requests[0][1])) * 100
+            if memory_usage and memory_requests and self._safe_float(memory_requests[0][1]) != 0:
+                memory_utilization = (self._safe_float(memory_usage[0][1]) / self._safe_float(memory_requests[0][1])) * 100
             
             # Generate recommendations based on utilization
             recommendations = []
@@ -578,10 +588,10 @@ class HistoricalAnalysisService:
             return {
                 'namespace': namespace,
                 'time_range': time_range,
-                'cpu_usage': float(cpu_usage[0][1]) if cpu_usage else 0,
-                'memory_usage': float(memory_usage[0][1]) if memory_usage else 0,
-                'cpu_requests': float(cpu_requests[0][1]) if cpu_requests else 0,
-                'memory_requests': float(memory_requests[0][1]) if memory_requests else 0,
+                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage else 0,
+                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage else 0,
+                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests else 0,
+                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests else 0,
                 'cpu_utilization': cpu_utilization,
                 'memory_utilization': memory_utilization,
                 'pod_count': int(pod_count[0][1]) if pod_count else 0,
@@ -704,11 +714,11 @@ class HistoricalAnalysisService:
             cpu_utilization = 0
             memory_utilization = 0
             
-            if cpu_usage and cpu_requests and cpu_requests[0][1] != '0':
-                cpu_utilization = (float(cpu_usage[0][1]) / float(cpu_requests[0][1])) * 100
+            if cpu_usage and cpu_requests and self._safe_float(cpu_requests[0][1]) != 0:
+                cpu_utilization = (self._safe_float(cpu_usage[0][1]) / self._safe_float(cpu_requests[0][1])) * 100
                 
-            if memory_usage and memory_requests and memory_requests[0][1] != '0':
-                memory_utilization = (float(memory_usage[0][1]) / float(memory_requests[0][1])) * 100
+            if memory_usage and memory_requests and self._safe_float(memory_requests[0][1]) != 0:
+                memory_utilization = (self._safe_float(memory_usage[0][1]) / self._safe_float(memory_requests[0][1])) * 100
             
             # Generate recommendations based on utilization
             recommendations = []
@@ -747,12 +757,12 @@ class HistoricalAnalysisService:
                 'namespace': namespace,
                 'workload': workload,
                 'time_range': time_range,
-                'cpu_usage': float(cpu_usage[0][1]) if cpu_usage else 0,
-                'memory_usage': float(memory_usage[0][1]) if memory_usage else 0,
-                'cpu_requests': float(cpu_requests[0][1]) if cpu_requests else 0,
-                'memory_requests': float(memory_requests[0][1]) if memory_requests else 0,
-                'cpu_limits': float(cpu_limits[0][1]) if cpu_limits else 0,
-                'memory_limits': float(memory_limits[0][1]) if memory_limits else 0,
+                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage else 0,
+                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage else 0,
+                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests else 0,
+                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests else 0,
+                'cpu_limits': self._safe_float(cpu_limits[0][1]) if cpu_limits else 0,
+                'memory_limits': self._safe_float(memory_limits[0][1]) if memory_limits else 0,
                 'cpu_utilization': cpu_utilization,
                 'memory_utilization': memory_utilization,
                 'recommendations': recommendations
@@ -842,11 +852,11 @@ class HistoricalAnalysisService:
             cpu_utilization = 0
             memory_utilization = 0
             
-            if cpu_usage and cpu_requests and cpu_requests[0][1] != '0':
-                cpu_utilization = (float(cpu_usage[0][1]) / float(cpu_requests[0][1])) * 100
+            if cpu_usage and cpu_requests and self._safe_float(cpu_requests[0][1]) != 0:
+                cpu_utilization = (self._safe_float(cpu_usage[0][1]) / self._safe_float(cpu_requests[0][1])) * 100
                 
-            if memory_usage and memory_requests and memory_requests[0][1] != '0':
-                memory_utilization = (float(memory_usage[0][1]) / float(memory_requests[0][1])) * 100
+            if memory_usage and memory_requests and self._safe_float(memory_requests[0][1]) != 0:
+                memory_utilization = (self._safe_float(memory_usage[0][1]) / self._safe_float(memory_requests[0][1])) * 100
             
             # Generate recommendations based on utilization
             recommendations = []
@@ -885,10 +895,10 @@ class HistoricalAnalysisService:
                 'namespace': namespace,
                 'pod_name': pod_name,
                 'time_range': time_range,
-                'cpu_usage': float(cpu_usage[0][1]) if cpu_usage else 0,
-                'memory_usage': float(memory_usage[0][1]) if memory_usage else 0,
-                'cpu_requests': float(cpu_requests[0][1]) if cpu_requests else 0,
-                'memory_requests': float(memory_requests[0][1]) if memory_requests else 0,
+                'cpu_usage': self._safe_float(cpu_usage[0][1]) if cpu_usage else 0,
+                'memory_usage': self._safe_float(memory_usage[0][1]) if memory_usage else 0,
+                'cpu_requests': self._safe_float(cpu_requests[0][1]) if cpu_requests else 0,
+                'memory_requests': self._safe_float(memory_requests[0][1]) if memory_requests else 0,
                 'cpu_utilization': cpu_utilization,
                 'memory_utilization': memory_utilization,
                 'container_count': int(container_count[0][1]) if container_count else 0,
