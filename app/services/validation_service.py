@@ -2,7 +2,7 @@
 Resource validation service following Red Hat best practices
 """
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from decimal import Decimal, InvalidOperation
 import re
 
