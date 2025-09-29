@@ -318,6 +318,45 @@ class ValidationService:
         else:
             return "BestEffort"
     
+    def _validate_qos_class(self, pod_name: str, namespace: str, container_name: str, qos_class: str, requests: Dict[str, str], limits: Dict[str, str]) -> Optional[ResourceValidation]:
+        """Validate QoS class and provide recommendations"""
+        cpu_requests = self._parse_cpu_value(requests.get("cpu", "0"))
+        memory_requests = self._parse_memory_value(requests.get("memory", "0")) / (1024 * 1024 * 1024)  # Convert to GB
+        cpu_limits = self._parse_cpu_value(limits.get("cpu", "0"))
+        memory_limits = self._parse_memory_value(limits.get("memory", "0")) / (1024 * 1024 * 1024)  # Convert to GB
+        
+        # Check for missing requests (BestEffort pods)
+        if qos_class == "BestEffort":
+            return ResourceValidation(
+                pod_name=pod_name,
+                namespace=namespace,
+                container_name=container_name,
+                validation_type="missing_requests",
+                severity="warning",
+                message="Pod has no resource requests defined",
+                recommendation="Define CPU and memory requests for better resource management",
+                priority_score=7,
+                workload_category="new",
+                estimated_impact="medium"
+            )
+        
+        # Check for missing limits (Burstable pods)
+        elif qos_class == "Burstable" and (cpu_limits == 0 or memory_limits == 0):
+            return ResourceValidation(
+                pod_name=pod_name,
+                namespace=namespace,
+                container_name=container_name,
+                validation_type="missing_limits",
+                severity="warning",
+                message="Pod has requests but no limits defined",
+                recommendation="Define resource limits to prevent resource starvation",
+                priority_score=5,
+                workload_category="established",
+                estimated_impact="low"
+            )
+        
+        return None
+    
     def validate_namespace_overcommit(
         self, 
         namespace_resources: NamespaceResources,
