@@ -364,7 +364,23 @@ class HistoricalAnalysisService:
     async def _query_prometheus(self, query: str, start_time: datetime, end_time: datetime) -> List[Dict]:
         """Execute query in Prometheus"""
         try:
-            async with aiohttp.ClientSession() as session:
+            # Get service account token for authentication
+            token = None
+            try:
+                with open('/var/run/secrets/kubernetes.io/serviceaccount/token', 'r') as f:
+                    token = f.read().strip()
+            except FileNotFoundError:
+                logger.warning("Service account token not found, proceeding without authentication")
+            
+            # Create headers with token if available
+            headers = {}
+            if token:
+                headers['Authorization'] = f'Bearer {token}'
+            
+            # Create session with SSL verification disabled for self-signed certificates
+            connector = aiohttp.TCPConnector(ssl=False)
+            
+            async with aiohttp.ClientSession(connector=connector, headers=headers) as session:
                 params = {
                     'query': query,
                     'start': start_time.timestamp(),
@@ -375,7 +391,8 @@ class HistoricalAnalysisService:
                 async with session.get(
                     f"{self.prometheus_url}/api/v1/query_range",
                     params=params,
-                    timeout=aiohttp.ClientTimeout(total=30)
+                    timeout=aiohttp.ClientTimeout(total=30),
+                    ssl=False
                 ) as response:
                     if response.status == 200:
                         data = await response.json()
