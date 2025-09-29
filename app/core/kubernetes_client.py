@@ -81,7 +81,7 @@ class K8sClient:
         if not value or value == "0":
             return 0.0
         
-        value = value.replace("m", "").replace(" ", "")
+        value = value.replace(" ", "")
         
         if value.endswith("n"):
             return float(value[:-1]) / 1000000000
