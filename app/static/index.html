@@ -454,6 +454,12 @@
             font-size: 0.9rem;
         }
 
+        .accordion-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         .accordion-stat {
             background: rgba(255,255,255,0.2);
             padding: 0.25rem 0.5rem;
@@ -514,6 +520,50 @@
             padding: 0.25rem 0.5rem;
             border-radius: 12px;
             font-size: 0.8rem;
+        }
+
+        .deployment-list {
+            padding: 1rem 1.5rem;
+        }
+
+        .deployment-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .deployment-header {
+            background: #e3f2fd;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .deployment-title {
+            font-weight: bold;
+            color: #1976d2;
+            font-size: 1.1rem;
+        }
+
+        .deployment-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .deployment-stat {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .deployment-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .validation-list {
@@ -1228,6 +1278,19 @@
                 const errorCount = namespace.severity_breakdown.error || 0;
                 const warningCount = namespace.severity_breakdown.warning || 0;
                 
+                // Agrupar pods por deployment
+                const deployments = {};
+                pods.forEach(pod => {
+                    if (pod.validations && pod.validations.length > 0) {
+                        // Extrair nome do deployment do nome do pod
+                        const deploymentName = pod.pod_name.split('-').slice(0, -2).join('-') || 'unknown';
+                        if (!deployments[deploymentName]) {
+                            deployments[deploymentName] = [];
+                        }
+                        deployments[deploymentName].push(pod);
+                    }
+                });
+                
                 html += `
                     <div class="accordion">
                         <div class="accordion-header" onclick="toggleAccordion(${index})">
@@ -1238,22 +1301,46 @@
                                 <div class="accordion-stat" style="color: #dc3545;">${errorCount} errors</div>
                                 <div class="accordion-stat" style="color: #ffc107;">${warningCount} warnings</div>
                             </div>
-                            <div class="accordion-arrow">▶</div>
+                            <div class="accordion-actions">
+                                <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.5rem;" onclick="loadNamespaceHistoricalAnalysis('${namespace.namespace}')">Namespace Analysis</button>
+                                <div class="accordion-arrow">▶</div>
+                            </div>
                         </div>
                         <div class="accordion-content" id="accordion-${index}">
-                            <div class="pod-list">
+                            <div class="deployment-list">
                 `;
                 
-                pods.forEach(pod => {
-                    if (pod.validations && pod.validations.length > 0) {
+                // Renderizar cada deployment
+                Object.keys(deployments).forEach(deploymentName => {
+                    const deploymentPods = deployments[deploymentName];
+                    const deploymentValidations = deploymentPods.reduce((sum, pod) => sum + pod.validations.length, 0);
+                    const deploymentErrors = deploymentPods.reduce((sum, pod) => sum + pod.validations.filter(v => v.severity === 'error').length, 0);
+                    const deploymentWarnings = deploymentPods.reduce((sum, pod) => sum + pod.validations.filter(v => v.severity === 'warning').length, 0);
+                    
+                    html += `
+                        <div class="deployment-item">
+                            <div class="deployment-header">
+                                <div class="deployment-title">🚀 ${deploymentName}</div>
+                                <div class="deployment-stats">
+                                    <div class="deployment-stat">${deploymentPods.length} pods</div>
+                                    <div class="deployment-stat">${deploymentValidations} analysis</div>
+                                    <div class="deployment-stat" style="color: #dc3545;">${deploymentErrors} errors</div>
+                                    <div class="deployment-stat" style="color: #ffc107;">${deploymentWarnings} warnings</div>
+                                </div>
+                                <div class="deployment-actions">
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="loadWorkloadHistoricalAnalysis('${namespace.namespace}', '${deploymentName}')">Deployment Analysis</button>
+                                </div>
+                            </div>
+                            <div class="pod-list">
+                    `;
+                    
+                    // Renderizar pods do deployment
+                    deploymentPods.forEach(pod => {
                         html += `
                             <div class="pod-item">
                                 <div class="pod-header">
                                     <div class="pod-name">${pod.pod_name}</div>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                        <div class="pod-validations-count">${pod.validations.length} validations</div>
-                                        <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="loadWorkloadHistoricalAnalysis('${namespace.namespace}', '${pod.pod_name.split('-').slice(0, -2).join('-')}')">Historical Analysis</button>
-                                    </div>
+                                    <div class="pod-validations-count">${pod.validations.length} validations</div>
                                 </div>
                                 <div class="validation-list">
                         `;
@@ -1276,7 +1363,12 @@
                                 </div>
                             </div>
                         `;
-                    }
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
                 });
                 
                 html += `
@@ -1555,6 +1647,38 @@
         // Historical Analysis Modal Functions
         let currentNamespace = null;
         let currentWorkload = null;
+
+        async function loadNamespaceHistoricalAnalysis(namespace, timeRange = '24h') {
+            showLoading();
+            currentNamespace = namespace;
+            
+            try {
+                // Para análise por namespace, vamos usar o primeiro workload encontrado
+                // ou implementar uma análise agregada por namespace
+                const response = await fetch(`/api/v1/namespace/${namespace}/status`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Por enquanto, vamos usar a análise do primeiro workload
+                // TODO: Implementar análise agregada por namespace
+                const workloads = Object.keys(data.pods || {});
+                if (workloads.length > 0) {
+                    const firstWorkload = workloads[0].split('-').slice(0, -2).join('-');
+                    await loadWorkloadHistoricalAnalysis(namespace, firstWorkload, timeRange);
+                } else {
+                    showError('No workloads found in namespace');
+                }
+                
+            } catch (error) {
+                showError('Error loading namespace analysis: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
 
         async function loadWorkloadHistoricalAnalysis(namespace, workload, timeRange = '24h') {
             showLoading();
