@@ -756,7 +756,7 @@
         async function loadDashboard() {
             try {
                 showLoading();
-                const response = await fetch('/api/v1/cluster/status');
+                const response = await fetch('/api/cluster/health');
                 const data = await response.json();
                 currentData = data;
                 updateDashboard(data);
