@@ -68,6 +68,15 @@ async def get_cluster_status(
         
         # Group pods by namespace for the frontend
         namespaces_data = {}
+        pod_validations_map = {}
+        
+        # Create a map of pod validations (static + historical)
+        for validation in all_validations:
+            pod_key = f"{validation.namespace}/{validation.pod_name}"
+            if pod_key not in pod_validations_map:
+                pod_validations_map[pod_key] = []
+            pod_validations_map[pod_key].append(validation)
+        
         for pod in pods:
             namespace = pod.namespace
             if namespace not in namespaces_data:
@@ -80,7 +89,8 @@ async def get_cluster_status(
             
             # Add pod to namespace
             pod_name = pod.name
-            pod_validations = validation_service.validate_pod_resources(pod)
+            pod_key = f"{namespace}/{pod_name}"
+            pod_validations = pod_validations_map.get(pod_key, [])
             
             # Convert pod to the format expected by frontend
             pod_data = {
