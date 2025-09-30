@@ -99,693 +99,153 @@
             position: fixed;
             top: 1rem;
             right: 1rem;
-            background: #28a745;
+            background: #27ae60;
             color: white;
             border: none;
-            padding: 0.75rem 1rem;
-            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.9rem;
             font-weight: 500;
-            z-index: 100;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1001;
             transition: background 0.3s ease;
         }
 
         .export-button:hover {
-            background: #218838;
+            background: #229954;
         }
 
-        /* Export Modal Styles */
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .form-group select,
-        .form-group input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-
-        .checkbox-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: normal;
-            margin-bottom: 0;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 1.5rem;
-        }
-
-        .time-range-selector {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 0.5rem;
-        }
-
-        .time-range-btn {
-            padding: 0.5rem 1rem;
-            border: 1px solid #ddd;
+        /* Header */
+        .header {
             background: white;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            transition: all 0.2s;
+            padding: 2rem;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .time-range-btn:hover {
-            background: #e9ecef;
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
         }
 
-        .time-range-btn.active {
-            background: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
-
-        .page-header {
-            padding: 0 1rem;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        /* Content */
+        .content {
             padding: 2rem;
         }
 
+        /* Cards */
         .card {
             background: white;
             border-radius: 8px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
         }
 
         .card h2 {
-            color: #cc0000;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
             margin-bottom: 1rem;
-            font-size: 1.3rem;
         }
 
-        .stats-grid {
+        .card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
 
-        .stat-card {
-            background: white;
+        .metric-card {
+            background: #f8f9fa;
             padding: 1.5rem;
             border-radius: 8px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
         }
 
-        .stat-number {
+        .metric-value {
             font-size: 2rem;
-            font-weight: bold;
-            color: #cc0000;
-        }
-
-        .stat-label {
-            color: #666;
-            margin-top: 0.5rem;
-        }
-
-        .btn {
-            background: #cc0000;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.2s;
-        }
-
-        .btn:hover {
-            background: #8b0000;
-        }
-
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-        }
-
-        .btn-secondary:hover {
-            background: #545b62;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: #666;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 1rem;
-            border-radius: 4px;
-            margin: 1rem 0;
-        }
-
-        .success {
-            background: #d4edda;
-            color: #155724;
-            padding: 1rem;
-            border-radius: 4px;
-            margin: 1rem 0;
-        }
-
-        .validation-item {
-            padding: 1rem;
-            border-left: 4px solid #ccc;
-            margin: 0.75rem 0;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border: 1px solid #dee2e6;
-        }
-
-        .validation-item.error {
-            border-left-color: #dc3545;
-            background: #f8d7da;
-        }
-
-        .validation-item.warning {
-            border-left-color: #ffc107;
-            background: #fff3cd;
-        }
-
-        .validation-item.critical {
-            border-left-color: #dc3545;
-            background: #f8d7da;
-            font-weight: bold;
-        }
-
-        .validation-header {
-            font-weight: bold;
+            font-weight: 700;
+            color: #2c3e50;
             margin-bottom: 0.5rem;
         }
 
-        .validation-message {
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-
-        .validation-recommendation {
-            font-style: italic;
-            color: #007bff;
-        }
-
-        .export-section {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .export-section select,
-        .export-section input {
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        .table th,
-        .table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .table th {
-            background: #f8f9fa;
-            font-weight: 600;
-        }
-
-        .severity-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .severity-error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .severity-warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .severity-critical {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* Accordion Styles */
-        .accordion {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            overflow: visible;
-        }
-
-        .accordion-header {
-            background: #f8f9fa;
-            padding: 1rem 1.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #ddd;
-            transition: all 0.2s;
-            position: relative;
-            gap: 1rem;
-        }
-
-        .accordion-title {
-            flex: 0 0 auto;
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: #333;
-            min-width: 0;
-        }
-
-        .accordion-stats {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            flex: 0 0 auto;
-            margin-left: auto;
-        }
-
-        .accordion-stat {
+        .metric-label {
             font-size: 0.9rem;
+            color: #7f8c8d;
             font-weight: 500;
-            white-space: nowrap;
-            text-align: right;
         }
 
-        .accordion-arrow {
-            font-size: 1.2rem;
-            transition: transform 0.3s ease;
-            color: #6c757d;
-            flex: 0 0 auto;
-            margin-left: 0.5rem;
+        .metric-card.warning {
+            border-left-color: #f39c12;
         }
 
-        .accordion-header:hover {
-            background: #e9ecef;
+        .metric-card.error {
+            border-left-color: #e74c3c;
         }
 
-        .accordion-header.active .accordion-arrow {
-            transform: rotate(90deg);
+        .metric-card.success {
+            border-left-color: #27ae60;
         }
 
-        .accordion-header.active {
-            background: #495057;
-            color: white;
-        }
-
-        .accordion-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .accordion-stats {
+        /* Status Overview */
+        .status-overview {
             display: flex;
+            align-items: center;
             gap: 1rem;
-            font-size: 0.9rem;
-        }
-
-        .accordion-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .accordion-stat {
-            background: rgba(255,255,255,0.2);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-        }
-
-        .accordion-content {
-            padding: 1rem 1.5rem;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            background: white;
-            border-top: 1px solid #dee2e6;
-        }
-
-        .accordion-content.active {
-            max-height: none;
-            overflow: visible;
-            padding: 1rem 1.5rem;
-        }
-
-        /* Garantir que o conteúdo não seja cortado */
-        .accordion-content .validation-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .accordion-content .historical-validation:last-child {
-            margin-bottom: 0;
-        }
-
-        .pod-list {
-            padding: 1rem 1.5rem;
-        }
-
-        .pod-item {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 6px;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .pod-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .pod-name {
-            font-weight: 600;
-            color: #cc0000;
-        }
-
-        .pod-validations-count {
-            background: #6c757d;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-        }
-
-        .deployment-list {
-            padding: 1rem 1.5rem;
-        }
-
-        .deployment-item {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            overflow: hidden;
-        }
-
-        .deployment-header {
-            background: #e3f2fd;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .deployment-title {
-            font-weight: bold;
-            color: #1976d2;
-            font-size: 1.1rem;
-        }
-
-        .deployment-stats {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .deployment-stat {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .deployment-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .validation-list {
-            margin-top: 0.5rem;
-        }
-
-        .validation-item {
-            padding: 0.75rem;
-            border-left: 4px solid #ccc;
-            margin: 0.25rem 0;
-            background: white;
-            border-radius: 4px;
-        }
-
-        .validation-item.error {
-            border-left-color: #dc3545;
-        }
-
-        .validation-item.warning {
-            border-left-color: #ffc107;
-        }
-
-        .validation-item.critical {
-            border-left-color: #dc3545;
-            font-weight: bold;
-        }
-
-        /* Pagination Styles */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-            margin: 2rem 0;
-        }
-
-        .pagination button {
-            padding: 0.5rem 1rem;
-            border: 1px solid #ddd;
-            background: white;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background: #f8f9fa;
-        }
-
-        .pagination button:disabled {
-            background: #f8f9fa;
-            color: #6c757d;
-            cursor: not-allowed;
-        }
-
-        /* Historical Analysis Styles */
-        .historical-summary {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .historical-summary h3 {
-            margin: 0 0 1rem 0;
-            color: #495057;
-        }
-
-        .historical-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .historical-stat {
-            background: white;
-            padding: 0.75rem;
-            border-radius: 6px;
-            border-left: 4px solid #007bff;
-        }
-
-        .historical-stat h4 {
-            margin: 0 0 0.5rem 0;
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-
-        .historical-stat .value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        .historical-validation {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 6px;
-            padding: 1rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .historical-validation.error {
-            background: #f8d7da;
-            border-color: #f5c6cb;
-        }
-
-        .historical-validation.warning {
-            background: #fff3cd;
-            border-color: #ffeaa7;
-        }
-
-        .historical-validation.info {
-            background: #d1ecf1;
-            border-color: #bee5eb;
-        }
-
-        .historical-validation.critical {
-            background: #f8d7da;
-            border-color: #f5c6cb;
-            border-left: 4px solid #dc3545;
-        }
-
-        .pagination button.active {
-            background: #cc0000;
-            color: white;
-            border-color: #cc0000;
-        }
-
-        .pagination-info {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        /* Modal Styles */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 8px;
-            max-width: 800px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid #dee2e6;
-            background: #f8f9fa;
-        }
-
-        .modal-header h2 {
-            margin: 0;
-            color: #cc0000;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6c757d;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-close:hover {
-            color: #dc3545;
-        }
-
-        .modal-body {
+            margin-bottom: 2rem;
             padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
         }
 
-        /* Filters */
+        .status-icon {
+            font-size: 3rem;
+        }
+
+        .status-content h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .status-content p {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        /* Problem Summary Table */
+        .problem-summary {
+            margin-bottom: 2rem;
+        }
+
         .filters {
             display: flex;
             gap: 1rem;
             margin-bottom: 1rem;
-            flex-wrap: wrap;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .filter-group {
             display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .filter-group label {
-            font-size: 0.9rem;
-            color: #666;
+            font-weight: 500;
+            color: #34495e;
         }
 
         .filter-group select,
@@ -793,473 +253,211 @@
             padding: 0.5rem;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-size: 0.9rem;
         }
 
-        .checkbox-label {
-            display: flex !important;
-            flex-direction: row !important;
+        .filter-checkbox {
+            display: flex;
             align-items: center;
             gap: 0.5rem;
-            cursor: pointer;
         }
 
-        .checkbox-label input[type="checkbox"] {
-            margin: 0;
-            width: auto;
+        .filter-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
         }
 
-        /* Cluster Health Dashboard Styles */
-        .cluster-health-section {
-            background: #f8f9fa;
-            color: #333;
-            padding: 2rem;
-            border-radius: 8px;
-            border-left: 4px solid #28a745;
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .health-status {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .health-indicator {
-            font-size: 3rem;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .health-text h3 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .health-text p {
-            margin: 0.5rem 0 0 0;
-            color: #666;
-        }
-
-        .health-metrics {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 2rem;
-        }
-
-        .metric {
-            text-align: center;
-        }
-
-        .metric-label {
-            display: block;
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-
-        .metric-value {
-            display: block;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .metric-value.critical {
-            color: #ff6b6b;
-        }
-
-        .resource-overview {
-            margin-bottom: 2rem;
-        }
-
-        .resource-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-            margin-top: 1rem;
-        }
-
-        .resource-card {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border-left: 4px solid #007bff;
-        }
-
-        .resource-card h4 {
-            margin: 0 0 1rem 0;
-            color: #333;
-        }
-
-        .resource-bar {
-            background: #e9ecef;
-            height: 8px;
+        .apply-filters-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
             border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
-        }
-
-        .resource-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
-            transition: width 0.3s ease;
-        }
-
-        .resource-text {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .top-consumers {
-            margin-bottom: 2rem;
-        }
-
-        .consumers-list {
-            display: grid;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .consumer-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border-left: 4px solid #007bff;
-        }
-
-        .consumer-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .consumer-rank {
-            font-weight: 700;
-            color: #007bff;
-        }
-
-        .consumer-name {
-            font-weight: 600;
-        }
-
-        .consumer-namespace {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .consumer-resources {
-            text-align: right;
-            font-size: 0.9rem;
-        }
-
-        .qos-distribution {
-            margin-bottom: 2rem;
-        }
-
-        .qos-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .qos-stat {
-            padding: 1rem;
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        .qos-stat.guaranteed {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-        }
-
-        .qos-stat.burstable {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-        }
-
-        .qos-stat.besteffort {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-        }
-
-        .qos-label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .qos-value {
-            display: block;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .resource-analysis-section {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 2px solid #e9ecef;
-        }
-
-        /* Help Icon Styles */
-        .help-icon {
             cursor: pointer;
-            color: #007bff;
-            font-size: 1.2rem;
-            margin-left: 0.5rem;
-            transition: color 0.2s ease;
-        }
-
-        .help-icon:hover {
-            color: #0056b3;
-        }
-
-        .help-icon-small {
-            cursor: pointer;
-            color: #007bff;
-            font-size: 0.9rem;
-            margin-left: 0.3rem;
-            transition: color 0.2s ease;
-        }
-
-        .help-icon-small:hover {
-            color: #0056b3;
-        }
-
-        /* Help Modal Styles */
-        .help-modal-content {
-            max-width: 600px;
-        }
-
-        .help-content {
-            line-height: 1.6;
-        }
-
-        .help-content h3 {
-            color: #007bff;
-            margin: 1.5rem 0 1rem 0;
-            font-size: 1.2rem;
-        }
-
-        .help-content h4 {
-            color: #333;
-            margin: 1rem 0 0.5rem 0;
-            font-size: 1.1rem;
-        }
-
-        .help-content p {
-            margin: 0.5rem 0;
-            color: #555;
-        }
-
-        .help-content ul {
-            margin: 0.5rem 0;
-            padding-left: 1.5rem;
-        }
-
-        .help-content li {
-            margin: 0.3rem 0;
-            color: #555;
-        }
-
-        .help-content .highlight {
-            background: #fff3cd;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
             font-weight: 500;
+            transition: background 0.3s ease;
         }
 
-        .help-content .warning {
-            background: #f8d7da;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-weight: 500;
+        .apply-filters-btn:hover {
+            background: #2980b9;
         }
 
-        .help-content .success {
-            background: #d4edda;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-weight: 500;
-        }
-
-        /* Smart Recommendations Styles */
-        .validation-details {
-            display: flex;
-            gap: 1rem;
-            margin: 0.5rem 0;
-            flex-wrap: wrap;
-        }
-
-        .detail-item {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .implementation-steps {
-            margin: 1rem 0;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border-left: 4px solid #007bff;
-        }
-
-        .implementation-steps ol {
-            margin: 0.5rem 0 0 1rem;
-        }
-
-        .implementation-steps li {
-            margin: 0.25rem 0;
-        }
-
-        .kubectl-commands {
-            margin: 1rem 0;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border-left: 4px solid #28a745;
-        }
-
-        .kubectl-commands pre {
-            margin: 0.5rem 0 0 0;
-            background: #2d3748;
-            color: #e2e8f0;
-            padding: 0.75rem;
-            border-radius: 4px;
+        /* Table Styles */
+        .table-container {
             overflow-x: auto;
-            font-size: 0.85rem;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
         }
 
-        .vpa-yaml {
-            margin: 1rem 0;
-            padding: 1rem;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
             background: #f8f9fa;
-            border-radius: 6px;
-            border-left: 4px solid #ffc107;
-        }
-
-        .vpa-yaml pre {
-            margin: 0.5rem 0 0 0;
-            background: #2d3748;
-            color: #e2e8f0;
-            padding: 0.75rem;
-            border-radius: 4px;
-            overflow-x: auto;
-            font-size: 0.85rem;
-        }
-
-        /* Workload Categories Styles */
-        .workload-list {
-            padding: 1rem 0;
-        }
-
-        .workload-item {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 6px;
             padding: 1rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .workload-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .workload-name {
+            text-align: left;
             font-weight: 600;
-            color: #cc0000;
-            font-size: 1.1rem;
+            color: #2c3e50;
+            border-bottom: 2px solid #e0e0e0;
         }
 
-        .workload-namespace {
-            color: #666;
-            font-size: 0.9rem;
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
         }
 
-        .workload-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 0.75rem;
+        tr:hover {
+            background: #f8f9fa;
         }
 
-        .workload-stat {
-            font-size: 0.9rem;
-        }
-
-        .badge {
-            padding: 0.25rem 0.5rem;
+        /* Severity Badges */
+        .severity-badge {
+            padding: 0.25rem 0.75rem;
             border-radius: 12px;
             font-size: 0.8rem;
-            font-weight: bold;
+            font-weight: 600;
             text-transform: uppercase;
         }
 
-        .badge.success {
-            background: #d4edda;
-            color: #155724;
+        .severity-critical {
+            background: #ffebee;
+            color: #c62828;
         }
 
-        .badge.info {
-            background: #d1ecf1;
-            color: #0c5460;
+        .severity-error {
+            background: #ffebee;
+            color: #d32f2f;
         }
 
-        .badge.warning {
-            background: #fff3cd;
-            color: #856404;
+        .severity-warning {
+            background: #fff3e0;
+            color: #f57c00;
         }
 
-        .badge.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .badge.critical {
-            background: #f8d7da;
-            color: #721c24;
-            font-weight: bold;
-        }
-
-        /* Severity Info */
         .severity-info {
-            background: #d1ecf1;
-            color: #0c5460;
+            background: #e3f2fd;
+            color: #1976d2;
         }
 
-        .severity-badge.severity-info {
-            background: #d1ecf1;
-            color: #0c5460;
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
         }
 
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .quick-action-btn:hover {
+            background: #2c3e50;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
+            .sidebar {
+                transform: translateX(-100%);
             }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
+
+            .main-content {
+                margin-left: 0;
             }
-            
-            .export-section {
-                flex-direction: column;
-                align-items: stretch;
+
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
 
             .filters {
@@ -1267,377 +465,32 @@
                 align-items: stretch;
             }
 
-            .accordion-stats {
+            .quick-actions {
                 flex-direction: column;
-                gap: 0.25rem;
             }
-
-            .pod-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-        }
-
-        /* Simplified View Styles */
-        .view-mode-toggle {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            padding: 0.5rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .mode-btn {
-            padding: 0.75rem 1.5rem;
-            border: 2px solid #e9ecef;
-            background: white;
-            color: #6c757d;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .mode-btn.active {
-            background: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
-
-        .mode-btn:hover:not(.active) {
-            background: #f8f9fa;
-            border-color: #007bff;
-            color: #007bff;
-        }
-
-        .health-summary {
-            margin-bottom: 2rem;
-        }
-
-        .summary-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-        }
-
-        .stat-card {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 2px solid;
-            background: white;
-        }
-
-        .stat-card.excellent {
-            border-color: #28a745;
-            background: #f8fff9;
-        }
-
-        .stat-card.good {
-            border-color: #28a745;
-            background: #f8fff9;
-        }
-
-        .stat-card.medium {
-            border-color: #ffc107;
-            background: #fffdf5;
-        }
-
-        .stat-card.poor {
-            border-color: #fd7e14;
-            background: #fff8f5;
-        }
-
-        .stat-card.critical {
-            border-color: #dc3545;
-            background: #fff5f5;
-        }
-
-        .stat-icon {
-            font-size: 2rem;
-            margin-right: 1rem;
-        }
-
-        .stat-content {
-            flex: 1;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            color: #6c757d;
-            margin-top: 0.25rem;
-        }
-
-        .pod-cards-container {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .pod-health-card {
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.2s ease;
-        }
-
-        .pod-health-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-
-        .pod-health-card.excellent {
-            border-color: #28a745;
-        }
-
-        .pod-health-card.good {
-            border-color: #28a745;
-        }
-
-        .pod-health-card.medium {
-            border-color: #ffc107;
-        }
-
-        .pod-health-card.poor {
-            border-color: #fd7e14;
-        }
-
-        .pod-health-card.critical {
-            border-color: #dc3545;
-        }
-
-        .pod-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-
-        .pod-name {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .pod-namespace {
-            font-size: 0.9rem;
-            color: #6c757d;
-            margin-top: 0.25rem;
-        }
-
-        .health-score {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .health-score-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .health-status {
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-
-        .resource-display {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .resource-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .resource-icon {
-            font-size: 1.2rem;
-        }
-
-        .resource-text {
-            flex: 1;
-        }
-
-        .resource-label {
-            font-size: 0.9rem;
-            color: #6c757d;
-            margin-bottom: 0.25rem;
-        }
-
-        .resource-value {
-            font-size: 1rem;
-            font-weight: 500;
-        }
-
-        .pod-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .action-btn {
-            padding: 0.5rem 1rem;
-            border: 1px solid #007bff;
-            background: white;
-            color: #007bff;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-        }
-
-        .action-btn:hover {
-            background: #007bff;
-            color: white;
-        }
-
-        .action-btn.primary {
-            background: #007bff;
-            color: white;
-        }
-
-        .action-btn.primary:hover {
-            background: #0056b3;
-        }
-
-        .technical-details {
-            margin-top: 2rem;
-        }
-
-        .technical-details.hidden {
-            display: none;
-        }
-
-        .technical-card {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .technical-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .validation-groups {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .validation-group {
-            padding: 1rem;
-            border-radius: 6px;
-            border-left: 4px solid;
-        }
-
-        .validation-group.critical {
-            background: #fff5f5;
-            border-left-color: #dc3545;
-        }
-
-        .validation-group.warning {
-            background: #fffdf5;
-            border-left-color: #ffc107;
-        }
-
-        .validation-group.info {
-            background: #f8f9fa;
-            border-left-color: #6c757d;
-        }
-
-        .validation-group-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .validation-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .validation-item {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .validation-item:last-child {
-            border-bottom: none;
-        }
-
-        .oc-command {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 4px;
-            padding: 0.75rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            word-break: break-all;
-        }
-
-        .copy-btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            margin-left: 0.5rem;
-        }
-
-        .copy-btn:hover {
-            background: #218838;
         }
     </style>
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
+    <div class="sidebar">
         <div class="sidebar-header">
             <h2>Resource Governance</h2>
         </div>
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" data-section="dashboard">
                 <span class="nav-icon">🏠</span>
-                <span class="nav-text">Cluster Health</span>
+                <span class="nav-text">Dashboard</span>
             </a>
-            <a href="#" class="nav-item" data-section="simplified-view">
-                <span class="nav-icon">🎯</span>
-                <span class="nav-text">Simplified View</span>
-            </a>
-            <a href="#" class="nav-item" data-section="workload-categories">
-                <span class="nav-icon">📊</span>
-                <span class="nav-text">Workload Analysis</span>
-            </a>
+            <div class="nav-divider"></div>
             <a href="#" class="nav-item" data-section="smart-recommendations">
                 <span class="nav-icon">🎯</span>
                 <span class="nav-text">Smart Recommendations</span>
             </a>
-            <a href="#" class="nav-item" data-section="vpa-recommendations">
+            <a href="#" class="nav-item" data-section="vpa-management">
                 <span class="nav-icon">⚙️</span>
                 <span class="nav-text">VPA Management</span>
             </a>
-            <div class="nav-divider"></div>
             <a href="#" class="nav-item" data-section="historical-analysis">
                 <span class="nav-icon">📈</span>
                 <span class="nav-text">Historical Analysis</span>
@@ -1647,2413 +500,487 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <div class="page-header">
-            <h1 style="color: #cc0000; margin: 1rem 0;">OpenShift Resource Governance Tool</h1>
-        </div>
-
         <!-- Export Button -->
-        <button class="export-button" onclick="showExportModal()">Export</button>
+        <button class="export-button" onclick="exportData()">Export</button>
 
-        <div class="container">
-        <!-- Cluster Statistics -->
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card">
-                <div class="stat-number" id="totalPods">-</div>
-                <div class="stat-label">Total Pods</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="totalNamespaces">-</div>
-                <div class="stat-label">Namespaces</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="totalNodes">-</div>
-                <div class="stat-label">Nodes</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="criticalIssues">-</div>
-                <div class="stat-label">Critical Issues</div>
-            </div>
+        <!-- Header -->
+        <div class="header">
+            <h1>OpenShift Resource Governance Tool</h1>
         </div>
 
-        <!-- Controls -->
-
-        <!-- Export Reports -->
-
-        <!-- Historical Analysis -->
-        <div class="card" id="historicalCard" style="display: none;">
-            <h2>Historical Analysis with Prometheus</h2>
-            
-            <!-- Historical analysis filters -->
-            <div class="filters">
-                <div class="filter-group">
-                    <label for="timeRangeFilter">Period:</label>
-                    <select id="timeRangeFilter">
-                        <option value="1h">1 hour</option>
-                        <option value="6h">6 hours</option>
-                        <option value="24h" selected>24 hours</option>
-                        <option value="7d">7 days</option>
-                        <option value="30d">30 days</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="historicalSeverityFilter">Severity:</label>
-                    <select id="historicalSeverityFilter">
-                        <option value="">All</option>
-                        <option value="error">Error</option>
-                        <option value="warning">Warning</option>
-                        <option value="info">Info</option>
-                        <option value="critical">Critical</option>
-                    </select>
-                </div>
-                <button class="btn" onclick="loadHistoricalValidations()">Apply Analysis</button>
-            </div>
-            
-            <div id="historicalSummary" class="historical-summary"></div>
-            <div id="historicalValidationsList"></div>
-        </div>
-
-        <!-- Cluster Health Dashboard -->
-        <div class="card" id="validationsCard" style="display: block;">
-            <h2>🏠 Cluster Health Overview</h2>
-            
-            <!-- Cluster Health Status -->
-            <div class="cluster-health-section">
-                <div class="health-status" id="clusterHealthStatus">
-                    <div class="health-indicator" id="healthIndicator">🟢</div>
-                    <div class="health-text">
-                        <h3 id="healthTitle">Cluster Healthy</h3>
-                        <p id="healthSubtitle">All systems operational</p>
-                    </div>
-                </div>
-                <div class="health-metrics">
-                    <div class="metric">
-                        <span class="metric-label">CPU Overcommit <span class="help-icon-small" onclick="showHelpModal('cpu-overcommit')">❓</span>:</span>
-                        <span class="metric-value" id="cpuOvercommitStatus">-</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Memory Overcommit <span class="help-icon-small" onclick="showHelpModal('memory-overcommit')">❓</span>:</span>
-                        <span class="metric-value" id="memoryOvercommitStatus">-</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Namespaces in Overcommit <span class="help-icon-small" onclick="showHelpModal('namespaces-overcommit')">❓</span>:</span>
-                        <span class="metric-value" id="namespacesInOvercommit">-</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Resource Quota Coverage <span class="help-icon-small" onclick="showHelpModal('quota-coverage')">❓</span>:</span>
-                        <span class="metric-value" id="quotaCoverage">-</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Resource Overview -->
-            <div class="resource-overview">
-                <h3>📊 Resource Consumption (Requests) <span class="help-icon" onclick="showHelpModal('resource-consumption')">❓</span></h3>
-                <div class="resource-grid">
-                    <div class="resource-card">
-                        <h4>CPU <span class="help-icon" onclick="showHelpModal('cpu-resources')">❓</span></h4>
-                        <div class="resource-bar">
-                            <div class="resource-fill" id="cpuUsageBar" style="width: 0%"></div>
-                        </div>
-                        <div class="resource-text">
-                            <span id="cpuUsageText">0 / 0 cores</span>
-                            <span id="cpuOvercommitText">0% overcommit</span>
+        <!-- Content -->
+        <div class="content">
+            <!-- Dashboard Section -->
+            <div id="dashboardSection">
+                <!-- Cluster Overview -->
+                <div class="card">
+                    <h2>🎯 Resource Governance Dashboard</h2>
+                    
+                    <!-- Status Overview -->
+                    <div class="status-overview">
+                        <div class="status-icon" id="clusterStatusIcon">🟢</div>
+                        <div class="status-content">
+                            <h3 id="clusterStatus">Cluster Healthy</h3>
+                            <p id="clusterStatusMessage">All systems operational</p>
                         </div>
                     </div>
-                    <div class="resource-card">
-                        <h4>Memory <span class="help-icon" onclick="showHelpModal('memory-resources')">❓</span></h4>
-                        <div class="resource-bar">
-                            <div class="resource-fill" id="memoryUsageBar" style="width: 0%"></div>
+
+                    <!-- Metrics Grid -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="totalPods">-</div>
+                            <div class="metric-label">Total Pods</div>
                         </div>
-                        <div class="resource-text">
-                            <span id="memoryUsageText">0 / 0 GiB</span>
-                            <span id="memoryOvercommitText">0% overcommit</span>
+                        <div class="metric-card">
+                            <div class="metric-value" id="totalNamespaces">-</div>
+                            <div class="metric-label">Namespaces</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="totalNodes">-</div>
+                            <div class="metric-label">Nodes</div>
+                        </div>
+                        <div class="metric-card error" id="criticalIssuesCard">
+                            <div class="metric-value" id="criticalIssues">-</div>
+                            <div class="metric-label">Critical Issues</div>
+                        </div>
+                    </div>
+
+                    <!-- Overcommit Summary -->
+                    <div class="card">
+                        <h3>📊 Cluster Overcommit Summary</h3>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="cpuOvercommit">-</div>
+                                <div class="metric-label">CPU Overcommit</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="memoryOvercommit">-</div>
+                                <div class="metric-label">Memory Overcommit</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="namespacesInOvercommit">-</div>
+                                <div class="metric-label">Namespaces in Overcommit</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="resourceQuotaCoverage">-</div>
+                                <div class="metric-label">Resource Quota Coverage</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Top Resource Consumers -->
-            <div class="top-consumers">
-                <h3>🥇 Top Resource Request Consumers <span class="help-icon" onclick="showHelpModal('top-consumers')">❓</span></h3>
-                <div id="topConsumersList" class="consumers-list">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
-
-            <!-- QoS Distribution -->
-            <div class="qos-distribution">
-                <h3>⚡ QoS Distribution <span class="help-icon" onclick="showHelpModal('qos-distribution')">❓</span></h3>
-                <div class="qos-stats">
-                    <div class="qos-stat guaranteed">
-                        <span class="qos-label">Guaranteed <span class="help-icon-small" onclick="showHelpModal('qos-guaranteed')">❓</span>:</span>
-                        <span class="qos-value" id="guaranteedCount">0</span>
-                    </div>
-                    <div class="qos-stat burstable">
-                        <span class="qos-label">Burstable <span class="help-icon-small" onclick="showHelpModal('qos-burstable')">❓</span>:</span>
-                        <span class="qos-value" id="burstableCount">0</span>
-                    </div>
-                    <div class="qos-stat besteffort">
-                        <span class="qos-label">BestEffort <span class="help-icon-small" onclick="showHelpModal('qos-besteffort')">❓</span>:</span>
-                        <span class="qos-value" id="besteffortCount">0</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Resource Analysis (Original) -->
-            <div class="resource-analysis-section">
-                <h3>🔍 Detailed Resource Analysis</h3>
-            
-            <!-- Filters -->
-            <div class="filters">
-                <div class="filter-group">
-                    <label for="severityFilter">Severity:</label>
-                    <select id="severityFilter">
-                        <option value="">All</option>
-                        <option value="error">Error</option>
-                        <option value="warning">Warning</option>
-                        <option value="critical">Critical</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="pageSizeFilter">Per page:</label>
-                    <select id="pageSizeFilter">
-                        <option value="10">10</option>
-                        <option value="20" selected>20</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="includeSystemNamespaces" onchange="loadValidationsByNamespace()">
-                        Include system namespaces
-                    </label>
-                </div>
-                <button class="btn" onclick="loadValidationsByNamespace()">Apply Filters</button>
-            </div>
-            
-            <div id="validationsList"></div>
-            <div id="pagination" class="pagination"></div>
-        </div>
-
-        <!-- Smart Recommendations -->
-        <div class="card" id="smartRecommendationsCard" style="display: none;">
-            <h2>Smart Recommendations</h2>
-            
-            <!-- Filters -->
-            <div class="filters">
-                <div class="filter-group">
-                    <label for="recommendationPriorityFilter">Priority:</label>
-                    <select id="recommendationPriorityFilter">
-                        <option value="">All</option>
-                        <option value="critical">Critical</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="recommendationTypeFilter">Type:</label>
-                    <select id="recommendationTypeFilter">
-                        <option value="">All</option>
-                        <option value="resource_config">Resource Configuration</option>
-                        <option value="vpa_activation">VPA Activation</option>
-                        <option value="ratio_adjustment">Ratio Adjustment</option>
-                    </select>
-                </div>
-                <button class="btn" onclick="loadSmartRecommendations()">Apply Filters</button>
-            </div>
-            
-            <div id="smartRecommendationsList"></div>
-        </div>
-
-        <!-- Workload Categories -->
-        <div class="card" id="workloadCategoriesCard" style="display: none;">
-            <h2>Workload Analysis</h2>
-            
-            <!-- Filters -->
-            <div class="filters">
-                <div class="filter-group">
-                    <label for="categoryFilter">Category:</label>
-                    <select id="categoryFilter">
-                        <option value="">All</option>
-                        <option value="new">New Workloads</option>
-                        <option value="established">Established</option>
-                        <option value="outlier">Outliers</option>
-                        <option value="compliant">Compliant</option>
-                    </select>
-                </div>
-                <button class="btn" onclick="loadWorkloadCategories()">Apply Filters</button>
-            </div>
-            
-            <div id="workloadCategoriesList"></div>
-        </div>
-
-        <!-- VPA Management -->
-        <div class="card" id="vpaCard" style="display: none;">
-            <h2>VPA Management</h2>
-            <div id="vpaList"></div>
-        </div>
-
-        <!-- Simplified View -->
-        <div class="card" id="simplifiedViewCard" style="display: none;">
-            <h2>🎯 Simplified Pod Health View</h2>
-            
-            <!-- View Mode Toggle -->
-            <div class="view-mode-toggle">
-                <button class="mode-btn active" id="simpleModeBtn" onclick="switchViewMode('simple')">Simple Mode</button>
-                <button class="mode-btn" id="technicalModeBtn" onclick="switchViewMode('technical')">Technical Mode</button>
-            </div>
-            
-            <!-- Health Summary -->
-            <div class="health-summary" id="healthSummary">
-                <div class="summary-stats">
-                    <div class="stat-card excellent">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-content">
-                            <div class="stat-number" id="excellentCount">0</div>
-                            <div class="stat-label">Excellent</div>
-                        </div>
-                    </div>
-                    <div class="stat-card good">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-content">
-                            <div class="stat-number" id="goodCount">0</div>
-                            <div class="stat-label">Good</div>
-                        </div>
-                    </div>
-                    <div class="stat-card medium">
-                        <div class="stat-icon">🟡</div>
-                        <div class="stat-content">
-                            <div class="stat-number" id="mediumCount">0</div>
-                            <div class="stat-label">Medium</div>
-                        </div>
-                    </div>
-                    <div class="stat-card poor">
-                        <div class="stat-icon">🟠</div>
-                        <div class="stat-content">
-                            <div class="stat-number" id="poorCount">0</div>
-                            <div class="stat-label">Poor</div>
-                        </div>
-                    </div>
-                    <div class="stat-card critical">
-                        <div class="stat-icon">🔴</div>
-                        <div class="stat-content">
-                            <div class="stat-number" id="criticalCount">0</div>
-                            <div class="stat-label">Critical</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Pod Health Cards (Simple Mode) -->
-            <div id="simplePodCards" class="pod-cards-container">
-                <!-- Will be populated by JavaScript -->
-            </div>
-            
-            <!-- Technical Details (Technical Mode) -->
-            <div id="technicalDetails" class="technical-details hidden">
-                <div id="technicalPodCards" class="technical-cards-container">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Loading -->
-        <div class="loading hidden" id="loading">
-            <p>Loading data...</p>
-        </div>
-
-        <!-- Error -->
-        <div class="error hidden" id="error"></div>
-
-        <!-- Success -->
-        <div class="success hidden" id="success"></div>
-
-        <!-- Export Modal -->
-        <div class="modal hidden" id="exportModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Export Report</h2>
-                    <button class="modal-close" onclick="closeExportModal()">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="export-section">
-                        <div class="form-group">
-                            <label for="exportFormat">Format:</label>
-                            <select id="exportFormat">
-                                <option value="xlsx">Excel (XLSX)</option>
-                                <option value="csv">CSV</option>
-                                <option value="pdf">PDF</option>
+                <!-- Problem Summary -->
+                <div class="card problem-summary">
+                    <h2>🔍 Problem Summary</h2>
+                    <p style="margin-bottom: 1.5rem; color: #7f8c8d;">Identify namespaces with resource configuration issues and take action</p>
+                    
+                    <!-- Filters -->
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label for="severityFilter">Severity:</label>
+                            <select id="severityFilter">
+                                <option value="all">All</option>
+                                <option value="critical">Critical</option>
+                                <option value="error">Error</option>
+                                <option value="warning">Warning</option>
+                                <option value="info">Info</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="exportNamespaces">Namespaces (optional):</label>
-                            <input type="text" id="exportNamespaces" placeholder="Comma-separated list">
+                        <div class="filter-group">
+                            <label for="perPageFilter">Per page:</label>
+                            <select id="perPageFilter">
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
                         </div>
-                        <div class="checkbox-group">
-                            <label>
-                                <input type="checkbox" id="includeVPA" checked> Include VPA
-                            </label>
-                            <label>
-                                <input type="checkbox" id="includeValidations" checked> Include Analysis
-                            </label>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="includeSystemNamespaces">
+                            <label for="includeSystemNamespaces">Include system namespaces</label>
                         </div>
-                        <div class="modal-actions">
-                            <button class="btn btn-secondary" onclick="closeExportModal()">Cancel</button>
-                            <button class="btn" onclick="exportReport()">Export</button>
-                        </div>
+                        <button class="apply-filters-btn" onclick="applyFilters()">Apply Filters</button>
+                    </div>
+
+                    <!-- Problem Table -->
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Namespace</th>
+                                    <th>Pods</th>
+                                    <th>Issues</th>
+                                    <th>Severity</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="problemTableBody">
+                                <tr>
+                                    <td colspan="5" class="loading">Loading data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <h2>⚡ Quick Actions</h2>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="generateVPARecommendations()">
+                            <span>🎯</span>
+                            <span>Generate VPA Recommendations</span>
+                        </button>
+                        <button class="quick-action-btn" onclick="showHistoricalAnalysis()">
+                            <span>📈</span>
+                            <span>Historical Analysis</span>
+                        </button>
+                        <button class="quick-action-btn" onclick="exportComplianceReport()">
+                            <span>📊</span>
+                            <span>Export Compliance Report</span>
+                        </button>
+                        <button class="quick-action-btn" onclick="fixAllIssues()">
+                            <span>🔧</span>
+                            <span>Fix All Issues</span>
+                        </button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Historical Analysis Modal -->
-        <div class="modal hidden" id="historicalModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 id="historicalModalTitle">Historical Analysis</h2>
-                    <button class="modal-close" onclick="closeHistoricalModal()">&times;</button>
-                </div>
-                <div class="modal-body" id="historicalModalBody">
-                    <div class="time-range-selector">
-                        <button class="time-range-btn active" data-range="24h">1 Day</button>
-                        <button class="time-range-btn" data-range="7d">7 Days</button>
-                        <button class="time-range-btn" data-range="30d">30 Days</button>
+            <!-- Smart Recommendations Section -->
+            <div id="smartRecommendationsSection" style="display: none;">
+                <div class="card">
+                    <h2>🎯 Smart Recommendations</h2>
+                    <div id="smartRecommendationsContent">
+                        <p class="loading">Loading recommendations...</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- VPA Management Section -->
+            <div id="vpaManagementSection" style="display: none;">
+                <div class="card">
+                    <h2>⚙️ VPA Management</h2>
+                    <div id="vpaManagementContent">
+                        <p class="loading">Loading VPA data...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historical Analysis Section -->
+            <div id="historicalAnalysisSection" style="display: none;">
+                <div class="card">
+                    <h2>📈 Historical Analysis</h2>
                     <div id="historicalAnalysisContent">
-                        <p>Loading historical analysis...</p>
+                        <p class="loading">Loading historical data...</p>
                     </div>
                 </div>
             </div>
         </div>
-        </div>
+    </div>
 
-        <!-- Help Modal -->
-        <div class="modal hidden" id="helpModal">
-            <div class="modal-content help-modal-content">
-                <div class="modal-header">
-                    <h2 id="helpModalTitle">Help</h2>
-                    <button class="modal-close" onclick="closeHelpModal()">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div id="helpModalContent">
-                        <!-- Content will be populated by JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <script>
+    <script>
+        // Global variables
         let currentData = null;
-        let currentPage = 1;
-        let currentPageSize = 20;
-        let currentSeverity = '';
+        let currentFilters = {
+            severity: 'all',
+            perPage: 20,
+            includeSystem: false
+        };
 
-        // Carregar status inicial
+        // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            loadClusterStatus();
+            loadDashboard();
+            setupEventListeners();
         });
 
-        async function loadClusterStatus() {
-            showLoading();
-            hideMessages();
-            
-            try {
-                const response = await fetch('/api/v1/cluster-health');
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                currentData = data;
-                updateStats(data);
-                
-                // Update cluster health dashboard
-                updateClusterHealthDisplay(data, data);
-                
-                showSuccess('Cluster status loaded successfully. Loading analysis...');
-                
-                // Automatically load validations after initial scan
-                await loadValidationsByNamespace();
-                
-            } catch (error) {
-                showError('Error loading cluster status: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function loadValidations() {
-            if (!currentData) {
-                showError('Carregue o status do cluster primeiro');
-                return;
-            }
-
-            showLoading();
-            
-            try {
-                const response = await fetch('/api/v1/validations');
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                displayValidations(data.validations || data);
-                document.getElementById('validationsCard').style.display = 'block';
-                
-            } catch (error) {
-                showError('Error loading analysis: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function loadValidationsByNamespace() {
-            showLoading();
-            
-            try {
-                const severity = document.getElementById('severityFilter').value;
-                const pageSize = parseInt(document.getElementById('pageSizeFilter').value);
-                const includeSystem = document.getElementById('includeSystemNamespaces').checked;
-                
-                currentSeverity = severity;
-                currentPageSize = pageSize;
-                currentPage = 1;
-                
-                const params = new URLSearchParams({
-                    page: currentPage,
-                    page_size: currentPageSize,
-                    include_system_namespaces: includeSystem
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.dataset.section;
+                    showSection(section);
                 });
-                
-                if (severity) {
-                    params.append('severity', severity);
-                }
-                
-                const response = await fetch(`/api/v1/validations/by-namespace?${params}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                displayValidationsByNamespace(data);
-                document.getElementById('validationsCard').style.display = 'block';
-                
-            } catch (error) {
-                showError('Error loading analysis by namespace: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function loadPage(page) {
-            currentPage = page;
-            showLoading();
-            
-            try {
-                const params = new URLSearchParams({
-                    page: currentPage,
-                    page_size: currentPageSize
-                });
-                
-                if (currentSeverity) {
-                    params.append('severity', currentSeverity);
-                }
-                
-                const response = await fetch(`/api/v1/validations/by-namespace?${params}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                displayValidationsByNamespace(data);
-                
-            } catch (error) {
-                showError('Error loading page: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function loadVPARecommendations() {
-            showLoading();
-            
-            try {
-                const response = await fetch('/api/v1/vpa/recommendations');
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const recommendations = await response.json();
-                displayVPARecommendations(recommendations);
-                document.getElementById('vpaCard').style.display = 'block';
-                
-            } catch (error) {
-                showError('Error loading VPA recommendations: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function exportReport() {
-            showLoading();
-            
-            try {
-                const format = document.getElementById('exportFormat').value;
-                const namespaces = document.getElementById('namespaces').value;
-                const includeVPA = document.getElementById('includeVPA').checked;
-                const includeValidations = document.getElementById('includeValidations').checked;
-                
-                const requestBody = {
-                    format: format,
-                    includeVPA: includeVPA,
-                    includeValidations: includeValidations
-                };
-                
-                if (namespaces.trim()) {
-                    requestBody.namespaces = namespaces.split(',').map(n => n.trim());
-                }
-                
-                const response = await fetch('/api/v1/export', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                // Get filename from Content-Disposition header
-                const contentDisposition = response.headers.get('Content-Disposition');
-                let filename = 'report.csv';
-                if (contentDisposition) {
-                    const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-                    if (filenameMatch) {
-                        filename = filenameMatch[1];
-                    }
-                }
-                
-                // Download the file
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                
-                showSuccess(`Report exported: ${filename}`);
-                
-            } catch (error) {
-                showError('Error exporting report: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        function updateStats(data) {
-            document.getElementById('totalPods').textContent = data.total_pods || 0;
-            document.getElementById('totalNamespaces').textContent = data.total_namespaces || 0;
-            document.getElementById('totalNodes').textContent = data.total_nodes || 0;
-            document.getElementById('criticalIssues').textContent = data.summary?.critical_issues || 0;
-        }
-
-        function displayValidations(validations) {
-            const container = document.getElementById('validationsList');
-            
-            if (validations.length === 0) {
-                container.innerHTML = '<p>No validations found.</p>';
-                return;
-            }
-            
-            let html = '<table class="table"><thead><tr><th>Pod</th><th>Namespace</th><th>Container</th><th>Type</th><th>Severity</th><th>Message</th></tr></thead><tbody>';
-            
-            validations.forEach(validation => {
-                const severityClass = `severity-${validation.severity}`;
-                html += `
-                    <tr>
-                        <td>${validation.pod_name}</td>
-                        <td>${validation.namespace}</td>
-                        <td>${validation.container_name}</td>
-                        <td>${validation.validation_type}</td>
-                        <td><span class="severity-badge ${severityClass}">${validation.severity}</span></td>
-                        <td>${validation.message}</td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function displayValidationsByNamespace(data) {
-            const container = document.getElementById('validationsList');
-            const paginationContainer = document.getElementById('pagination');
-            
-            if (!data.namespaces || data.namespaces.length === 0) {
-                container.innerHTML = '<p>No validations found.</p>';
-                paginationContainer.innerHTML = '';
-                return;
-            }
-            
-            let html = '';
-            
-            data.namespaces.forEach((namespace, index) => {
-                const pods = Object.values(namespace.pods);
-                const totalValidations = namespace.total_validations;
-                const errorCount = namespace.severity_breakdown.error || 0;
-                const warningCount = namespace.severity_breakdown.warning || 0;
-                
-                // Agrupar pods por deployment
-                const deployments = {};
-                pods.forEach(pod => {
-                    if (pod.validations && pod.validations.length > 0) {
-                        // Extrair nome do deployment do nome do pod
-                        const deploymentName = pod.pod_name.split('-').slice(0, -2).join('-') || 'unknown';
-                        if (!deployments[deploymentName]) {
-                            deployments[deploymentName] = [];
-                        }
-                        deployments[deploymentName].push(pod);
-                    }
-                });
-                
-                html += `
-                    <div class="accordion">
-                        <div class="accordion-header" onclick="toggleAccordion(${index})">
-                            <div class="accordion-title">${namespace.namespace}</div>
-                            <div class="accordion-stats">
-                                <div class="accordion-stat">${pods.length} pods</div>
-                                <div class="accordion-stat">${totalValidations} analysis</div>
-                                <div class="accordion-stat" style="color: #dc3545;">${errorCount} errors</div>
-                                <div class="accordion-stat" style="color: #ffc107;">${warningCount} warnings</div>
-                            </div>
-                            <div class="accordion-actions">
-                                <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.5rem;" onclick="loadNamespaceHistoricalAnalysis('${namespace.namespace}')">Namespace Analysis</button>
-                                <div class="accordion-arrow">▶</div>
-                            </div>
-                        </div>
-                        <div class="accordion-content" id="accordion-${index}">
-                            <div class="deployment-list">
-                `;
-                
-                // Renderizar cada deployment
-                Object.keys(deployments).forEach(deploymentName => {
-                    const deploymentPods = deployments[deploymentName];
-                    const deploymentValidations = deploymentPods.reduce((sum, pod) => sum + pod.validations.length, 0);
-                    const deploymentErrors = deploymentPods.reduce((sum, pod) => sum + pod.validations.filter(v => v.severity === 'error').length, 0);
-                    const deploymentWarnings = deploymentPods.reduce((sum, pod) => sum + pod.validations.filter(v => v.severity === 'warning').length, 0);
-                    
-                    html += `
-                        <div class="deployment-item">
-                            <div class="deployment-header">
-                                <div class="deployment-title">🚀 ${deploymentName}</div>
-                                <div class="deployment-stats">
-                                    <div class="deployment-stat">${deploymentPods.length} pods</div>
-                                    <div class="deployment-stat">${deploymentValidations} analysis</div>
-                                    <div class="deployment-stat" style="color: #dc3545;">${deploymentErrors} errors</div>
-                                    <div class="deployment-stat" style="color: #ffc107;">${deploymentWarnings} warnings</div>
-                                </div>
-                                <div class="deployment-actions">
-                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="loadWorkloadHistoricalAnalysis('${namespace.namespace}', '${deploymentName}')">Deployment Analysis</button>
-                                </div>
-                            </div>
-                            <div class="pod-list">
-                    `;
-                    
-                    // Renderizar pods do deployment
-                    deploymentPods.forEach(pod => {
-                        html += `
-                            <div class="pod-item">
-                                <div class="pod-header">
-                                    <div class="pod-name">${pod.pod_name}</div>
-                                    <div class="pod-validations-count">${pod.validations.length} validations</div>
-                                </div>
-                                <div class="validation-list">
-                        `;
-                        
-                        pod.validations.forEach(validation => {
-                            const severityClass = validation.severity;
-                            html += `
-                                <div class="validation-item ${severityClass}">
-                                    <div class="validation-header">
-                                        <span class="severity-badge severity-${severityClass}">${validation.severity}</span>
-                                        ${validation.validation_type} - ${validation.container_name}
-                                    </div>
-                                    <div class="validation-message">${validation.message}</div>
-                                    <div class="validation-recommendation">${validation.recommendation}</div>
-                                </div>
-                            `;
-                        });
-                        
-                        html += `
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += `
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-            
-            // Renderizar paginação
-            renderPagination(data.pagination);
-        }
-
-        function renderPagination(pagination) {
-            const container = document.getElementById('pagination');
-            
-            if (!pagination || pagination.total_pages <= 1) {
-                container.innerHTML = '';
-                return;
-            }
-            
-            let html = '';
-            
-            // Botão anterior
-            html += `<button onclick="loadPage(${pagination.page - 1})" ${pagination.page <= 1 ? 'disabled' : ''}>Previous</button>`;
-            
-            // Pages
-            const startPage = Math.max(1, pagination.page - 2);
-            const endPage = Math.min(pagination.total_pages, pagination.page + 2);
-            
-            if (startPage > 1) {
-                html += `<button onclick="loadPage(1)">1</button>`;
-                if (startPage > 2) {
-                    html += `<span>...</span>`;
-                }
-            }
-            
-            for (let i = startPage; i <= endPage; i++) {
-                const activeClass = i === pagination.page ? 'active' : '';
-                html += `<button class="${activeClass}" onclick="loadPage(${i})">${i}</button>`;
-            }
-            
-            if (endPage < pagination.total_pages) {
-                if (endPage < pagination.total_pages - 1) {
-                    html += `<span>...</span>`;
-                }
-                html += `<button onclick="loadPage(${pagination.total_pages})">${pagination.total_pages}</button>`;
-            }
-            
-            // Botão próximo
-            html += `<button onclick="loadPage(${pagination.page + 1})" ${pagination.page >= pagination.total_pages ? 'disabled' : ''}>Next</button>`;
-            
-            // Informações da paginação
-            html += `<div class="pagination-info">
-                Page ${pagination.page} of ${pagination.total_pages} 
-                (${pagination.total} namespaces)
-            </div>`;
-            
-            container.innerHTML = html;
-        }
-
-        function toggleAccordion(index) {
-            const accordion = document.querySelectorAll('.accordion')[index];
-            const header = accordion.querySelector('.accordion-header');
-            const content = accordion.querySelector('.accordion-content');
-            
-            const isActive = header.classList.contains('active');
-            
-            // Fechar todos os acordeões
-            document.querySelectorAll('.accordion-header').forEach(h => h.classList.remove('active'));
-            document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('active'));
-            
-            // Abrir o selecionado se não estava ativo
-            if (!isActive) {
-                header.classList.add('active');
-                content.classList.add('active');
-            }
-        }
-
-        function displayVPARecommendations(recommendations) {
-            const container = document.getElementById('vpaList');
-            
-            if (recommendations.length === 0) {
-                container.innerHTML = '<p>No VPA recommendations found.</p>';
-                return;
-            }
-            
-            let html = '<table class="table"><thead><tr><th>Name</th><th>Namespace</th><th>Target</th><th>Recommendations</th></tr></thead><tbody>';
-            
-            recommendations.forEach(rec => {
-                html += `
-                    <tr>
-                        <td>${rec.name}</td>
-                        <td>${rec.namespace}</td>
-                        <td>${rec.target_ref?.kind}/${rec.target_ref?.name || 'N/A'}</td>
-                        <td>${JSON.stringify(rec.recommendations, null, 2)}</td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function showLoading() {
-            document.getElementById('loading').classList.remove('hidden');
-        }
-
-        function hideLoading() {
-            document.getElementById('loading').classList.add('hidden');
-        }
-
-        function showError(message) {
-            const errorDiv = document.getElementById('error');
-            errorDiv.textContent = message;
-            errorDiv.classList.remove('hidden');
-            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
-        }
-
-        function showSuccess(message) {
-            const successDiv = document.getElementById('success');
-            successDiv.textContent = message;
-            successDiv.classList.remove('hidden');
-            setTimeout(() => successDiv.classList.add('hidden'), 3000);
-        }
-
-        function hideMessages() {
-            document.getElementById('error').classList.add('hidden');
-            document.getElementById('success').classList.add('hidden');
-        }
-
-        // Historical analysis functions
-        async function loadHistoricalValidations() {
-            showLoading();
-            
-            try {
-                const timeRange = document.getElementById('timeRangeFilter').value;
-                const severity = document.getElementById('historicalSeverityFilter').value;
-
-                // Carregar resumo histórico
-                const summaryResponse = await fetch(`/api/v1/cluster/historical-summary?time_range=${timeRange}`);
-                if (summaryResponse.ok) {
-                    const summaryData = await summaryResponse.json();
-                    displayHistoricalSummary(summaryData.summary);
-                }
-
-                // Load historical validations
-                const params = new URLSearchParams({
-                    time_range: timeRange
-                });
-                
-                if (severity) {
-                    params.append('severity', severity);
-                }
-
-                const response = await fetch(`/api/v1/validations/historical?${params}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                displayHistoricalValidations(data);
-                document.getElementById('historicalCard').style.display = 'block';
-                
-            } catch (error) {
-                showError('Error loading historical analysis: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        function displayHistoricalSummary(summary) {
-            const container = document.getElementById('historicalSummary');
-            
-            if (!summary || Object.keys(summary).length === 0) {
-                container.innerHTML = '<p>Unable to get historical data from Prometheus.</p>';
-                return;
-            }
-
-            const cpuUtilization = summary.cpu_utilization || 0;
-            const memoryUtilization = summary.memory_utilization || 0;
-            
-            container.innerHTML = `
-                <h3>Historical Cluster Summary (${summary.time_range})</h3>
-                <div class="historical-stats">
-                    <div class="historical-stat">
-                        <h4>CPU Utilization</h4>
-                        <div class="value">${cpuUtilization.toFixed(1)}%</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>Memory Utilization</h4>
-                        <div class="value">${memoryUtilization.toFixed(1)}%</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>CPU Usage</h4>
-                        <div class="value">${summary.cpu_usage ? summary.cpu_usage.toFixed(3) : '0'} cores</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>Memory Usage</h4>
-                        <div class="value">${summary.memory_usage ? (summary.memory_usage / (1024*1024*1024)).toFixed(2) : '0'} GiB</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function displayHistoricalValidations(data) {
-            const container = document.getElementById('historicalValidationsList');
-            
-            if (!data.validations || data.validations.length === 0) {
-                container.innerHTML = '<p>No historical validations found.</p>';
-                return;
-            }
-
-            // Filtrar por severidade se especificado
-            let validations = data.validations;
-            const severity = document.getElementById('historicalSeverityFilter').value;
-            if (severity) {
-                validations = validations.filter(v => v.severity === severity);
-            }
-
-            // Agrupar por namespace
-            const groupedByNamespace = {};
-            validations.forEach(validation => {
-                if (!groupedByNamespace[validation.namespace]) {
-                    groupedByNamespace[validation.namespace] = [];
-                }
-                groupedByNamespace[validation.namespace].push(validation);
             });
 
-            let html = '';
-            Object.keys(groupedByNamespace).forEach(namespace => {
-                const namespaceValidations = groupedByNamespace[namespace];
-                const errorCount = namespaceValidations.filter(v => v.severity === 'error').length;
-                const warningCount = namespaceValidations.filter(v => v.severity === 'warning').length;
-                const infoCount = namespaceValidations.filter(v => v.severity === 'info').length;
-                const criticalCount = namespaceValidations.filter(v => v.severity === 'critical').length;
-
-                html += `
-                    <div class="accordion">
-                        <div class="accordion-header" onclick="toggleAccordion(this)">
-                            <div>
-                                <strong>${namespace}</strong>
-                                <span class="badge">${namespaceValidations.length} validations</span>
-                            </div>
-                            <div class="severity-badges">
-                                ${criticalCount > 0 ? `<span class="badge severity-critical">${criticalCount} critical</span>` : ''}
-                                ${errorCount > 0 ? `<span class="badge severity-error">${errorCount} error</span>` : ''}
-                                ${warningCount > 0 ? `<span class="badge severity-warning">${warningCount} warning</span>` : ''}
-                                ${infoCount > 0 ? `<span class="badge severity-info">${infoCount} info</span>` : ''}
-                            </div>
-                            <span class="accordion-icon">▼</span>
-                        </div>
-                        <div class="accordion-content">
-                            ${namespaceValidations.map(validation => `
-                                <div class="historical-validation ${validation.severity}">
-                                    <div class="validation-header">
-                                        <strong>${validation.pod_name}</strong> - ${validation.container_name}
-                                        <span class="severity-badge severity-${validation.severity}">${validation.severity}</span>
-                                    </div>
-                                    <div class="validation-message">${validation.message}</div>
-                                    <div class="validation-recommendation">
-                                        <strong>Recommendation:</strong> ${validation.recommendation}
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
+            // Filter changes
+            document.getElementById('severityFilter').addEventListener('change', function() {
+                currentFilters.severity = this.value;
             });
 
-            container.innerHTML = html;
-        }
+            document.getElementById('perPageFilter').addEventListener('change', function() {
+                currentFilters.perPage = parseInt(this.value);
+            });
 
-        // Historical Analysis Modal Functions
-        let currentNamespace = null;
-        let currentWorkload = null;
-
-
-        async function loadWorkloadHistoricalAnalysis(namespace, workload, timeRange = '24h') {
-            showLoading();
-            currentNamespace = namespace;
-            currentWorkload = workload;
-            
-            try {
-                const response = await fetch(`/api/v1/namespace/${namespace}/workload/${workload}/historical-analysis?time_range=${timeRange}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                displayWorkloadHistoricalAnalysis(data);
-                showHistoricalModal(`${namespace}/${workload}`);
-                
-            } catch (error) {
-                showError('Error loading historical analysis: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function loadPodHistoricalAnalysis(namespace, podName, timeRange = '24h') {
-            showLoading();
-            currentNamespace = namespace;
-            currentWorkload = podName; // For backward compatibility
-            
-            try {
-                const response = await fetch(`/api/v1/namespace/${namespace}/pod/${podName}/historical-analysis?time_range=${timeRange}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                displayPodHistoricalAnalysis(data);
-                showHistoricalModal(`${namespace}/${podName}`);
-                
-            } catch (error) {
-                showError('Error loading historical analysis: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function loadNamespaceHistoricalAnalysis(namespace) {
-            showLoading();
-            
-            try {
-                const timeRange = '24h'; // Default time range
-                const response = await fetch(`/api/v1/namespace/${namespace}/historical-analysis?time_range=${timeRange}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                displayNamespaceHistoricalAnalysis(data);
-                showHistoricalModal(namespace);
-                
-            } catch (error) {
-                showError('Error loading historical analysis: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        function displayWorkloadHistoricalAnalysis(data) {
-            const container = document.getElementById('historicalAnalysisContent');
-            
-            if (data.analysis.error) {
-                container.innerHTML = `
-                    <div class="error">
-                        <h3>Error loading historical data</h3>
-                        <p>${data.analysis.error}</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const analysis = data.analysis;
-            const recommendations = analysis.recommendations || [];
-            
-            let html = `
-                <div class="historical-summary">
-                    <h3>Workload: ${analysis.workload}</h3>
-                    <p><strong>Namespace:</strong> ${analysis.namespace}</p>
-                    <p><strong>Time Range:</strong> ${analysis.time_range}</p>
-                </div>
-                
-                <div class="historical-stats">
-                    <div class="historical-stat">
-                        <h4>CPU Usage</h4>
-                        <div class="value">${analysis.cpu_usage.toFixed(3)} cores</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>Memory Usage</h4>
-                        <div class="value">${(analysis.memory_usage / (1024*1024*1024)).toFixed(2)} GiB</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>CPU Utilization</h4>
-                        <div class="value" style="color: ${analysis.cpu_utilization > 80 ? '#dc3545' : analysis.cpu_utilization < 20 ? '#28a745' : '#007bff'}">${analysis.cpu_utilization.toFixed(1)}%</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>Memory Utilization</h4>
-                        <div class="value" style="color: ${analysis.memory_utilization > 80 ? '#dc3545' : analysis.memory_utilization < 20 ? '#28a745' : '#007bff'}">${analysis.memory_utilization.toFixed(1)}%</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>CPU Requests</h4>
-                        <div class="value">${analysis.cpu_requests.toFixed(3)} cores</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>Memory Requests</h4>
-                        <div class="value">${(analysis.memory_requests / (1024*1024*1024)).toFixed(2)} GiB</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>CPU Limits</h4>
-                        <div class="value">${analysis.cpu_limits.toFixed(3)} cores</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>Memory Limits</h4>
-                        <div class="value">${(analysis.memory_limits / (1024*1024*1024)).toFixed(2)} GiB</div>
-                    </div>
-                </div>
-            `;
-
-            if (recommendations.length > 0) {
-                html += `
-                    <div class="historical-summary">
-                        <h3>Recommendations</h3>
-                `;
-                
-                recommendations.forEach(rec => {
-                    const severityClass = rec.severity === 'error' ? 'error' : rec.severity === 'warning' ? 'warning' : 'info';
-                    html += `
-                        <div class="recommendation ${severityClass}">
-                            <span class="badge ${severityClass}">${rec.severity}</span>
-                            <strong>${rec.message}</strong>
-                            <p>${rec.recommendation}</p>
-                        </div>
-                    `;
-                });
-                
-                html += `</div>`;
-            }
-
-            container.innerHTML = html;
-        }
-
-        function displayPodHistoricalAnalysis(data) {
-            const container = document.getElementById('historicalAnalysisContent');
-            
-            if (data.analysis.error) {
-                container.innerHTML = `
-                    <div class="error">
-                        <h3>Error loading historical data</h3>
-                        <p>${data.analysis.error}</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const analysis = data.analysis;
-            const recommendations = analysis.recommendations || [];
-            
-            let html = `
-                <div class="historical-summary">
-                    <h3>Pod: ${analysis.pod_name}</h3>
-                    <p><strong>Namespace:</strong> ${analysis.namespace}</p>
-                    <p><strong>Time Range:</strong> ${analysis.time_range}</p>
-                    <p><strong>Containers:</strong> ${analysis.container_count}</p>
-                </div>
-                
-                <div class="historical-stats">
-                    <div class="historical-stat">
-                        <h4>CPU Usage</h4>
-                        <div class="value">${analysis.cpu_usage.toFixed(3)} cores</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>Memory Usage</h4>
-                        <div class="value">${(analysis.memory_usage / (1024*1024*1024)).toFixed(2)} GiB</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>CPU Utilization</h4>
-                        <div class="value" style="color: ${analysis.cpu_utilization > 80 ? '#dc3545' : analysis.cpu_utilization < 20 ? '#28a745' : '#007bff'}">${analysis.cpu_utilization.toFixed(1)}%</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>Memory Utilization</h4>
-                        <div class="value" style="color: ${analysis.memory_utilization > 80 ? '#dc3545' : analysis.memory_utilization < 20 ? '#28a745' : '#007bff'}">${analysis.memory_utilization.toFixed(1)}%</div>
-                    </div>
-                </div>
-            `;
-
-            if (recommendations.length > 0) {
-                html += `
-                    <div class="historical-summary">
-                        <h3>Recommendations</h3>
-                `;
-                
-                recommendations.forEach(rec => {
-                    const severityClass = rec.severity;
-                    html += `
-                        <div class="historical-validation ${severityClass}">
-                            <div class="validation-header">
-                                <span class="severity-badge severity-${severityClass}">${severityClass}</span>
-                                ${rec.message}
-                            </div>
-                            <div class="validation-recommendation">
-                                <strong>Recommendation:</strong> ${rec.recommendation}
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += `</div>`;
-            } else {
-                html += `
-                    <div class="historical-summary">
-                        <h3>Recommendations</h3>
-                        <p>No specific recommendations at this time. Resource utilization appears to be within normal ranges.</p>
-                    </div>
-                `;
-            }
-
-            container.innerHTML = html;
-        }
-
-        function displayNamespaceHistoricalAnalysis(data) {
-            const container = document.getElementById('historicalAnalysisContent');
-            
-            if (data.analysis.error) {
-                container.innerHTML = `
-                    <div class="error">
-                        <h3>Error loading historical data</h3>
-                        <p>${data.analysis.error}</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const analysis = data.analysis;
-            const recommendations = analysis.recommendations || [];
-            
-            let html = `
-                <div class="historical-summary">
-                    <h3>Namespace: ${analysis.namespace}</h3>
-                    <p><strong>Time Range:</strong> ${analysis.time_range}</p>
-                    <p><strong>Pods:</strong> ${analysis.pod_count}</p>
-                </div>
-                
-                <div class="historical-stats">
-                    <div class="historical-stat">
-                        <h4>CPU Usage</h4>
-                        <div class="value">${analysis.cpu_usage.toFixed(3)} cores</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>Memory Usage</h4>
-                        <div class="value">${(analysis.memory_usage / (1024*1024*1024)).toFixed(2)} GiB</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>CPU Utilization</h4>
-                        <div class="value" style="color: ${analysis.cpu_utilization > 80 ? '#dc3545' : analysis.cpu_utilization < 20 ? '#28a745' : '#007bff'}">${analysis.cpu_utilization.toFixed(1)}%</div>
-                    </div>
-                    <div class="historical-stat">
-                        <h4>Memory Utilization</h4>
-                        <div class="value" style="color: ${analysis.memory_utilization > 80 ? '#dc3545' : analysis.memory_utilization < 20 ? '#28a745' : '#007bff'}">${analysis.memory_utilization.toFixed(1)}%</div>
-                    </div>
-                </div>
-            `;
-
-            if (recommendations.length > 0) {
-                html += `
-                    <div class="historical-summary">
-                        <h3>Recommendations</h3>
-                `;
-                
-                recommendations.forEach(rec => {
-                    const severityClass = rec.severity;
-                    html += `
-                        <div class="historical-validation ${severityClass}">
-                            <div class="validation-header">
-                                <span class="severity-badge severity-${severityClass}">${severityClass}</span>
-                                ${rec.message}
-                            </div>
-                            <div class="validation-recommendation">
-                                <strong>Recommendation:</strong> ${rec.recommendation}
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += `</div>`;
-            } else {
-                html += `
-                    <div class="historical-summary">
-                        <h3>Recommendations</h3>
-                        <p>No specific recommendations at this time. Resource utilization appears to be within normal ranges.</p>
-                    </div>
-                `;
-            }
-
-            container.innerHTML = html;
-        }
-
-        function showHistoricalModal(namespace) {
-            document.getElementById('historicalModalTitle').textContent = `Historical Analysis - ${namespace}`;
-            const modal = document.getElementById('historicalModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('show');
-        }
-
-        function closeHistoricalModal() {
-            const modal = document.getElementById('historicalModal');
-            modal.classList.remove('show');
-            modal.classList.add('hidden');
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('historicalModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeHistoricalModal();
-            }
-        });
-
-        // Time range button event listeners
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('time-range-btn')) {
-                const timeRange = e.target.getAttribute('data-range');
-                
-                // Update active button
-                document.querySelectorAll('.time-range-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                e.target.classList.add('active');
-                
-                // Reload data with new time range
-                if (currentNamespace && currentWorkload) {
-                    loadWorkloadHistoricalAnalysis(currentNamespace, currentWorkload, timeRange);
-                }
-            }
-        });
-
-        // Export Modal Functions
-        function showExportModal() {
-            document.getElementById('exportModal').classList.add('show');
-        }
-
-        function closeExportModal() {
-            document.getElementById('exportModal').classList.remove('show');
-        }
-
-
-        // Close export modal when clicking outside
-        document.getElementById('exportModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeExportModal();
-            }
-        });
-
-        // Help Modal Functions
-        function showHelpModal(topic) {
-            const modal = document.getElementById('helpModal');
-            const title = document.getElementById('helpModalTitle');
-            const content = document.getElementById('helpModalContent');
-            
-            const helpData = getHelpContent(topic);
-            title.textContent = helpData.title;
-            content.innerHTML = helpData.content;
-            
-            modal.classList.add('show');
-        }
-
-        function closeHelpModal() {
-            document.getElementById('helpModal').classList.remove('show');
-        }
-
-        function getHelpContent(topic) {
-            const helpContents = {
-                'pods-metric': {
-                    title: 'Pods - What are they?',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Pods</strong> are the smallest deployable units in Kubernetes. Think of them as individual containers or groups of containers that work together.</p>
-                            
-                            <h4>What this metric shows:</h4>
-                            <ul>
-                                <li><span class="highlight">Total number of pods</span> currently running in your cluster</li>
-                                <li>Each pod represents an application or service</li>
-                                <li>More pods = more applications running</li>
-                            </ul>
-                            
-                            <h4>Why it matters:</h4>
-                            <p>Monitoring pod count helps you understand your cluster's workload density and resource utilization.</p>
-                        </div>
-                    `
-                },
-                'namespaces-metric': {
-                    title: 'Namespaces - Organization Units',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Namespaces</strong> are like folders that organize your cluster resources. They provide logical separation between different projects or teams.</p>
-                            
-                            <h4>What this metric shows:</h4>
-                            <ul>
-                                <li><span class="highlight">Total number of namespaces</span> in your cluster</li>
-                                <li>Each namespace can contain multiple pods</li>
-                                <li>Common namespaces: default, production, development, testing</li>
-                            </ul>
-                            
-                            <h4>Why it matters:</h4>
-                            <p>Namespaces help organize resources and provide isolation between different applications or teams.</p>
-                        </div>
-                    `
-                },
-                'critical-issues': {
-                    title: 'Critical Issues - Problems to Fix',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Critical Issues</strong> are problems that need immediate attention to ensure your applications run properly.</p>
-                            
-                            <h4>What this metric shows:</h4>
-                            <ul>
-                                <li><span class="warning">Number of critical problems</span> found in your cluster</li>
-                                <li>Common issues: Missing resource requests, excessive resource usage</li>
-                                <li>Issues that could cause application failures or poor performance</li>
-                            </ul>
-                            
-                            <h4>Why it matters:</h4>
-                            <p>Critical issues can lead to application crashes, poor performance, or resource conflicts. <span class="warning">Address them as soon as possible.</span></p>
-                        </div>
-                    `
-                },
-                'overcommit-metric': {
-                    title: 'Overcommit - Resource Allocation',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Overcommit</strong> occurs when the total resource requests exceed the cluster's actual capacity.</p>
-                            
-                            <h4>What this metric shows:</h4>
-                            <ul>
-                                <li><span class="highlight">🟢 Normal (0-120%)</span>: Safe resource allocation</li>
-                                <li><span class="warning">🟡 High (120-150%)</span>: Monitor closely</li>
-                                <li><span class="warning">🔴 Critical (150%+)</span>: Immediate attention needed</li>
-                            </ul>
-                            
-                            <h4>Why it matters:</h4>
-                            <p>High overcommit can lead to resource starvation, where applications can't get the resources they need to run properly.</p>
-                        </div>
-                    `
-                },
-                'resource-consumption': {
-                    title: 'Resource Consumption (Requests) - CPU & Memory Requests',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Resource Consumption (Requests)</strong> shows how much CPU and memory your cluster is <em>requesting</em> compared to its total capacity.</p>
-                            
-                            <h4>What you see:</h4>
-                            <ul>
-                                <li><strong>CPU Bar</strong>: Shows CPU requests vs. capacity</li>
-                                <li><strong>Memory Bar</strong>: Shows memory requests vs. capacity</li>
-                                <li><strong>Overcommit %</strong>: How much you're over-allocating resources based on requests</li>
-                            </ul>
-                            
-                            <h4>Important distinction:</h4>
-                            <ul>
-                                <li><span class="warning">Requests ≠ Usage</span> - This shows what pods are configured to request, not actual consumption</li>
-                                <li><span class="info">Planning tool</span> - Helps understand resource allocation planning</li>
-                                <li><span class="info">Configuration-based</span> - Based on pod specifications, not real-time metrics</li>
-                            </ul>
-                            
-                            <h4>Reading the bars:</h4>
-                            <ul>
-                                <li><span class="success">Green</span>: Safe request levels</li>
-                                <li><span class="highlight">Yellow</span>: Moderate usage, monitor</li>
-                                <li><span class="warning">Red</span>: High usage, take action</li>
-                            </ul>
-                        </div>
-                    `
-                },
-                'cpu-resources': {
-                    title: 'CPU Resources - Processing Power',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>CPU (Central Processing Unit)</strong> is the "brain" of your applications - it processes instructions and calculations.</p>
-                            
-                            <h4>What this shows:</h4>
-                            <ul>
-                                <li><span class="highlight">Current CPU requests</span> vs. total cluster capacity</li>
-                                <li>How much processing power your applications are asking for</li>
-                                <li>CPU overcommit percentage</li>
-                            </ul>
-                            
-                            <h4>Understanding the numbers:</h4>
-                            <ul>
-                                <li><strong>1 core</strong> = 1000 millicores (1000m)</li>
-                                <li><strong>0.5 cores</strong> = 500 millicores (500m)</li>
-                                <li>Higher numbers = more processing power needed</li>
-                            </ul>
-                        </div>
-                    `
-                },
-                'memory-resources': {
-                    title: 'Memory Resources - Storage Space',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Memory (RAM)</strong> is temporary storage where your applications keep data they're actively working with.</p>
-                            
-                            <h4>What this shows:</h4>
-                            <ul>
-                                <li><span class="highlight">Current memory requests</span> vs. total cluster capacity</li>
-                                <li>How much memory your applications are asking for</li>
-                                <li>Memory overcommit percentage</li>
-                            </ul>
-                            
-                            <h4>Understanding the numbers:</h4>
-                            <ul>
-                                <li><strong>1 GiB</strong> = 1024 MiB (mebibytes)</li>
-                                <li><strong>1 MiB</strong> = 1024 KiB (kibibytes)</li>
-                                <li>Higher numbers = more memory needed</li>
-                            </ul>
-                        </div>
-                    `
-                },
-                'top-consumers': {
-                    title: 'Top Resource Request Consumers - Who Requests Most Resources',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Top Resource Request Consumers</strong> shows which applications are <em>requesting</em> the most CPU and memory resources based on their configuration.</p>
-                            
-                            <h4>What you see:</h4>
-                            <ul>
-                                <li><span class="highlight">Ranking</span> from 🥇 (highest) to 5️⃣ (fifth highest)</li>
-                                <li><strong>Pod name</strong> and <strong>namespace</strong></li>
-                                <li><strong>Resource requests</strong> - what each pod is asking for (not actual usage)</li>
-                                <li><strong>QoS class</strong> (Guaranteed, Burstable, BestEffort)</li>
-                            </ul>
-                            
-                            <h4>Important distinction:</h4>
-                            <ul>
-                                <li><span class="warning">Requests ≠ Usage</span> - This shows what pods are configured to request, not what they actually use</li>
-                                <li><span class="info">Configuration-based</span> - Based on pod specifications, not real-time metrics</li>
-                                <li><span class="info">Planning tool</span> - Helps understand resource allocation planning</li>
-                            </ul>
-                            
-                            <h4>Why it matters:</h4>
-                            <p>Shows which workloads are configured to use the most resources, helping with capacity planning and optimization.</p>
-                        </div>
-                    `
-                },
-                'qos-distribution': {
-                    title: 'QoS Distribution - Quality of Service',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>QoS (Quality of Service)</strong> determines how Kubernetes prioritizes your applications when resources are limited.</p>
-                            
-                            <h4>Three QoS Classes:</h4>
-                            <ul>
-                                <li><span class="success">Guaranteed</span>: Highest priority, best resource guarantees</li>
-                                <li><span class="highlight">Burstable</span>: Medium priority, some resource guarantees</li>
-                                <li><span class="warning">BestEffort</span>: Lowest priority, no resource guarantees</li>
-                            </ul>
-                            
-                            <h4>Why it matters:</h4>
-                            <p>Higher QoS classes get better resource guarantees and are less likely to be terminated when resources are scarce.</p>
-                        </div>
-                    `
-                },
-                'qos-guaranteed': {
-                    title: 'Guaranteed QoS - Best Quality',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Guaranteed QoS</strong> provides the highest level of resource guarantees for your applications.</p>
-                            
-                            <h4>Requirements:</h4>
-                            <ul>
-                                <li>CPU requests = CPU limits</li>
-                                <li>Memory requests = Memory limits</li>
-                                <li>All containers must have both requests and limits defined</li>
-                            </ul>
-                            
-                            <h4>Benefits:</h4>
-                            <ul>
-                                <li><span class="success">Highest priority</span> when resources are limited</li>
-                                <li><span class="success">Guaranteed resources</span> - won't be starved</li>
-                                <li><span class="success">Last to be terminated</span> during resource pressure</li>
-                            </ul>
-                            
-                            <h4>Best for:</h4>
-                            <p>Production applications that need reliable performance and resource guarantees.</p>
-                        </div>
-                    `
-                },
-                'qos-burstable': {
-                    title: 'Burstable QoS - Flexible Quality',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Burstable QoS</strong> provides some resource guarantees with flexibility for bursts of activity.</p>
-                            
-                            <h4>Requirements:</h4>
-                            <ul>
-                                <li>At least one container has CPU or memory requests defined</li>
-                                <li>Requests can be different from limits</li>
-                                <li>Allows for resource bursting when available</li>
-                            </ul>
-                            
-                            <h4>Benefits:</h4>
-                            <ul>
-                                <li><span class="highlight">Medium priority</span> - better than BestEffort</li>
-                                <li><span class="highlight">Can burst</span> beyond requests when resources are available</li>
-                                <li><span class="highlight">Flexible</span> resource allocation</li>
-                            </ul>
-                            
-                            <h4>Best for:</h4>
-                            <p>Applications with variable workloads that can benefit from extra resources when available.</p>
-                        </div>
-                    `
-                },
-                'qos-besteffort': {
-                    title: 'BestEffort QoS - Basic Quality',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>BestEffort QoS</strong> provides no resource guarantees and is the lowest priority class.</p>
-                            
-                            <h4>Characteristics:</h4>
-                            <ul>
-                                <li>No CPU or memory requests defined</li>
-                                <li>No CPU or memory limits defined</li>
-                                <li>Gets whatever resources are available</li>
-                            </ul>
-                            
-                            <h4>Risks:</h4>
-                            <ul>
-                                <li><span class="warning">Lowest priority</span> - first to be terminated</li>
-                                <li><span class="warning">No guarantees</span> - may be starved of resources</li>
-                                <li><span class="warning">Unpredictable performance</span> during resource pressure</li>
-                            </ul>
-                            
-                            <h4>Best for:</h4>
-                            <p>Non-critical applications, batch jobs, or development workloads where performance isn't critical.</p>
-                        </div>
-                    `
-                },
-                'cpu-overcommit': {
-                    title: 'CPU Overcommit - Resource Allocation',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>CPU Overcommit</strong> shows how much CPU is requested compared to available capacity.</p>
-                            
-                            <h4>What this means:</h4>
-                            <ul>
-                                <li><span class="good">0-100%</span> - Normal allocation (requests ≤ capacity)</li>
-                                <li><span class="warning">100-150%</span> - Moderate overcommit (some risk)</li>
-                                <li><span class="critical">150%+</span> - High overcommit (high risk)</li>
-                            </ul>
-                            
-                            <h4>Why overcommit happens:</h4>
-                            <ul>
-                                <li>Applications don't always use their full CPU allocation</li>
-                                <li>Allows more workloads to run on limited hardware</li>
-                                <li>Kubernetes can schedule more pods than physical cores</li>
-                            </ul>
-                        </div>
-                    `
-                },
-                'memory-overcommit': {
-                    title: 'Memory Overcommit - Memory Allocation',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Memory Overcommit</strong> shows how much memory is requested compared to available capacity.</p>
-                            
-                            <h4>What this means:</h4>
-                            <ul>
-                                <li><span class="good">0-100%</span> - Normal allocation (requests ≤ capacity)</li>
-                                <li><span class="warning">100-150%</span> - Moderate overcommit (some risk)</li>
-                                <li><span class="critical">150%+</span> - High overcommit (high risk)</li>
-                            </ul>
-                            
-                            <h4>Memory vs CPU:</h4>
-                            <ul>
-                                <li>Memory overcommit is more dangerous than CPU overcommit</li>
-                                <li>Memory cannot be "borrowed" like CPU cycles</li>
-                                <li>High memory overcommit can cause OOM (Out of Memory) kills</li>
-                            </ul>
-                        </div>
-                    `
-                },
-                'namespaces-overcommit': {
-                    title: 'Namespaces in Overcommit',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Namespaces in Overcommit</strong> shows how many namespaces have resource limits exceeding their requests.</p>
-                            
-                            <h4>What this means:</h4>
-                            <ul>
-                                <li>Each namespace can have resource quotas</li>
-                                <li>When limits > requests, overcommit occurs</li>
-                                <li>This metric counts affected namespaces</li>
-                            </ul>
-                            
-                            <h4>Why monitor this:</h4>
-                            <ul>
-                                <li>Identifies which namespaces need attention</li>
-                                <li>Helps prioritize resource optimization</li>
-                                <li>Prevents resource starvation across namespaces</li>
-                            </ul>
-                        </div>
-                    `
-                },
-                'quota-coverage': {
-                    title: 'Resource Quota Coverage',
-                    content: `
-                        <div class="help-content">
-                            <p><strong>Resource Quota Coverage</strong> shows what percentage of namespaces have resource quotas defined.</p>
-                            
-                            <h4>What this means:</h4>
-                            <ul>
-                                <li><span class="good">80-100%</span> - Excellent coverage</li>
-                                <li><span class="warning">50-80%</span> - Good coverage</li>
-                                <li><span class="critical">0-50%</span> - Poor coverage</li>
-                            </ul>
-                            
-                            <h4>Why quotas matter:</h4>
-                            <ul>
-                                <li>Prevent one namespace from consuming all resources</li>
-                                <li>Ensure fair resource distribution</li>
-                                <li>Provide resource isolation and limits</li>
-                            </ul>
-                        </div>
-                    `
-                }
-            };
-            
-            return helpContents[topic] || {
-                title: 'Help',
-                content: '<div class="help-content"><p>Help content not available for this topic.</p></div>'
-            };
-        }
-
-        // Close help modal when clicking outside
-        document.getElementById('helpModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeHelpModal();
-            }
-        });
-
-        // Cluster Health Functions
-        async function loadClusterHealth() {
-            showLoading();
-            
-            try {
-                // Load cluster health data
-                const healthResponse = await fetch('/api/cluster-health');
-                if (!healthResponse.ok) {
-                    throw new Error(`HTTP ${healthResponse.status}: ${healthResponse.statusText}`);
-                }
-                const healthData = await healthResponse.json();
-                
-                // Load QoS classification
-                const qosResponse = await fetch('/api/qos-classification');
-                if (!qosResponse.ok) {
-                    throw new Error(`HTTP ${qosResponse.status}: ${qosResponse.statusText}`);
-                }
-                const qosData = await qosResponse.json();
-                
-                // Update cluster health display
-                updateClusterHealthDisplay(healthData, qosData);
-                
-                // Also load detailed validations
-                loadValidationsByNamespace();
-                
-            } catch (error) {
-                showError('Error loading cluster health: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        function updateClusterHealthDisplay(healthData, qosData) {
-            // Update health status
-            const healthIndicator = document.getElementById('healthIndicator');
-            const healthTitle = document.getElementById('healthTitle');
-            const healthSubtitle = document.getElementById('healthSubtitle');
-            
-            if (healthData.overall_health === 'Critical') {
-                healthIndicator.textContent = '🔴';
-                healthTitle.textContent = 'Cluster Critical';
-                healthSubtitle.textContent = 'Immediate attention required';
-            } else if (healthData.overall_health === 'Warning') {
-                healthIndicator.textContent = '🟡';
-                healthTitle.textContent = 'Cluster Warning';
-                healthSubtitle.textContent = 'Some issues detected';
-            } else {
-                healthIndicator.textContent = '🟢';
-                healthTitle.textContent = 'Cluster Healthy';
-                healthSubtitle.textContent = 'All systems operational';
-            }
-            
-            // Update basic metrics (cards superiores)
-            document.getElementById('totalPods').textContent = healthData.total_pods;
-            document.getElementById('totalNamespaces').textContent = healthData.total_namespaces;
-            document.getElementById('criticalIssues').textContent = healthData.critical_issues;
-            
-            // Update health section metrics (métricas específicas de saúde)
-            document.getElementById('cpuOvercommitStatus').textContent = `${healthData.cpu_overcommit_percentage.toFixed(1)}%`;
-            document.getElementById('memoryOvercommitStatus').textContent = `${healthData.memory_overcommit_percentage.toFixed(1)}%`;
-            document.getElementById('namespacesInOvercommit').textContent = healthData.namespaces_in_overcommit;
-            document.getElementById('quotaCoverage').textContent = `${(healthData.resource_quota_coverage * 100).toFixed(0)}%`;
-            
-            // Update overcommit status
-            const cpuOvercommit = healthData.cpu_overcommit_percentage;
-            const memoryOvercommit = healthData.memory_overcommit_percentage;
-            const maxOvercommit = Math.max(cpuOvercommit, memoryOvercommit);
-            
-            let overcommitText = '';
-            if (maxOvercommit > 150) {
-                overcommitText = '🔴 Critical';
-            } else if (maxOvercommit > 120) {
-                overcommitText = '🟡 High';
-            } else {
-                overcommitText = '🟢 Normal';
-            }
-            // Overcommit status is now shown in individual metrics above
-            
-            // Update resource consumption
-            updateResourceConsumption(healthData);
-            
-            // Update top consumers
-            updateTopConsumers(healthData.top_resource_consumers);
-            
-            // Update QoS distribution
-            updateQoSDistribution(qosData);
-        }
-
-        function formatCpuValue(value) {
-            if (value >= 1.0) {
-                return `${value.toFixed(1)} cores`;
-            } else {
-                return `${(value * 1000).toFixed(0)}m`;
-            }
-        }
-
-        function formatMemoryValue(valueBytes) {
-            const valueGiB = valueBytes / (1024 * 1024 * 1024);
-            if (valueGiB >= 1.0) {
-                return `${valueGiB.toFixed(1)} GiB`;
-            } else {
-                const valueMiB = valueBytes / (1024 * 1024);
-                return `${valueMiB.toFixed(0)} MiB`;
-            }
-        }
-
-        function updateResourceConsumption(healthData) {
-            // CPU
-            const cpuUsagePercent = (healthData.cluster_cpu_requests / healthData.cluster_cpu_capacity) * 100;
-            document.getElementById('cpuUsageBar').style.width = Math.min(cpuUsagePercent, 100) + '%';
-            document.getElementById('cpuUsageText').textContent = 
-                `${formatCpuValue(healthData.cluster_cpu_requests)} / ${formatCpuValue(healthData.cluster_cpu_capacity)}`;
-            document.getElementById('cpuOvercommitText').textContent = 
-                `${healthData.cpu_overcommit_percentage.toFixed(1)}% overcommit`;
-            
-            // Memory - Convert bytes to appropriate unit
-            const memoryRequestsGiB = healthData.cluster_memory_requests / (1024 * 1024 * 1024);
-            const memoryCapacityGiB = healthData.cluster_memory_capacity; // Already in GiB from API
-            const memoryUsagePercent = (memoryRequestsGiB / memoryCapacityGiB) * 100;
-            
-            document.getElementById('memoryUsageBar').style.width = Math.min(memoryUsagePercent, 100) + '%';
-            document.getElementById('memoryUsageText').textContent = 
-                `${formatMemoryValue(healthData.cluster_memory_requests)} / ${formatMemoryValue(healthData.cluster_memory_capacity * 1024 * 1024 * 1024)}`;
-            document.getElementById('memoryOvercommitText').textContent = 
-                `${healthData.memory_overcommit_percentage.toFixed(1)}% overcommit`;
-        }
-
-        function updateTopConsumers(consumers) {
-            const container = document.getElementById('topConsumersList');
-            container.innerHTML = '';
-            
-            consumers.slice(0, 5).forEach((consumer, index) => {
-                const item = document.createElement('div');
-                item.className = 'consumer-item';
-                
-                const rank = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][index];
-                
-                item.innerHTML = `
-                    <div class="consumer-info">
-                        <span class="consumer-rank">${rank}</span>
-                        <div>
-                            <div class="consumer-name">${consumer.name}</div>
-                            <div class="consumer-namespace">${consumer.namespace}</div>
-                        </div>
-                    </div>
-                    <div class="consumer-resources">
-                        <div><strong>CPU Request:</strong> ${formatCpuValue(consumer.cpu_requests)}</div>
-                        <div><strong>Memory Request:</strong> ${formatMemoryValue(consumer.memory_requests)}</div>
-                        <div class="qos-badge qos-${consumer.qos_class.toLowerCase()}">${consumer.qos_class}</div>
-                    </div>
-                `;
-                
-                container.appendChild(item);
+            document.getElementById('includeSystemNamespaces').addEventListener('change', function() {
+                currentFilters.includeSystem = this.checked;
             });
         }
 
-        function updateQoSDistribution(qosData) {
-            const distribution = qosData.qos_distribution || {};
-            document.getElementById('guaranteedCount').textContent = distribution.Guaranteed || 0;
-            document.getElementById('burstableCount').textContent = distribution.Burstable || 0;
-            document.getElementById('besteffortCount').textContent = distribution.BestEffort || 0;
-        }
-
-        // Smart Recommendations Functions
-        async function loadSmartRecommendations() {
-            showLoading();
-            
-            try {
-                const priority = document.getElementById('recommendationPriorityFilter').value;
-                const type = document.getElementById('recommendationTypeFilter').value;
-                
-                const params = new URLSearchParams();
-                if (priority) params.append('priority', priority);
-                
-                const response = await fetch(`/api/v1/smart-recommendations?${params}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                displaySmartRecommendations(data, type);
-                document.getElementById('smartRecommendationsCard').style.display = 'block';
-                
-            } catch (error) {
-                showError('Error loading smart recommendations: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        function displaySmartRecommendations(data, typeFilter) {
-            const container = document.getElementById('smartRecommendationsList');
-            
-            if (!data.recommendations || data.recommendations.length === 0) {
-                container.innerHTML = '<p>No smart recommendations found.</p>';
-                return;
-            }
-            
-            let recommendations = data.recommendations;
-            
-            // Filter by type if specified
-            if (typeFilter) {
-                recommendations = recommendations.filter(r => r.recommendation_type === typeFilter);
-            }
-            
-            if (recommendations.length === 0) {
-                container.innerHTML = '<p>No recommendations match the selected filters.</p>';
-                return;
-            }
-            
-            let html = '';
-            
-            recommendations.forEach(rec => {
-                const priorityClass = `severity-${rec.priority}`;
-                const confidenceLevel = rec.confidence_level ? `${(rec.confidence_level * 100).toFixed(0)}%` : 'N/A';
-                
-                html += `
-                    <div class="validation-item ${rec.priority}">
-                        <div class="validation-header">
-                            <span class="severity-badge ${priorityClass}">${rec.priority}</span>
-                            <strong>${rec.title}</strong>
-                            <span class="badge">${rec.recommendation_type}</span>
-                        </div>
-                        <div class="validation-message">
-                            <strong>Workload:</strong> ${rec.workload_name} (${rec.namespace})
-                        </div>
-                        <div class="validation-recommendation">
-                            <strong>Description:</strong> ${rec.description}
-                        </div>
-                        <div class="validation-details">
-                            <div class="detail-item">
-                                <strong>Confidence:</strong> ${confidenceLevel}
-                            </div>
-                            <div class="detail-item">
-                                <strong>Impact:</strong> ${rec.estimated_impact || 'N/A'}
-                            </div>
-                        </div>
-                `;
-                
-                if (rec.implementation_steps && rec.implementation_steps.length > 0) {
-                    html += `
-                        <div class="implementation-steps">
-                            <strong>Implementation Steps:</strong>
-                            <ol>
-                                ${rec.implementation_steps.map(step => `<li>${step}</li>`).join('')}
-                            </ol>
-                        </div>
-                    `;
-                }
-                
-                if (rec.kubectl_commands && rec.kubectl_commands.length > 0) {
-                    html += `
-                        <div class="kubectl-commands">
-                            <strong>Kubectl Commands:</strong>
-                            <pre><code>${rec.kubectl_commands.join('\n')}</code></pre>
-                        </div>
-                    `;
-                }
-                
-                if (rec.vpa_yaml) {
-                    html += `
-                        <div class="vpa-yaml">
-                            <strong>VPA Configuration:</strong>
-                            <pre><code>${rec.vpa_yaml}</code></pre>
-                        </div>
-                    `;
-                }
-                
-                html += '</div>';
-            });
-            
-            container.innerHTML = html;
-        }
-
-        // Workload Categories Functions
-        async function loadWorkloadCategories() {
-            showLoading();
-            
-            try {
-                const category = document.getElementById('categoryFilter').value;
-                
-                const params = new URLSearchParams();
-                if (category) params.append('category', category);
-                
-                const response = await fetch(`/api/v1/workload-categories?${params}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                displayWorkloadCategories(data);
-                document.getElementById('workloadCategoriesCard').style.display = 'block';
-                
-            } catch (error) {
-                showError('Error loading workload categories: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        function displayWorkloadCategories(data) {
-            const container = document.getElementById('workloadCategoriesList');
-            
-            if (!data.categories || Object.keys(data.categories).length === 0) {
-                container.innerHTML = '<p>No workload categories found.</p>';
-                return;
-            }
-            
-            let html = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number">${data.total_workloads}</div>
-                        <div class="stat-label">Total Workloads</div>
-                    </div>
-                </div>
-            `;
-            
-            Object.keys(data.categories).forEach(categoryType => {
-                const category = data.categories[categoryType];
-                const categoryClass = categoryType === 'outlier' ? 'error' : 
-                                    categoryType === 'new' ? 'warning' : 
-                                    categoryType === 'compliant' ? 'success' : 'info';
-                
-                html += `
-                    <div class="accordion">
-                        <div class="accordion-header" onclick="toggleAccordion(this)">
-                            <div class="accordion-title">
-                                <span class="badge ${categoryClass}">${categoryType}</span>
-                                ${category.count} workloads
-                            </div>
-                            <div class="accordion-stats">
-                                <div class="accordion-stat">Avg Priority: ${category.average_priority_score?.toFixed(1) || 'N/A'}</div>
-                                <div class="accordion-stat">VPA Candidates: ${category.workloads.filter(w => w.vpa_candidate).length}</div>
-                            </div>
-                            <div class="accordion-arrow">▶</div>
-                        </div>
-                        <div class="accordion-content">
-                            <div class="workload-list">
-                `;
-                
-                category.workloads.forEach(workload => {
-                    const impactClass = workload.estimated_impact === 'critical' ? 'critical' :
-                                      workload.estimated_impact === 'high' ? 'error' :
-                                      workload.estimated_impact === 'medium' ? 'warning' : 'info';
-                    
-                    html += `
-                        <div class="workload-item">
-                            <div class="workload-header">
-                                <div class="workload-name">${workload.name}</div>
-                                <div class="workload-namespace">${workload.namespace}</div>
-                            </div>
-                            <div class="workload-details">
-                                <div class="workload-stat">
-                                    <strong>Priority Score:</strong> ${workload.priority_score}/10
-                                </div>
-                                <div class="workload-stat">
-                                    <strong>Impact:</strong> 
-                                    <span class="badge ${impactClass}">${workload.estimated_impact}</span>
-                                </div>
-                                <div class="workload-stat">
-                                    <strong>VPA Candidate:</strong> 
-                                    ${workload.vpa_candidate ? '✅ Yes' : '❌ No'}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-
-        // Navigation Functions
-        function showSection(sectionName) {
+        // Show specific section
+        function showSection(section) {
             // Hide all sections
-            document.querySelectorAll('.card').forEach(card => {
-                card.style.display = 'none';
+            document.querySelectorAll('[id$="Section"]').forEach(sec => {
+                sec.style.display = 'none';
             });
-            
+
             // Remove active class from all nav items
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
+
             // Show selected section
-            const sectionMap = {
-                'dashboard': 'validationsCard',
-                'simplified-view': 'simplifiedViewCard',
-                'historical-analysis': 'historicalCard',
-                'smart-recommendations': 'smartRecommendationsCard',
-                'workload-categories': 'workloadCategoriesCard',
-                'vpa-recommendations': 'vpaCard'
-            };
-            
-            const cardId = sectionMap[sectionName];
-            if (cardId) {
-                document.getElementById(cardId).style.display = 'block';
-            }
-            
-            // Add active class to clicked nav item
-            document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
-            
-        // Load data for the section
-        switch(sectionName) {
-            case 'dashboard':
-                loadClusterHealth();
-                break;
-            case 'simplified-view':
-                loadSimplifiedView();
-                break;
-            case 'historical-analysis':
-                loadHistoricalValidations();
-                break;
-            case 'smart-recommendations':
-                loadSmartRecommendations();
-                break;
-            case 'workload-categories':
-                loadWorkloadCategories();
-                break;
-            case 'vpa-recommendations':
-                loadVPARecommendations();
-                break;
+            document.getElementById(section + 'Section').style.display = 'block';
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+
+            // Load section data
+            switch(section) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'smart-recommendations':
+                    loadSmartRecommendations();
+                    break;
+                case 'vpa-management':
+                    loadVPAManagement();
+                    break;
+                case 'historical-analysis':
+                    loadHistoricalAnalysis();
+                    break;
             }
         }
 
-        // Simplified View Functions
-        let currentViewMode = 'simple';
-        let healthScoresData = null;
-
-        async function loadSimplifiedView() {
+        // Load dashboard data
+        async function loadDashboard() {
             try {
                 showLoading();
-                
-                const response = await fetch('/api/v1/pod-health-scores');
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                healthScoresData = await response.json();
-                updateHealthSummary(healthScoresData.summary);
-                updatePodCards(healthScoresData.pods);
-                
-                hideLoading();
+                const response = await fetch('/api/cluster/health');
+                const data = await response.json();
+                currentData = data;
+                updateDashboard(data);
             } catch (error) {
-                console.error('Error loading simplified view:', error);
-                showError('Error loading simplified view: ' + error.message);
+                console.error('Error loading dashboard:', error);
+                showError('Failed to load dashboard data');
             }
         }
 
-        function updateHealthSummary(summary) {
-            document.getElementById('excellentCount').textContent = summary.excellent;
-            document.getElementById('goodCount').textContent = summary.good;
-            document.getElementById('mediumCount').textContent = summary.medium;
-            document.getElementById('poorCount').textContent = summary.poor;
-            document.getElementById('criticalCount').textContent = summary.critical;
+        // Update dashboard with data
+        function updateDashboard(data) {
+            // Update metrics
+            document.getElementById('totalPods').textContent = data.total_pods || 0;
+            document.getElementById('totalNamespaces').textContent = data.total_namespaces || 0;
+            document.getElementById('totalNodes').textContent = data.total_nodes || 0;
+            document.getElementById('criticalIssues').textContent = data.critical_issues || 0;
+
+            // Update overcommit metrics
+            document.getElementById('cpuOvercommit').textContent = data.cpu_overcommit ? `${data.cpu_overcommit}%` : '0%';
+            document.getElementById('memoryOvercommit').textContent = data.memory_overcommit ? `${data.memory_overcommit}%` : '0%';
+            document.getElementById('namespacesInOvercommit').textContent = data.namespaces_in_overcommit || 0;
+            document.getElementById('resourceQuotaCoverage').textContent = data.resource_quota_coverage ? `${data.resource_quota_coverage}%` : '0%';
+
+            // Update status
+            const statusIcon = document.getElementById('clusterStatusIcon');
+            const statusText = document.getElementById('clusterStatus');
+            const statusMessage = document.getElementById('clusterStatusMessage');
+
+            if (data.critical_issues > 0) {
+                statusIcon.textContent = '🔴';
+                statusText.textContent = 'Critical Issues Found';
+                statusMessage.textContent = `${data.critical_issues} critical issues need attention`;
+            } else if (data.total_warnings > 0) {
+                statusIcon.textContent = '🟡';
+                statusText.textContent = 'Issues Found';
+                statusMessage.textContent = `${data.total_warnings} warnings found`;
+            } else {
+                statusIcon.textContent = '🟢';
+                statusText.textContent = 'Cluster Healthy';
+                statusMessage.textContent = 'All systems operational';
+            }
+
+            // Update problem table
+            updateProblemTable(data);
         }
 
-        function updatePodCards(pods) {
-            const container = document.getElementById('simplePodCards');
-            const technicalContainer = document.getElementById('technicalPodCards');
+        // Update problem table
+        function updateProblemTable(data) {
+            const tbody = document.getElementById('problemTableBody');
             
-            let simpleHtml = '';
-            let technicalHtml = '';
-            
-            pods.forEach(pod => {
-                // Simple mode card
-                simpleHtml += `
-                    <div class="pod-health-card ${pod.status_color}">
-                        <div class="pod-header">
-                            <div>
-                                <div class="pod-name">${pod.pod_name}</div>
-                                <div class="pod-namespace">${pod.namespace}</div>
-                            </div>
-                            <div class="health-score">
-                                <span class="health-score-value">${pod.health_score}/10</span>
-                                <span class="health-status">${pod.health_status}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="resource-display">
-                            <div class="resource-item">
-                                <span class="resource-icon">⚡</span>
-                                <div class="resource-text">
-                                    <div class="resource-label">CPU</div>
-                                    <div class="resource-value">${pod.cpu_display} ${pod.cpu_status}</div>
-                                </div>
-                            </div>
-                            <div class="resource-item">
-                                <span class="resource-icon">💾</span>
-                                <div class="resource-text">
-                                    <div class="resource-label">Memory</div>
-                                    <div class="resource-value">${pod.memory_display} ${pod.memory_status}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="pod-actions">
-                            <button class="action-btn primary" onclick="viewPodDetails('${pod.pod_name}')">View Details</button>
-                            ${pod.available_actions.includes('fix_cpu_ratio') ? '<button class="action-btn" onclick="fixPodIssue(\'' + pod.pod_name + '\', \'cpu_ratio\')">Fix CPU Ratio</button>' : ''}
-                            ${pod.available_actions.includes('add_requests') ? '<button class="action-btn" onclick="fixPodIssue(\'' + pod.pod_name + '\', \'add_requests\')">Add Requests</button>' : ''}
-                        </div>
-                    </div>
-                `;
+            if (!data.namespaces || data.namespaces.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #7f8c8d;">No data available</td></tr>';
+                return;
+            }
+
+            let html = '';
+            data.namespaces.forEach(namespace => {
+                const severity = getHighestSeverity(namespace);
+                const severityClass = `severity-${severity}`;
                 
-                // Technical mode card
-                technicalHtml += `
-                    <div class="technical-card">
-                        <div class="technical-header">
-                            <div>
-                                <div class="pod-name">${pod.pod_name}</div>
-                                <div class="pod-namespace">${pod.namespace}</div>
+                html += `
+                    <tr>
+                        <td><strong>${namespace.name}</strong></td>
+                        <td>${namespace.pod_count || 0}</td>
+                        <td>${namespace.total_validations || 0}</td>
+                        <td><span class="severity-badge ${severityClass}">${severity}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-primary btn-sm" onclick="analyzeNamespace('${namespace.name}')">Analyze</button>
+                                <button class="btn btn-success btn-sm" onclick="fixNamespace('${namespace.name}')">Fix</button>
                             </div>
-                            <div class="health-score">
-                                <span class="health-score-value">${pod.health_score}/10</span>
-                                <span class="health-status">${pod.health_status}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="validation-groups">
-                            ${pod.critical_issues.length > 0 ? `
-                                <div class="validation-group critical">
-                                    <div class="validation-group-title">🔴 Critical Issues (${pod.critical_issues.length})</div>
-                                    <ul class="validation-list">
-                                        ${pod.critical_issues.map(issue => `<li class="validation-item">${issue}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            ` : ''}
-                            
-                            ${pod.warnings.length > 0 ? `
-                                <div class="validation-group warning">
-                                    <div class="validation-group-title">🟡 Warnings (${pod.warnings.length})</div>
-                                    <ul class="validation-list">
-                                        ${pod.warnings.map(warning => `<li class="validation-item">${warning}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            ` : ''}
-                            
-                            ${pod.info_items.length > 0 ? `
-                                <div class="validation-group info">
-                                    <div class="validation-group-title">🔵 Information (${pod.info_items.length})</div>
-                                    <ul class="validation-list">
-                                        ${pod.info_items.map(info => `<li class="validation-item">${info}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        ${pod.oc_commands.length > 0 ? `
-                            <div class="oc-commands">
-                                <h4>Available Commands:</h4>
-                                ${pod.oc_commands.map(cmd => `
-                                    <div class="oc-command">
-                                        ${cmd}
-                                        <button class="copy-btn" onclick="copyToClipboard('${cmd.replace(/'/g, "\\'")}')">Copy</button>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                    </div>
+                        </td>
+                    </tr>
                 `;
             });
-            
-            container.innerHTML = simpleHtml;
-            technicalContainer.innerHTML = technicalHtml;
+
+            tbody.innerHTML = html;
         }
 
-        function switchViewMode(mode) {
-            currentViewMode = mode;
-            
-            // Update button states
-            document.getElementById('simpleModeBtn').classList.toggle('active', mode === 'simple');
-            document.getElementById('technicalModeBtn').classList.toggle('active', mode === 'technical');
-            
-            // Show/hide appropriate content
-            document.getElementById('simplePodCards').style.display = mode === 'simple' ? 'block' : 'none';
-            document.getElementById('technicalDetails').classList.toggle('hidden', mode === 'simple');
+        // Get highest severity from namespace
+        function getHighestSeverity(namespace) {
+            if (namespace.critical_issues > 0) return 'critical';
+            if (namespace.error_issues > 0) return 'error';
+            if (namespace.warning_issues > 0) return 'warning';
+            return 'info';
         }
 
-        function viewPodDetails(podName) {
-            // Switch to technical mode and scroll to pod
-            switchViewMode('technical');
-            const podCard = document.querySelector(`[data-pod="${podName}"]`);
-            if (podCard) {
-                podCard.scrollIntoView({ behavior: 'smooth' });
+        // Apply filters
+        function applyFilters() {
+            if (!currentData) return;
+            
+            // Filter namespaces based on current filters
+            let filteredNamespaces = currentData.namespaces || [];
+            
+            if (!currentFilters.includeSystem) {
+                filteredNamespaces = filteredNamespaces.filter(ns => 
+                    !ns.name.startsWith('kube-') && 
+                    !ns.name.startsWith('openshift-') &&
+                    !ns.name.startsWith('default')
+                );
+            }
+            
+            if (currentFilters.severity !== 'all') {
+                filteredNamespaces = filteredNamespaces.filter(ns => {
+                    const severity = getHighestSeverity(ns);
+                    return severity === currentFilters.severity;
+                });
+            }
+            
+            // Update table with filtered data
+            const filteredData = { ...currentData, namespaces: filteredNamespaces };
+            updateProblemTable(filteredData);
+        }
+
+        // Load smart recommendations
+        async function loadSmartRecommendations() {
+            try {
+                const response = await fetch('/api/recommendations');
+                const data = await response.json();
+                updateSmartRecommendations(data);
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+                document.getElementById('smartRecommendationsContent').innerHTML = 
+                    '<p style="color: #e74c3c;">Failed to load recommendations</p>';
             }
         }
 
-        function fixPodIssue(podName, issueType) {
-            // This would implement the fix logic
-            alert(`Fixing ${issueType} for pod ${podName}`);
+        // Update smart recommendations
+        function updateSmartRecommendations(data) {
+            const content = document.getElementById('smartRecommendationsContent');
+            content.innerHTML = '<p>Smart recommendations feature coming soon...</p>';
         }
 
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // Show success feedback
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                btn.style.background = '#28a745';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = '#28a745';
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-                alert('Failed to copy to clipboard');
-            });
+        // Load VPA management
+        async function loadVPAManagement() {
+            try {
+                const response = await fetch('/api/vpa');
+                const data = await response.json();
+                updateVPAManagement(data);
+            } catch (error) {
+                console.error('Error loading VPA data:', error);
+                document.getElementById('vpaManagementContent').innerHTML = 
+                    '<p style="color: #e74c3c;">Failed to load VPA data</p>';
+            }
         }
 
-        // Add click handlers for navigation
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const section = this.getAttribute('data-section');
-                    showSection(section);
-                });
-            });
-        });
+        // Update VPA management
+        function updateVPAManagement(data) {
+            const content = document.getElementById('vpaManagementContent');
+            content.innerHTML = '<p>VPA management feature coming soon...</p>';
+        }
+
+        // Load historical analysis
+        async function loadHistoricalAnalysis() {
+            try {
+                const response = await fetch('/api/historical');
+                const data = await response.json();
+                updateHistoricalAnalysis(data);
+            } catch (error) {
+                console.error('Error loading historical data:', error);
+                document.getElementById('historicalAnalysisContent').innerHTML = 
+                    '<p style="color: #e74c3c;">Failed to load historical data</p>';
+            }
+        }
+
+        // Update historical analysis
+        function updateHistoricalAnalysis(data) {
+            const content = document.getElementById('historicalAnalysisContent');
+            content.innerHTML = '<p>Historical analysis feature coming soon...</p>';
+        }
+
+        // Action functions
+        function analyzeNamespace(namespace) {
+            alert(`Analyzing namespace: ${namespace}`);
+        }
+
+        function fixNamespace(namespace) {
+            alert(`Fixing namespace: ${namespace}`);
+        }
+
+        function generateVPARecommendations() {
+            alert('Generating VPA recommendations...');
+        }
+
+        function showHistoricalAnalysis() {
+            showSection('historical-analysis');
+        }
+
+        function exportComplianceReport() {
+            alert('Exporting compliance report...');
+        }
+
+        function fixAllIssues() {
+            if (confirm('Are you sure you want to fix all issues? This action cannot be undone.')) {
+                alert('Fixing all issues...');
+            }
+        }
+
+        function exportData() {
+            if (!currentData) {
+                alert('No data to export');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(currentData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'resource-governance-report.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Utility functions
+        function showLoading() {
+            document.getElementById('problemTableBody').innerHTML = 
+                '<tr><td colspan="5" class="loading">Loading data...</td></tr>';
+        }
+
+        function showError(message) {
+            document.getElementById('problemTableBody').innerHTML = 
+                `<tr><td colspan="5" style="text-align: center; color: #e74c3c;">${message}</td></tr>`;
+        }
     </script>
-        </div> <!-- Close main-content -->
-    </div> <!-- Close container -->
 </body>
 </html>
