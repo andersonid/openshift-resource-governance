@@ -197,6 +197,76 @@ class HistoricalAnalysisService:
         
         return validations
     
+    def _detect_seasonal_patterns(
+        self,
+        pod_name: str,
+        namespace: str,
+        container_name: str,
+        usage_values: List[float],
+        time_range: str
+    ) -> List[ResourceValidation]:
+        """Detect seasonal patterns and trends in resource usage"""
+        validations = []
+        
+        if len(usage_values) < 20:  # Need at least 20 data points for pattern detection
+            return validations
+        
+        # Calculate trend (simple linear regression)
+        n = len(usage_values)
+        x = list(range(n))
+        y = usage_values
+        
+        # Calculate slope
+        x_mean = sum(x) / n
+        y_mean = sum(y) / n
+        
+        numerator = sum((x[i] - x_mean) * (y[i] - y_mean) for i in range(n))
+        denominator = sum((x[i] - x_mean) ** 2 for i in range(n))
+        
+        if denominator != 0:
+            slope = numerator / denominator
+            
+            # Detect significant trends
+            if slope > 0.1:  # Increasing trend
+                validations.append(ResourceValidation(
+                    pod_name=pod_name,
+                    namespace=namespace,
+                    container_name=container_name,
+                    validation_type="seasonal_pattern",
+                    severity="info",
+                    message=f"Detected increasing resource usage trend over {time_range}",
+                    recommendation="Monitor for continued growth and consider proactive scaling"
+                ))
+            elif slope < -0.1:  # Decreasing trend
+                validations.append(ResourceValidation(
+                    pod_name=pod_name,
+                    namespace=namespace,
+                    container_name=container_name,
+                    validation_type="seasonal_pattern",
+                    severity="info",
+                    message=f"Detected decreasing resource usage trend over {time_range}",
+                    recommendation="Consider reducing resource requests/limits if trend continues"
+                ))
+        
+        # Detect high variability (coefficient of variation > 50%)
+        if y_mean > 0:
+            variance = sum((y[i] - y_mean) ** 2 for i in range(n)) / n
+            std_dev = variance ** 0.5
+            cv = std_dev / y_mean
+            
+            if cv > 0.5:  # High variability
+                validations.append(ResourceValidation(
+                    pod_name=pod_name,
+                    namespace=namespace,
+                    container_name=container_name,
+                    validation_type="seasonal_pattern",
+                    severity="warning",
+                    message=f"High resource usage variability detected (CV: {cv:.2f})",
+                    recommendation="Consider higher safety margins for requests/limits due to unpredictable usage"
+                ))
+        
+        return validations
+    
     def _analyze_cpu_metrics(
         self,
         pod_name: str,
@@ -210,13 +280,44 @@ class HistoricalAnalysisService:
         """Analyze CPU metrics"""
         validations = []
         
-        if not usage_data or not requests_data:
+        # Check for insufficient historical data
+        if not usage_data:
+            validations.append(ResourceValidation(
+                pod_name=pod_name,
+                namespace=namespace,
+                container_name=container_name,
+                validation_type="insufficient_historical_data",
+                severity="info",
+                message=f"No CPU usage data available for {time_range}",
+                recommendation="Monitor workload for at least 24h to get reliable resource recommendations"
+            ))
             return validations
         
         # Calculate usage statistics
         usage_values = [float(point[1]) for point in usage_data if point[1] != 'NaN']
         if not usage_values:
+            validations.append(ResourceValidation(
+                pod_name=pod_name,
+                namespace=namespace,
+                container_name=container_name,
+                validation_type="insufficient_historical_data",
+                severity="info",
+                message=f"No valid CPU usage data points for {time_range}",
+                recommendation="Check if pod is running and generating metrics"
+            ))
             return validations
+        
+        # Check for minimal data points (less than 10 data points)
+        if len(usage_values) < 10:
+            validations.append(ResourceValidation(
+                pod_name=pod_name,
+                namespace=namespace,
+                container_name=container_name,
+                validation_type="insufficient_historical_data",
+                severity="warning",
+                message=f"Limited CPU usage data ({len(usage_values)} points) for {time_range}",
+                recommendation="Wait for more data points or extend time range for reliable analysis"
+            ))
         
         # Current values of requests/limits
         current_requests = self._safe_float(requests_data[0][1]) if requests_data else 0
@@ -227,6 +328,12 @@ class HistoricalAnalysisService:
         max_usage = max(usage_values)
         p95_usage = sorted(usage_values)[int(len(usage_values) * 0.95)]
         p99_usage = sorted(usage_values)[int(len(usage_values) * 0.99)]
+        
+        # Detect seasonal patterns
+        seasonal_validations = self._detect_seasonal_patterns(
+            pod_name, namespace, container_name, usage_values, time_range
+        )
+        validations.extend(seasonal_validations)
         
         # Request adequacy analysis
         if current_requests > 0:
@@ -295,13 +402,44 @@ class HistoricalAnalysisService:
         """Analyze memory metrics"""
         validations = []
         
-        if not usage_data or not requests_data:
+        # Check for insufficient historical data
+        if not usage_data:
+            validations.append(ResourceValidation(
+                pod_name=pod_name,
+                namespace=namespace,
+                container_name=container_name,
+                validation_type="insufficient_historical_data",
+                severity="info",
+                message=f"No memory usage data available for {time_range}",
+                recommendation="Monitor workload for at least 24h to get reliable resource recommendations"
+            ))
             return validations
         
         # Calculate usage statistics
         usage_values = [float(point[1]) for point in usage_data if point[1] != 'NaN']
         if not usage_values:
+            validations.append(ResourceValidation(
+                pod_name=pod_name,
+                namespace=namespace,
+                container_name=container_name,
+                validation_type="insufficient_historical_data",
+                severity="info",
+                message=f"No valid memory usage data points for {time_range}",
+                recommendation="Check if pod is running and generating metrics"
+            ))
             return validations
+        
+        # Check for minimal data points (less than 10 data points)
+        if len(usage_values) < 10:
+            validations.append(ResourceValidation(
+                pod_name=pod_name,
+                namespace=namespace,
+                container_name=container_name,
+                validation_type="insufficient_historical_data",
+                severity="warning",
+                message=f"Limited memory usage data ({len(usage_values)} points) for {time_range}",
+                recommendation="Wait for more data points or extend time range for reliable analysis"
+            ))
         
         # Current values of requests/limits (in bytes)
         current_requests = self._safe_float(requests_data[0][1]) if requests_data else 0
@@ -312,6 +450,12 @@ class HistoricalAnalysisService:
         max_usage = max(usage_values)
         p95_usage = sorted(usage_values)[int(len(usage_values) * 0.95)]
         p99_usage = sorted(usage_values)[int(len(usage_values) * 0.99)]
+        
+        # Detect seasonal patterns
+        seasonal_validations = self._detect_seasonal_patterns(
+            pod_name, namespace, container_name, usage_values, time_range
+        )
+        validations.extend(seasonal_validations)
         
         # Convert to MiB for better readability
         def bytes_to_mib(bytes_value):
