@@ -105,20 +105,20 @@ class ValidationService:
             ))
         
         # 3. QoS Class validation based on Red Hat recommendations
-        qos_validation = self._validate_qos_class(pod_name, namespace, container.name, qos_class, requests, limits)
+        qos_validation = self._validate_qos_class(pod_name, namespace, container["name"], qos_class, requests, limits)
         if qos_validation:
             validations.append(qos_validation)
         
         # 3. Validate limit:request ratio
         if requests and limits:
             cpu_validation = self._validate_cpu_ratio(
-                pod_name, namespace, container.name, requests, limits
+                pod_name, namespace, container["name"], requests, limits
             )
             if cpu_validation:
                 validations.append(cpu_validation)
             
             memory_validation = self._validate_memory_ratio(
-                pod_name, namespace, container.name, requests, limits
+                pod_name, namespace, container["name"], requests, limits
             )
             if memory_validation:
                 validations.append(memory_validation)
@@ -126,7 +126,7 @@ class ValidationService:
         # 4. Add container resource metrics validation
         if requests or limits:
             metrics_validation = self._validate_container_metrics(
-                pod_name, namespace, container.name, requests, limits
+                pod_name, namespace, container["name"], requests, limits
             )
             if metrics_validation:
                 validations.append(metrics_validation)
@@ -134,7 +134,7 @@ class ValidationService:
         # 5. Validate minimum values
         if requests:
             min_validation = self._validate_minimum_values(
-                pod_name, namespace, container.name, requests
+                pod_name, namespace, container["name"], requests
             )
             validations.extend(min_validation)
         
