@@ -1664,7 +1664,7 @@
                 updateStats(data);
                 
                 // Update cluster health dashboard
-                updateClusterHealthDisplay(data, { distribution: data.qos_distribution });
+                updateClusterHealthDisplay(data, data);
                 
                 showSuccess('Cluster status loaded successfully. Loading analysis...');
                 
@@ -3083,7 +3083,7 @@
             } else {
                 overcommitText = '🟢 Normal';
             }
-            document.getElementById('overcommitStatus').textContent = overcommitText;
+            // Overcommit status is now shown in individual metrics above
             
             // Update resource consumption
             updateResourceConsumption(healthData);
@@ -3092,7 +3092,7 @@
             updateTopConsumers(healthData.top_resource_consumers);
             
             // Update QoS distribution
-            updateQoSDistribution(qosData.distribution);
+            updateQoSDistribution(qosData);
         }
 
         function formatCpuValue(value) {
@@ -3163,7 +3163,8 @@
             });
         }
 
-        function updateQoSDistribution(distribution) {
+        function updateQoSDistribution(qosData) {
+            const distribution = qosData.qos_distribution || {};
             document.getElementById('guaranteedCount').textContent = distribution.Guaranteed || 0;
             document.getElementById('burstableCount').textContent = distribution.Burstable || 0;
             document.getElementById('besteffortCount').textContent = distribution.BestEffort || 0;
