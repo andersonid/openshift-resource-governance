@@ -288,6 +288,30 @@ curl http://localhost:8080/health
 
 ---
 
+### **Phase 0: UI/UX Simplification (IMMEDIATE - 1 week)**
+
+#### 0.1 Interface Simplification
+- [ ] **Agrupar validações similares** em um único card
+- [ ] **Mostrar apenas o essencial** na visão principal
+- [ ] **Detalhes técnicos** em modal ou seção expandível
+- [ ] **Código de cores**: 🔴 Crítico, 🟡 Aviso, 🔵 Info
+- [ ] **Ícones específicos**: ⚡ CPU, 💾 Memory, 📊 Ratio
+- [ ] **Cards colapsáveis** para reduzir poluição visual
+
+#### 0.2 Melhorar Hierarquia Visual
+- [ ] **Modo "Simples"** vs "Técnico"
+- [ ] **Ações diretas**: "Fix CPU Ratio" button
+- [ ] **Progress bars** para mostrar saúde do namespace
+- [ ] **Timeline** de melhorias implementadas
+- [ ] **Comparação** entre namespaces
+
+#### 0.3 Funcionalidades Avançadas
+- [ ] **Botão "Apply Fix"** para ajustes automáticos
+- [ ] **Histórico de melhorias** implementadas
+- [ ] **Comparação entre namespaces**
+
+---
+
 ### **Phase 1: Enhanced Validation & Categorization (IMMEDIATE - 1-2 weeks)**
 
 #### 1.1 Smart Resource Detection

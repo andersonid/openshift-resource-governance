@@ -9,7 +9,8 @@ from fastapi.responses import FileResponse
 
 from app.models.resource_models import (
     ClusterReport, NamespaceReport, ExportRequest, 
-    ApplyRecommendationRequest, WorkloadCategory, SmartRecommendation
+    ApplyRecommendationRequest, WorkloadCategory, SmartRecommendation,
+    PodHealthScore, SimplifiedValidation
 )
 from app.services.validation_service import ValidationService
 from app.services.report_service import ReportService
@@ -800,6 +801,48 @@ async def get_resource_quotas(
         }
     except Exception as e:
         logger.error(f"Error getting resource quotas: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/pod-health-scores")
+async def get_pod_health_scores(
+    namespace: Optional[str] = None,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Get simplified pod health scores with grouped validations"""
+    try:
+        # Get pods
+        pods = await k8s_client.get_all_pods()
+        
+        if namespace:
+            pods = [pod for pod in pods if pod.namespace == namespace]
+        
+        health_scores = []
+        
+        for pod in pods:
+            # Get validations for this pod
+            pod_validations = validation_service.validate_pod_resources(pod)
+            
+            # Calculate health score
+            health_score = validation_service.calculate_pod_health_score(pod, pod_validations)
+            health_scores.append(health_score)
+        
+        # Sort by health score (worst first)
+        health_scores.sort(key=lambda x: x.health_score)
+        
+        return {
+            "pods": health_scores,
+            "total_pods": len(health_scores),
+            "summary": {
+                "excellent": len([h for h in health_scores if h.health_score >= 9]),
+                "good": len([h for h in health_scores if 7 <= h.health_score < 9]),
+                "medium": len([h for h in health_scores if 5 <= h.health_score < 7]),
+                "poor": len([h for h in health_scores if 3 <= h.health_score < 5]),
+                "critical": len([h for h in health_scores if h.health_score < 3])
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting pod health scores: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/health")

@@ -141,6 +141,43 @@ class ResourceQuota(BaseModel):
     usage_percentage: float = 0.0
     recommended_quota: Optional[Dict[str, str]] = None
 
+class PodHealthScore(BaseModel):
+    """Pod health score and simplified status"""
+    pod_name: str
+    namespace: str
+    health_score: int  # 0-10
+    health_status: str  # "Excellent", "Good", "Medium", "Poor", "Critical"
+    status_color: str  # "green", "yellow", "orange", "red"
+    status_icon: str  # "✅", "🟡", "🟠", "🔴"
+    
+    # Simplified resource display
+    cpu_display: str  # "100m → 500m (5:1 ratio)"
+    memory_display: str  # "128Mi → 256Mi (2:1 ratio)"
+    cpu_status: str  # "✅", "⚠️", "🔴"
+    memory_status: str  # "✅", "⚠️", "🔴"
+    
+    # Grouped validations
+    critical_issues: List[str] = []
+    warnings: List[str] = []
+    info_items: List[str] = []
+    
+    # Actions available
+    available_actions: List[str] = []  # "fix_cpu_ratio", "add_requests", "add_limits"
+    oc_commands: List[str] = []
+
+class SimplifiedValidation(BaseModel):
+    """Simplified validation for UI display"""
+    pod_name: str
+    namespace: str
+    validation_group: str  # "cpu_ratio", "memory_ratio", "missing_requests", "missing_limits"
+    severity: str  # "critical", "warning", "info"
+    title: str  # "CPU Ratio Issue"
+    description: str  # "CPU ratio 5:1 exceeds recommended 3:1"
+    current_value: str  # "5:1"
+    recommended_value: str  # "3:1"
+    action_required: str  # "Adjust CPU limits to 300m"
+    oc_command: Optional[str] = None
+
 class ClusterHealth(BaseModel):
     """Cluster health overview"""
     total_pods: int

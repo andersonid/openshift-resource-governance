@@ -12,7 +12,9 @@ from app.models.resource_models import (
     NamespaceResources,
     QoSClassification,
     ResourceQuota,
-    ClusterHealth
+    ClusterHealth,
+    PodHealthScore,
+    SimplifiedValidation
 )
 from app.core.config import settings
 from app.services.historical_analysis import HistoricalAnalysisService
@@ -808,3 +810,227 @@ class ValidationService:
         # For now, return a simple calculation based on namespace count
         # In a real implementation, this would check actual ResourceQuota objects
         return min(len(namespaces) * 0.2, 1.0)  # 20% per namespace, max 100%
+
+    def calculate_pod_health_score(self, pod: PodResource, validations: List[ResourceValidation]) -> PodHealthScore:
+        """Calculate pod health score and create simplified display"""
+        # Calculate health score (0-10)
+        health_score = 10
+        
+        # Deduct points for issues
+        for validation in validations:
+            if validation.severity == "critical":
+                health_score -= 3
+            elif validation.severity == "error":
+                health_score -= 2
+            elif validation.severity == "warning":
+                health_score -= 1
+        
+        # Ensure score is between 0-10
+        health_score = max(0, min(10, health_score))
+        
+        # Determine health status and visual indicators
+        if health_score >= 9:
+            health_status = "Excellent"
+            status_color = "green"
+            status_icon = "✅"
+        elif health_score >= 7:
+            health_status = "Good"
+            status_color = "green"
+            status_icon = "✅"
+        elif health_score >= 5:
+            health_status = "Medium"
+            status_color = "yellow"
+            status_icon = "🟡"
+        elif health_score >= 3:
+            health_status = "Poor"
+            status_color = "orange"
+            status_icon = "🟠"
+        else:
+            health_status = "Critical"
+            status_color = "red"
+            status_icon = "🔴"
+        
+        # Create simplified resource display
+        cpu_display, cpu_status = self._create_cpu_display(pod)
+        memory_display, memory_status = self._create_memory_display(pod)
+        
+        # Group validations by severity
+        critical_issues = []
+        warnings = []
+        info_items = []
+        
+        for validation in validations:
+            if validation.severity == "critical":
+                critical_issues.append(validation.message)
+            elif validation.severity in ["error", "warning"]:
+                warnings.append(validation.message)
+            else:
+                info_items.append(validation.message)
+        
+        # Determine available actions
+        available_actions = self._determine_available_actions(validations)
+        oc_commands = self._generate_oc_commands(pod, validations)
+        
+        return PodHealthScore(
+            pod_name=pod.name,
+            namespace=pod.namespace,
+            health_score=health_score,
+            health_status=health_status,
+            status_color=status_color,
+            status_icon=status_icon,
+            cpu_display=cpu_display,
+            memory_display=memory_display,
+            cpu_status=cpu_status,
+            memory_status=memory_status,
+            critical_issues=critical_issues,
+            warnings=warnings,
+            info_items=info_items,
+            available_actions=available_actions,
+            oc_commands=oc_commands
+        )
+
+    def _create_cpu_display(self, pod: PodResource) -> tuple[str, str]:
+        """Create CPU display string and status"""
+        if pod.cpu_requests == 0 and pod.cpu_limits == 0:
+            return "No CPU resources defined", "🔴"
+        
+        # Format CPU values
+        cpu_req_str = self._format_cpu_value(pod.cpu_requests)
+        cpu_lim_str = self._format_cpu_value(pod.cpu_limits)
+        
+        # Calculate ratio
+        if pod.cpu_requests > 0:
+            ratio = pod.cpu_limits / pod.cpu_requests
+            ratio_str = f"({ratio:.1f}:1 ratio)"
+        else:
+            ratio_str = "(no requests)"
+        
+        display = f"{cpu_req_str} → {cpu_lim_str} {ratio_str}"
+        
+        # Determine status
+        if pod.cpu_requests == 0:
+            status = "🔴"  # No requests
+        elif pod.cpu_limits == 0:
+            status = "🟡"  # No limits
+        elif pod.cpu_requests > 0 and pod.cpu_limits > 0:
+            ratio = pod.cpu_limits / pod.cpu_requests
+            if ratio > 5:
+                status = "🔴"  # Very high ratio
+            elif ratio > 3:
+                status = "🟡"  # High ratio
+            else:
+                status = "✅"  # Good ratio
+        else:
+            status = "🔴"
+        
+        return display, status
+
+    def _create_memory_display(self, pod: PodResource) -> tuple[str, str]:
+        """Create memory display string and status"""
+        if pod.memory_requests == 0 and pod.memory_limits == 0:
+            return "No memory resources defined", "🔴"
+        
+        # Format memory values
+        mem_req_str = self._format_memory_value(pod.memory_requests)
+        mem_lim_str = self._format_memory_value(pod.memory_limits)
+        
+        # Calculate ratio
+        if pod.memory_requests > 0:
+            ratio = pod.memory_limits / pod.memory_requests
+            ratio_str = f"({ratio:.1f}:1 ratio)"
+        else:
+            ratio_str = "(no requests)"
+        
+        display = f"{mem_req_str} → {mem_lim_str} {ratio_str}"
+        
+        # Determine status
+        if pod.memory_requests == 0:
+            status = "🔴"  # No requests
+        elif pod.memory_limits == 0:
+            status = "🟡"  # No limits
+        elif pod.memory_requests > 0 and pod.memory_limits > 0:
+            ratio = pod.memory_limits / pod.memory_requests
+            if ratio > 5:
+                status = "🔴"  # Very high ratio
+            elif ratio > 3:
+                status = "🟡"  # High ratio
+            else:
+                status = "✅"  # Good ratio
+        else:
+            status = "🔴"
+        
+        return display, status
+
+    def _format_cpu_value(self, value: float) -> str:
+        """Format CPU value for display"""
+        if value >= 1.0:
+            return f"{value:.1f} cores"
+        else:
+            return f"{int(value * 1000)}m"
+
+    def _format_memory_value(self, value_bytes: float) -> str:
+        """Format memory value for display"""
+        if value_bytes >= 1024 * 1024 * 1024:  # >= 1 GiB
+            return f"{value_bytes / (1024 * 1024 * 1024):.1f} GiB"
+        else:
+            return f"{int(value_bytes / (1024 * 1024))} MiB"
+
+    def _determine_available_actions(self, validations: List[ResourceValidation]) -> List[str]:
+        """Determine available actions based on validations"""
+        actions = []
+        
+        for validation in validations:
+            if validation.validation_type == "missing_requests":
+                actions.append("add_requests")
+            elif validation.validation_type == "missing_limits":
+                actions.append("add_limits")
+            elif validation.validation_type == "cpu_ratio":
+                actions.append("fix_cpu_ratio")
+            elif validation.validation_type == "memory_ratio":
+                actions.append("fix_memory_ratio")
+        
+        return list(set(actions))  # Remove duplicates
+
+    def _generate_oc_commands(self, pod: PodResource, validations: List[ResourceValidation]) -> List[str]:
+        """Generate oc commands for fixing issues"""
+        commands = []
+        
+        # Generate commands for each validation
+        for validation in validations:
+            if validation.validation_type == "missing_requests":
+                cmd = self._generate_add_requests_command(pod, validation)
+                if cmd:
+                    commands.append(cmd)
+            elif validation.validation_type == "missing_limits":
+                cmd = self._generate_add_limits_command(pod, validation)
+                if cmd:
+                    commands.append(cmd)
+            elif validation.validation_type in ["cpu_ratio", "memory_ratio"]:
+                cmd = self._generate_fix_ratio_command(pod, validation)
+                if cmd:
+                    commands.append(cmd)
+        
+        return commands
+
+    def _generate_add_requests_command(self, pod: PodResource, validation: ResourceValidation) -> str:
+        """Generate oc command to add requests"""
+        # This would need to be implemented based on specific container
+        return f"oc patch pod {pod.name} -n {pod.namespace} --type='merge' -p='{{\"spec\":{{\"containers\":[{{\"name\":\"{validation.container_name}\",\"resources\":{{\"requests\":{{\"cpu\":\"100m\",\"memory\":\"128Mi\"}}}}}}]}}}}'"
+
+    def _generate_add_limits_command(self, pod: PodResource, validation: ResourceValidation) -> str:
+        """Generate oc command to add limits"""
+        return f"oc patch pod {pod.name} -n {pod.namespace} --type='merge' -p='{{\"spec\":{{\"containers\":[{{\"name\":\"{validation.container_name}\",\"resources\":{{\"limits\":{{\"cpu\":\"500m\",\"memory\":\"512Mi\"}}}}}}]}}}}'"
+
+    def _generate_fix_ratio_command(self, pod: PodResource, validation: ResourceValidation) -> str:
+        """Generate oc command to fix ratio"""
+        # Calculate recommended limits based on 3:1 ratio
+        if validation.validation_type == "cpu_ratio":
+            recommended_limit = pod.cpu_requests * 3
+            limit_str = self._format_cpu_value(recommended_limit)
+            return f"oc patch pod {pod.name} -n {pod.namespace} --type='merge' -p='{{\"spec\":{{\"containers\":[{{\"name\":\"{validation.container_name}\",\"resources\":{{\"limits\":{{\"cpu\":\"{limit_str}\"}}}}}}]}}}}'"
+        elif validation.validation_type == "memory_ratio":
+            recommended_limit = pod.memory_requests * 3
+            limit_str = self._format_memory_value(recommended_limit)
+            return f"oc patch pod {pod.name} -n {pod.namespace} --type='merge' -p='{{\"spec\":{{\"containers\":[{{\"name\":\"{validation.container_name}\",\"resources\":{{\"limits\":{{\"memory\":\"{limit_str}\"}}}}}}]}}}}'"
+        
+        return ""

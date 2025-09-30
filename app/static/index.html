@@ -1278,6 +1278,336 @@
                 gap: 0.5rem;
             }
         }
+
+        /* Simplified View Styles */
+        .view-mode-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .mode-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #e9ecef;
+            background: white;
+            color: #6c757d;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: #f8f9fa;
+            border-color: #007bff;
+            color: #007bff;
+        }
+
+        .health-summary {
+            margin-bottom: 2rem;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 2px solid;
+            background: white;
+        }
+
+        .stat-card.excellent {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .stat-card.good {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .stat-card.medium {
+            border-color: #ffc107;
+            background: #fffdf5;
+        }
+
+        .stat-card.poor {
+            border-color: #fd7e14;
+            background: #fff8f5;
+        }
+
+        .stat-card.critical {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .pod-cards-container {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .pod-health-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .pod-health-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .pod-health-card.excellent {
+            border-color: #28a745;
+        }
+
+        .pod-health-card.good {
+            border-color: #28a745;
+        }
+
+        .pod-health-card.medium {
+            border-color: #ffc107;
+        }
+
+        .pod-health-card.poor {
+            border-color: #fd7e14;
+        }
+
+        .pod-health-card.critical {
+            border-color: #dc3545;
+        }
+
+        .pod-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .pod-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .pod-namespace {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .health-score {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .health-score-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .health-status {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .resource-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .resource-icon {
+            font-size: 1.2rem;
+        }
+
+        .resource-text {
+            flex: 1;
+        }
+
+        .resource-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+
+        .resource-value {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .pod-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #007bff;
+            background: white;
+            color: #007bff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #007bff;
+            color: white;
+        }
+
+        .action-btn.primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #0056b3;
+        }
+
+        .technical-details {
+            margin-top: 2rem;
+        }
+
+        .technical-details.hidden {
+            display: none;
+        }
+
+        .technical-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .technical-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .validation-groups {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .validation-group {
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+
+        .validation-group.critical {
+            background: #fff5f5;
+            border-left-color: #dc3545;
+        }
+
+        .validation-group.warning {
+            background: #fffdf5;
+            border-left-color: #ffc107;
+        }
+
+        .validation-group.info {
+            background: #f8f9fa;
+            border-left-color: #6c757d;
+        }
+
+        .validation-group-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .validation-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .validation-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .validation-item:last-child {
+            border-bottom: none;
+        }
+
+        .oc-command {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
     </style>
 </head>
 <body>
@@ -1290,6 +1620,10 @@
             <a href="#" class="nav-item active" data-section="dashboard">
                 <span class="nav-icon">🏠</span>
                 <span class="nav-text">Cluster Health</span>
+            </a>
+            <a href="#" class="nav-item" data-section="simplified-view">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-text">Simplified View</span>
             </a>
             <a href="#" class="nav-item" data-section="workload-categories">
                 <span class="nav-icon">📊</span>
@@ -1559,6 +1893,70 @@
         <div class="card" id="vpaCard" style="display: none;">
             <h2>VPA Management</h2>
             <div id="vpaList"></div>
+        </div>
+
+        <!-- Simplified View -->
+        <div class="card" id="simplifiedViewCard" style="display: none;">
+            <h2>🎯 Simplified Pod Health View</h2>
+            
+            <!-- View Mode Toggle -->
+            <div class="view-mode-toggle">
+                <button class="mode-btn active" id="simpleModeBtn" onclick="switchViewMode('simple')">Simple Mode</button>
+                <button class="mode-btn" id="technicalModeBtn" onclick="switchViewMode('technical')">Technical Mode</button>
+            </div>
+            
+            <!-- Health Summary -->
+            <div class="health-summary" id="healthSummary">
+                <div class="summary-stats">
+                    <div class="stat-card excellent">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="excellentCount">0</div>
+                            <div class="stat-label">Excellent</div>
+                        </div>
+                    </div>
+                    <div class="stat-card good">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="goodCount">0</div>
+                            <div class="stat-label">Good</div>
+                        </div>
+                    </div>
+                    <div class="stat-card medium">
+                        <div class="stat-icon">🟡</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="mediumCount">0</div>
+                            <div class="stat-label">Medium</div>
+                        </div>
+                    </div>
+                    <div class="stat-card poor">
+                        <div class="stat-icon">🟠</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="poorCount">0</div>
+                            <div class="stat-label">Poor</div>
+                        </div>
+                    </div>
+                    <div class="stat-card critical">
+                        <div class="stat-icon">🔴</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="criticalCount">0</div>
+                            <div class="stat-label">Critical</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pod Health Cards (Simple Mode) -->
+            <div id="simplePodCards" class="pod-cards-container">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <!-- Technical Details (Technical Mode) -->
+            <div id="technicalDetails" class="technical-details hidden">
+                <div id="technicalPodCards" class="technical-cards-container">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
         </div>
 
         <!-- Loading -->
@@ -3422,6 +3820,7 @@
             // Show selected section
             const sectionMap = {
                 'dashboard': 'validationsCard',
+                'simplified-view': 'simplifiedViewCard',
                 'historical-analysis': 'historicalCard',
                 'smart-recommendations': 'smartRecommendationsCard',
                 'workload-categories': 'workloadCategoriesCard',
@@ -3441,19 +3840,206 @@
             case 'dashboard':
                 loadClusterHealth();
                 break;
-                case 'historical-analysis':
-                    loadHistoricalValidations();
-                    break;
-                case 'smart-recommendations':
-                    loadSmartRecommendations();
-                    break;
-                case 'workload-categories':
-                    loadWorkloadCategories();
-                    break;
-                case 'vpa-recommendations':
-                    loadVPARecommendations();
-                    break;
+            case 'simplified-view':
+                loadSimplifiedView();
+                break;
+            case 'historical-analysis':
+                loadHistoricalValidations();
+                break;
+            case 'smart-recommendations':
+                loadSmartRecommendations();
+                break;
+            case 'workload-categories':
+                loadWorkloadCategories();
+                break;
+            case 'vpa-recommendations':
+                loadVPARecommendations();
+                break;
             }
+        }
+
+        // Simplified View Functions
+        let currentViewMode = 'simple';
+        let healthScoresData = null;
+
+        async function loadSimplifiedView() {
+            try {
+                showLoading();
+                
+                const response = await fetch('/api/v1/pod-health-scores');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                healthScoresData = await response.json();
+                updateHealthSummary(healthScoresData.summary);
+                updatePodCards(healthScoresData.pods);
+                
+                hideLoading();
+            } catch (error) {
+                console.error('Error loading simplified view:', error);
+                showError('Error loading simplified view: ' + error.message);
+            }
+        }
+
+        function updateHealthSummary(summary) {
+            document.getElementById('excellentCount').textContent = summary.excellent;
+            document.getElementById('goodCount').textContent = summary.good;
+            document.getElementById('mediumCount').textContent = summary.medium;
+            document.getElementById('poorCount').textContent = summary.poor;
+            document.getElementById('criticalCount').textContent = summary.critical;
+        }
+
+        function updatePodCards(pods) {
+            const container = document.getElementById('simplePodCards');
+            const technicalContainer = document.getElementById('technicalPodCards');
+            
+            let simpleHtml = '';
+            let technicalHtml = '';
+            
+            pods.forEach(pod => {
+                // Simple mode card
+                simpleHtml += `
+                    <div class="pod-health-card ${pod.status_color}">
+                        <div class="pod-header">
+                            <div>
+                                <div class="pod-name">${pod.pod_name}</div>
+                                <div class="pod-namespace">${pod.namespace}</div>
+                            </div>
+                            <div class="health-score">
+                                <span class="health-score-value">${pod.health_score}/10</span>
+                                <span class="health-status">${pod.health_status}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="resource-display">
+                            <div class="resource-item">
+                                <span class="resource-icon">⚡</span>
+                                <div class="resource-text">
+                                    <div class="resource-label">CPU</div>
+                                    <div class="resource-value">${pod.cpu_display} ${pod.cpu_status}</div>
+                                </div>
+                            </div>
+                            <div class="resource-item">
+                                <span class="resource-icon">💾</span>
+                                <div class="resource-text">
+                                    <div class="resource-label">Memory</div>
+                                    <div class="resource-value">${pod.memory_display} ${pod.memory_status}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pod-actions">
+                            <button class="action-btn primary" onclick="viewPodDetails('${pod.pod_name}')">View Details</button>
+                            ${pod.available_actions.includes('fix_cpu_ratio') ? '<button class="action-btn" onclick="fixPodIssue(\'' + pod.pod_name + '\', \'cpu_ratio\')">Fix CPU Ratio</button>' : ''}
+                            ${pod.available_actions.includes('add_requests') ? '<button class="action-btn" onclick="fixPodIssue(\'' + pod.pod_name + '\', \'add_requests\')">Add Requests</button>' : ''}
+                        </div>
+                    </div>
+                `;
+                
+                // Technical mode card
+                technicalHtml += `
+                    <div class="technical-card">
+                        <div class="technical-header">
+                            <div>
+                                <div class="pod-name">${pod.pod_name}</div>
+                                <div class="pod-namespace">${pod.namespace}</div>
+                            </div>
+                            <div class="health-score">
+                                <span class="health-score-value">${pod.health_score}/10</span>
+                                <span class="health-status">${pod.health_status}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="validation-groups">
+                            ${pod.critical_issues.length > 0 ? `
+                                <div class="validation-group critical">
+                                    <div class="validation-group-title">🔴 Critical Issues (${pod.critical_issues.length})</div>
+                                    <ul class="validation-list">
+                                        ${pod.critical_issues.map(issue => `<li class="validation-item">${issue}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            
+                            ${pod.warnings.length > 0 ? `
+                                <div class="validation-group warning">
+                                    <div class="validation-group-title">🟡 Warnings (${pod.warnings.length})</div>
+                                    <ul class="validation-list">
+                                        ${pod.warnings.map(warning => `<li class="validation-item">${warning}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            
+                            ${pod.info_items.length > 0 ? `
+                                <div class="validation-group info">
+                                    <div class="validation-group-title">🔵 Information (${pod.info_items.length})</div>
+                                    <ul class="validation-list">
+                                        ${pod.info_items.map(info => `<li class="validation-item">${info}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${pod.oc_commands.length > 0 ? `
+                            <div class="oc-commands">
+                                <h4>Available Commands:</h4>
+                                ${pod.oc_commands.map(cmd => `
+                                    <div class="oc-command">
+                                        ${cmd}
+                                        <button class="copy-btn" onclick="copyToClipboard('${cmd.replace(/'/g, "\\'")}')">Copy</button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = simpleHtml;
+            technicalContainer.innerHTML = technicalHtml;
+        }
+
+        function switchViewMode(mode) {
+            currentViewMode = mode;
+            
+            // Update button states
+            document.getElementById('simpleModeBtn').classList.toggle('active', mode === 'simple');
+            document.getElementById('technicalModeBtn').classList.toggle('active', mode === 'technical');
+            
+            // Show/hide appropriate content
+            document.getElementById('simplePodCards').style.display = mode === 'simple' ? 'block' : 'none';
+            document.getElementById('technicalDetails').classList.toggle('hidden', mode === 'simple');
+        }
+
+        function viewPodDetails(podName) {
+            // Switch to technical mode and scroll to pod
+            switchViewMode('technical');
+            const podCard = document.querySelector(`[data-pod="${podName}"]`);
+            if (podCard) {
+                podCard.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function fixPodIssue(podName, issueType) {
+            // This would implement the fix logic
+            alert(`Fixing ${issueType} for pod ${podName}`);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show success feedback
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = '#28a745';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#28a745';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy to clipboard');
+            });
         }
 
         // Add click handlers for navigation
