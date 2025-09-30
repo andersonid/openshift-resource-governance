@@ -15,6 +15,7 @@ from app.models.resource_models import (
 from app.services.validation_service import ValidationService
 from app.services.report_service import ReportService
 from app.services.historical_analysis import HistoricalAnalysisService
+from app.core.prometheus_client import PrometheusClient
 
 logger = logging.getLogger(__name__)
 
