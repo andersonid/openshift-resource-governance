@@ -224,6 +224,125 @@
             font-size: 1rem;
         }
 
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 1000px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+        
+        /* Namespace Details Styles */
+        .namespace-details {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .namespace-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .namespace-summary ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .pod-detail {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin: 15px 0;
+            padding: 15px;
+            background: #fff;
+        }
+        
+        .pod-detail h5 {
+            color: #495057;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 5px;
+        }
+        
+        .containers-detail {
+            margin: 15px 0;
+        }
+        
+        .container-detail {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .validations-detail {
+            margin: 15px 0;
+        }
+        
+        .validation-item {
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 3px;
+            border-left: 4px solid #6c757d;
+        }
+        
+        .validation-item.severity-error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        
+        .validation-item.severity-warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        
+        .validation-item.severity-info {
+            background: #d1ecf1;
+            border-left-color: #17a2b8;
+        }
+        
+        .validation-item p {
+            margin: 5px 0;
+        }
+        
+        .validation-item strong {
+            color: #495057;
+        }
+        
+        .validation-item em {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
         /* Problem Summary Table */
         .problem-summary {
             margin-bottom: 2rem;
@@ -843,6 +962,126 @@
             if (breakdown.warning > 0) return 'warning';
             if (breakdown.info > 0) return 'info';
             return 'info';
+        }
+
+        // Analyze namespace - show detailed issues
+        function analyzeNamespace(namespaceName) {
+            if (!currentData || !currentData.namespaces) return;
+            
+            const namespace = currentData.namespaces.find(ns => ns.namespace === namespaceName);
+            if (!namespace) return;
+            
+            // Create detailed view
+            const detailsHtml = createNamespaceDetails(namespace);
+            
+            // Show modal or expandable section
+            showNamespaceDetails(namespaceName, detailsHtml);
+        }
+        
+        // Create detailed HTML for namespace issues
+        function createNamespaceDetails(namespace) {
+            let html = `
+                <div class="namespace-details">
+                    <h3>📋 ${namespace.namespace} - Detailed Analysis</h3>
+                    <div class="namespace-summary">
+                        <p><strong>Pods:</strong> ${Object.keys(namespace.pods || {}).length}</p>
+                        <p><strong>Total Issues:</strong> ${namespace.total_validations || 0}</p>
+                        <p><strong>Severity Breakdown:</strong></p>
+                        <ul>
+                            <li>Errors: ${namespace.severity_breakdown?.error || 0}</li>
+                            <li>Warnings: ${namespace.severity_breakdown?.warning || 0}</li>
+                            <li>Info: ${namespace.severity_breakdown?.info || 0}</li>
+                        </ul>
+                    </div>
+                    <div class="pods-details">
+                        <h4>🔍 Pod Analysis</h4>
+            `;
+            
+            // Add details for each pod
+            Object.values(namespace.pods || {}).forEach(pod => {
+                html += `
+                    <div class="pod-detail">
+                        <h5>📦 ${pod.pod_name}</h5>
+                        <p><strong>Status:</strong> ${pod.phase}</p>
+                        <p><strong>Node:</strong> ${pod.node_name}</p>
+                        <div class="containers-detail">
+                            <h6>Containers:</h6>
+                `;
+                
+                pod.containers.forEach(container => {
+                    const hasRequests = Object.keys(container.resources?.requests || {}).length > 0;
+                    const hasLimits = Object.keys(container.resources?.limits || {}).length > 0;
+                    
+                    html += `
+                        <div class="container-detail">
+                            <p><strong>${container.name}</strong> (${container.image})</p>
+                            <p>Requests: ${hasRequests ? JSON.stringify(container.resources.requests) : '❌ Not defined'}</p>
+                            <p>Limits: ${hasLimits ? JSON.stringify(container.resources.limits) : '❌ Not defined'}</p>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                        <div class="validations-detail">
+                            <h6>Issues Found:</h6>
+                `;
+                
+                pod.validations.forEach(validation => {
+                    const severityClass = `severity-${validation.severity}`;
+                    html += `
+                        <div class="validation-item ${severityClass}">
+                            <p><strong>${validation.rule_name}:</strong> ${validation.message}</p>
+                            <p><em>Recommendation:</em> ${validation.recommendation}</p>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+        
+        // Show namespace details in modal
+        function showNamespaceDetails(namespaceName, detailsHtml) {
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('namespaceModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'namespaceModal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <div id="modalBody"></div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Add close functionality
+                modal.querySelector('.close').onclick = () => modal.style.display = 'none';
+                modal.onclick = (e) => {
+                    if (e.target === modal) modal.style.display = 'none';
+                };
+            }
+            
+            // Populate and show modal
+            document.getElementById('modalBody').innerHTML = detailsHtml;
+            modal.style.display = 'block';
+        }
+        
+        // Fix namespace - placeholder for now
+        function fixNamespace(namespaceName) {
+            alert(`Fix functionality for namespace "${namespaceName}" will be implemented in Phase 2.\n\nThis will include:\n- Auto-generating resource recommendations\n- Creating YAML patches\n- Applying fixes via OpenShift API`);
         }
 
         // Apply filters
