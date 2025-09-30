@@ -396,7 +396,7 @@ class ValidationService:
         # This is already handled at container level in _validate_container_resources
         
         # Check for missing limits (Burstable pods)
-        elif qos_class == "Burstable" and (cpu_limits == 0 or memory_limits == 0):
+        if qos_class == "Burstable" and (cpu_limits == 0 or memory_limits == 0):
             return ResourceValidation(
                 pod_name=pod_name,
                 namespace=namespace,
