@@ -251,7 +251,7 @@ async def get_validations_by_namespace(
                     "namespace": pod.namespace,
                     "pods": {},
                     "total_validations": 0,
-                    "severity_breakdown": {"error": 0, "warning": 0}
+                    "severity_breakdown": {"error": 0, "warning": 0, "info": 0, "critical": 0}
                 }
             
             # Group validations by pod
@@ -270,7 +270,12 @@ async def get_validations_by_namespace(
             
             # Count severities
             for validation in pod_validations:
-                namespace_validations[pod.namespace]["severity_breakdown"][validation.severity] += 1
+                severity = validation.severity
+                if severity in namespace_validations[pod.namespace]["severity_breakdown"]:
+                    namespace_validations[pod.namespace]["severity_breakdown"][severity] += 1
+                else:
+                    # Handle unknown severity types
+                    namespace_validations[pod.namespace]["severity_breakdown"]["info"] += 1
         
         # Convert to list and sort by total validations
         namespace_list = list(namespace_validations.values())
