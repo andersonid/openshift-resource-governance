@@ -239,13 +239,32 @@
         .modal-content {
             background-color: #fefefe;
             margin: 5% auto;
-            padding: 20px;
+            padding: 0;
             border: 1px solid #888;
             border-radius: 8px;
             width: 80%;
             max-width: 1000px;
             max-height: 80vh;
             overflow-y: auto;
+        }
+        
+        .modal-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: #495057;
+        }
+        
+        .modal-body {
+            padding: 20px;
         }
         
         .close {
@@ -341,6 +360,28 @@
         .validation-item em {
             color: #6c757d;
             font-size: 0.9em;
+        }
+        
+        /* Fix Modal Styles */
+        .fix-details {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .fix-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .fix-info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .fix-actions {
+            margin-top: 20px;
+            text-align: right;
         }
 
         /* Problem Summary Table */
@@ -1051,57 +1092,162 @@
             return html;
         }
         
-        // Show namespace details in a simple alert (temporary solution)
+        // Show namespace details in modal
         function showNamespaceDetailsSimple(namespaceName, detailsHtml) {
-            // Create a simple text summary for the alert
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('namespaceModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'namespaceModal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>📋 Namespace Analysis</h2>
+                            <span class="close">&times;</span>
+                        </div>
+                        <div class="modal-body" id="modalBody"></div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Add close functionality
+                modal.querySelector('.close').onclick = () => modal.style.display = 'none';
+                modal.onclick = (e) => {
+                    if (e.target === modal) modal.style.display = 'none';
+                };
+            }
+            
+            // Create detailed content
             const namespace = currentData.namespaces.find(ns => ns.namespace === namespaceName);
             if (!namespace) return;
             
-            let summary = `📋 ${namespaceName} - Detailed Analysis\n\n`;
-            summary += `Pods: ${Object.keys(namespace.pods || {}).length}\n`;
-            summary += `Total Issues: ${namespace.total_validations || 0}\n\n`;
+            let content = `
+                <div class="namespace-details">
+                    <h3>📋 ${namespaceName} - Detailed Analysis</h3>
+                    <div class="namespace-summary">
+                        <p><strong>Pods:</strong> ${Object.keys(namespace.pods || {}).length}</p>
+                        <p><strong>Total Issues:</strong> ${namespace.total_validations || 0}</p>
+                        <p><strong>Severity Breakdown:</strong></p>
+                        <ul>
+                            <li>Errors: ${namespace.severity_breakdown?.error || 0}</li>
+                            <li>Warnings: ${namespace.severity_breakdown?.warning || 0}</li>
+                            <li>Info: ${namespace.severity_breakdown?.info || 0}</li>
+                        </ul>
+                    </div>
+                    <div class="pods-details">
+                        <h4>🔍 Pod Analysis</h4>
+            `;
             
-            // Add severity breakdown
-            const breakdown = namespace.severity_breakdown || {};
-            summary += `Severity Breakdown:\n`;
-            summary += `- Errors: ${breakdown.error || 0}\n`;
-            summary += `- Warnings: ${breakdown.warning || 0}\n`;
-            summary += `- Info: ${breakdown.info || 0}\n\n`;
-            
-            // Add pod details
-            summary += `Pod Analysis:\n`;
+            // Add details for each pod
             Object.values(namespace.pods || {}).forEach(pod => {
-                summary += `\n📦 ${pod.pod_name}\n`;
-                summary += `Status: ${pod.phase}\n`;
-                summary += `Node: ${pod.node_name}\n`;
+                content += `
+                    <div class="pod-detail">
+                        <h5>📦 ${pod.pod_name}</h5>
+                        <p><strong>Status:</strong> ${pod.phase}</p>
+                        <p><strong>Node:</strong> ${pod.node_name}</p>
+                        <div class="containers-detail">
+                            <h6>Containers:</h6>
+                `;
                 
-                // Add container details
                 pod.containers.forEach(container => {
                     const hasRequests = Object.keys(container.resources?.requests || {}).length > 0;
                     const hasLimits = Object.keys(container.resources?.limits || {}).length > 0;
                     
-                    summary += `\n  Container: ${container.name}\n`;
-                    summary += `  Image: ${container.image}\n`;
-                    summary += `  Requests: ${hasRequests ? JSON.stringify(container.resources.requests) : '❌ Not defined'}\n`;
-                    summary += `  Limits: ${hasLimits ? JSON.stringify(container.resources.limits) : '❌ Not defined'}\n`;
+                    content += `
+                        <div class="container-detail">
+                            <p><strong>${container.name}</strong> (${container.image})</p>
+                            <p>Requests: ${hasRequests ? JSON.stringify(container.resources.requests) : '❌ Not defined'}</p>
+                            <p>Limits: ${hasLimits ? JSON.stringify(container.resources.limits) : '❌ Not defined'}</p>
+                        </div>
+                    `;
                 });
                 
-                // Add validation details
+                content += `
+                        </div>
+                        <div class="validations-detail">
+                            <h6>Issues Found:</h6>
+                `;
+                
                 if (pod.validations && pod.validations.length > 0) {
-                    summary += `\n  Issues Found:\n`;
                     pod.validations.forEach(validation => {
-                        summary += `    - ${validation.rule_name}: ${validation.message}\n`;
-                        summary += `      Recommendation: ${validation.recommendation}\n`;
+                        const severityClass = `severity-${validation.severity}`;
+                        content += `
+                            <div class="validation-item ${severityClass}">
+                                <p><strong>${validation.rule_name}:</strong> ${validation.message}</p>
+                                <p><em>Recommendation:</em> ${validation.recommendation}</p>
+                            </div>
+                        `;
                     });
+                } else {
+                    content += `<p>No issues found for this pod.</p>`;
                 }
+                
+                content += `
+                        </div>
+                    </div>
+                `;
             });
             
-            alert(summary);
+            content += `
+                    </div>
+                </div>
+            `;
+            
+            // Populate and show modal
+            document.getElementById('modalBody').innerHTML = content;
+            modal.style.display = 'block';
         }
         
         // Fix namespace - placeholder for now
         function fixNamespace(namespaceName) {
-            alert(`Fix functionality for namespace "${namespaceName}" will be implemented in Phase 2.\n\nThis will include:\n- Auto-generating resource recommendations\n- Creating YAML patches\n- Applying fixes via OpenShift API`);
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('fixModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'fixModal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>🔧 Fix Namespace</h2>
+                            <span class="close">&times;</span>
+                        </div>
+                        <div class="modal-body" id="fixModalBody"></div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Add close functionality
+                modal.querySelector('.close').onclick = () => modal.style.display = 'none';
+                modal.onclick = (e) => {
+                    if (e.target === modal) modal.style.display = 'none';
+                };
+            }
+            
+            // Create content
+            let content = `
+                <div class="fix-details">
+                    <h3>🔧 Fix Namespace: ${namespaceName}</h3>
+                    <div class="fix-info">
+                        <p><strong>Status:</strong> Coming Soon in Phase 2</p>
+                        <p>This functionality will include:</p>
+                        <ul>
+                            <li>Auto-generating resource recommendations</li>
+                            <li>Creating YAML patches</li>
+                            <li>Applying fixes via OpenShift API</li>
+                            <li>Bulk fixes for multiple namespaces</li>
+                        </ul>
+                        <div class="fix-actions">
+                            <button class="btn btn-primary" onclick="document.getElementById('fixModal').style.display='none'">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Populate and show modal
+            document.getElementById('fixModalBody').innerHTML = content;
+            modal.style.display = 'block';
         }
 
         // Apply filters
