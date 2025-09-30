@@ -149,7 +149,7 @@ class ValidationService:
             if request_value > 0:
                 ratio = limit_value / request_value
                 
-                if ratio > self.cpu_ratio * 1.5:  # 50% de tolerância
+                if ratio > self.cpu_ratio:  # Sem tolerância excessiva
                     return ResourceValidation(
                         pod_name=pod_name,
                         namespace=namespace,
@@ -194,7 +194,7 @@ class ValidationService:
             if request_value > 0:
                 ratio = limit_value / request_value
                 
-                if ratio > self.memory_ratio * 1.5:  # 50% de tolerância
+                if ratio > self.memory_ratio:  # Sem tolerância excessiva
                     return ResourceValidation(
                         pod_name=pod_name,
                         namespace=namespace,
