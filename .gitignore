@@ -164,4 +164,4 @@ kubeconfig
 .playwright-mcp/
 
 # AI Agent Support
-# AIAgents-Support.md - Keep this file in version control
+AIAgents-Support.md
