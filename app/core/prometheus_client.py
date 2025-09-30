@@ -79,6 +79,59 @@ class PrometheusClient:
             logger.error(f"Error executing Prometheus query: {e}")
             return {"status": "error", "message": str(e)}
     
+    async def query_range(self, query: str, time_range: str = "24h") -> List[List[float]]:
+        """Execute a Prometheus range query"""
+        if not self.initialized or not self.session:
+            return []
+        
+        try:
+            # Calculate time range
+            end_time = datetime.now()
+            if time_range == "1h":
+                start_time = end_time - timedelta(hours=1)
+                step = "1m"
+            elif time_range == "6h":
+                start_time = end_time - timedelta(hours=6)
+                step = "5m"
+            elif time_range == "24h":
+                start_time = end_time - timedelta(hours=24)
+                step = "15m"
+            elif time_range == "7d":
+                start_time = end_time - timedelta(days=7)
+                step = "1h"
+            else:
+                start_time = end_time - timedelta(hours=24)
+                step = "15m"
+            
+            params = {
+                'query': query,
+                'start': int(start_time.timestamp()),
+                'end': int(end_time.timestamp()),
+                'step': step
+            }
+            
+            async with self.session.get(
+                f"{self.base_url}/api/v1/query_range",
+                params=params,
+                ssl=False
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data.get("status") == "success" and data.get("data", {}).get("result"):
+                        # Extract time series data points
+                        result = data["data"]["result"][0]
+                        return result.get("values", [])
+                    else:
+                        logger.warning(f"No data returned for query: {query}")
+                        return []
+                else:
+                    logger.error(f"Prometheus range query failed: {response.status}")
+                    return []
+        
+        except Exception as e:
+            logger.error(f"Error querying Prometheus range: {e}")
+            return []
+    
     async def get_pod_cpu_usage(self, namespace: str, pod_name: str) -> Dict[str, Any]:
         """Get CPU usage for a specific pod"""
         query = f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}", pod="{pod_name}"}}[5m])'
