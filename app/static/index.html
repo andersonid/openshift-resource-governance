@@ -974,8 +974,8 @@
             // Create detailed view
             const detailsHtml = createNamespaceDetails(namespace);
             
-            // Show modal or expandable section
-            showNamespaceDetails(namespaceName, detailsHtml);
+            // Show details in an alert for now (simpler approach)
+            showNamespaceDetailsSimple(namespaceName, detailsHtml);
         }
         
         // Create detailed HTML for namespace issues
@@ -1051,32 +1051,52 @@
             return html;
         }
         
-        // Show namespace details in modal
-        function showNamespaceDetails(namespaceName, detailsHtml) {
-            // Create modal if it doesn't exist
-            let modal = document.getElementById('namespaceModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'namespaceModal';
-                modal.className = 'modal';
-                modal.innerHTML = `
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <div id="modalBody"></div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-                
-                // Add close functionality
-                modal.querySelector('.close').onclick = () => modal.style.display = 'none';
-                modal.onclick = (e) => {
-                    if (e.target === modal) modal.style.display = 'none';
-                };
-            }
+        // Show namespace details in a simple alert (temporary solution)
+        function showNamespaceDetailsSimple(namespaceName, detailsHtml) {
+            // Create a simple text summary for the alert
+            const namespace = currentData.namespaces.find(ns => ns.namespace === namespaceName);
+            if (!namespace) return;
             
-            // Populate and show modal
-            document.getElementById('modalBody').innerHTML = detailsHtml;
-            modal.style.display = 'block';
+            let summary = `📋 ${namespaceName} - Detailed Analysis\n\n`;
+            summary += `Pods: ${Object.keys(namespace.pods || {}).length}\n`;
+            summary += `Total Issues: ${namespace.total_validations || 0}\n\n`;
+            
+            // Add severity breakdown
+            const breakdown = namespace.severity_breakdown || {};
+            summary += `Severity Breakdown:\n`;
+            summary += `- Errors: ${breakdown.error || 0}\n`;
+            summary += `- Warnings: ${breakdown.warning || 0}\n`;
+            summary += `- Info: ${breakdown.info || 0}\n\n`;
+            
+            // Add pod details
+            summary += `Pod Analysis:\n`;
+            Object.values(namespace.pods || {}).forEach(pod => {
+                summary += `\n📦 ${pod.pod_name}\n`;
+                summary += `Status: ${pod.phase}\n`;
+                summary += `Node: ${pod.node_name}\n`;
+                
+                // Add container details
+                pod.containers.forEach(container => {
+                    const hasRequests = Object.keys(container.resources?.requests || {}).length > 0;
+                    const hasLimits = Object.keys(container.resources?.limits || {}).length > 0;
+                    
+                    summary += `\n  Container: ${container.name}\n`;
+                    summary += `  Image: ${container.image}\n`;
+                    summary += `  Requests: ${hasRequests ? JSON.stringify(container.resources.requests) : '❌ Not defined'}\n`;
+                    summary += `  Limits: ${hasLimits ? JSON.stringify(container.resources.limits) : '❌ Not defined'}\n`;
+                });
+                
+                // Add validation details
+                if (pod.validations && pod.validations.length > 0) {
+                    summary += `\n  Issues Found:\n`;
+                    pod.validations.forEach(validation => {
+                        summary += `    - ${validation.rule_name}: ${validation.message}\n`;
+                        summary += `      Recommendation: ${validation.recommendation}\n`;
+                    });
+                }
+            });
+            
+            alert(summary);
         }
         
         // Fix namespace - placeholder for now
