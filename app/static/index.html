@@ -819,14 +819,14 @@
                 
                 html += `
                     <tr>
-                        <td><strong>${namespace.name}</strong></td>
-                        <td>${namespace.pod_count || 0}</td>
+                        <td><strong>${namespace.namespace}</strong></td>
+                        <td>${Object.keys(namespace.pods || {}).length}</td>
                         <td>${namespace.total_validations || 0}</td>
                         <td><span class="severity-badge ${severityClass}">${severity}</span></td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn btn-primary btn-sm" onclick="analyzeNamespace('${namespace.name}')">Analyze</button>
-                                <button class="btn btn-success btn-sm" onclick="fixNamespace('${namespace.name}')">Fix</button>
+                                <button class="btn btn-primary btn-sm" onclick="analyzeNamespace('${namespace.namespace}')">Analyze</button>
+                                <button class="btn btn-success btn-sm" onclick="fixNamespace('${namespace.namespace}')">Fix</button>
                             </div>
                         </td>
                     </tr>
@@ -838,9 +838,10 @@
 
         // Get highest severity from namespace
         function getHighestSeverity(namespace) {
-            if (namespace.critical_issues > 0) return 'critical';
-            if (namespace.error_issues > 0) return 'error';
-            if (namespace.warning_issues > 0) return 'warning';
+            const breakdown = namespace.severity_breakdown || {};
+            if (breakdown.error > 0) return 'error';
+            if (breakdown.warning > 0) return 'warning';
+            if (breakdown.info > 0) return 'info';
             return 'info';
         }
 
