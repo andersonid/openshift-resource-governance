@@ -121,7 +121,15 @@ class ValidationService:
             if memory_validation:
                 validations.append(memory_validation)
         
-        # 4. Validate minimum values
+        # 4. Add container resource metrics validation
+        if requests or limits:
+            metrics_validation = self._validate_container_metrics(
+                pod_name, namespace, container.name, requests, limits
+            )
+            if metrics_validation:
+                validations.append(metrics_validation)
+        
+        # 5. Validate minimum values
         if requests:
             min_validation = self._validate_minimum_values(
                 pod_name, namespace, container.name, requests
@@ -219,6 +227,65 @@ class ValidationService:
             logger.warning(f"Error validating memory ratio: {e}")
         
         return None
+    
+    def _validate_container_metrics(
+        self,
+        pod_name: str,
+        namespace: str,
+        container_name: str,
+        requests: Dict[str, str],
+        limits: Dict[str, str]
+    ) -> ResourceValidation:
+        """Show container resource metrics and analysis"""
+        try:
+            # Parse CPU values
+            cpu_request = requests.get("cpu", "0")
+            cpu_limit = limits.get("cpu", "0")
+            cpu_request_parsed = self._parse_cpu_value(cpu_request)
+            cpu_limit_parsed = self._parse_cpu_value(cpu_limit)
+            
+            # Parse Memory values
+            memory_request = requests.get("memory", "0")
+            memory_limit = limits.get("memory", "0")
+            memory_request_parsed = self._parse_memory_value(memory_request)
+            memory_limit_parsed = self._parse_memory_value(memory_limit)
+            
+            # Calculate ratios
+            cpu_ratio = cpu_limit_parsed / cpu_request_parsed if cpu_request_parsed > 0 else 0
+            memory_ratio = memory_limit_parsed / memory_request_parsed if memory_request_parsed > 0 else 0
+            
+            # Format values for display
+            cpu_request_display = f"{cpu_request_parsed:.1f} cores" if cpu_request_parsed >= 1.0 else f"{cpu_request_parsed * 1000:.0f}m"
+            cpu_limit_display = f"{cpu_limit_parsed:.1f} cores" if cpu_limit_parsed >= 1.0 else f"{cpu_limit_parsed * 1000:.0f}m"
+            
+            memory_request_display = f"{memory_request_parsed / (1024*1024*1024):.1f} GiB" if memory_request_parsed >= 1024*1024*1024 else f"{memory_request_parsed / (1024*1024):.0f} MiB"
+            memory_limit_display = f"{memory_limit_parsed / (1024*1024*1024):.1f} GiB" if memory_limit_parsed >= 1024*1024*1024 else f"{memory_limit_parsed / (1024*1024):.0f} MiB"
+            
+            # Create detailed message
+            message = f"Container Resources - CPU: {cpu_request_display}→{cpu_limit_display} (ratio: {cpu_ratio:.1f}:1), Memory: {memory_request_display}→{memory_limit_display} (ratio: {memory_ratio:.1f}:1)"
+            
+            # Create recommendation based on ratios
+            recommendations = []
+            if cpu_ratio > self.cpu_ratio:
+                recommendations.append(f"CPU ratio {cpu_ratio:.1f}:1 exceeds recommended {self.cpu_ratio}:1")
+            if memory_ratio > self.memory_ratio:
+                recommendations.append(f"Memory ratio {memory_ratio:.1f}:1 exceeds recommended {self.memory_ratio}:1")
+            
+            recommendation = "; ".join(recommendations) if recommendations else f"Resource allocation within recommended ratios (CPU: {self.cpu_ratio}:1, Memory: {self.memory_ratio}:1)"
+            
+            return ResourceValidation(
+                pod_name=pod_name,
+                namespace=namespace,
+                container_name=container_name,
+                validation_type="container_metrics",
+                severity="info",
+                message=message,
+                recommendation=recommendation
+            )
+            
+        except Exception as e:
+            logger.warning(f"Error validating container metrics: {e}")
+            return None
     
     def _validate_minimum_values(
         self, 
@@ -325,20 +392,8 @@ class ValidationService:
         cpu_limits = self._parse_cpu_value(limits.get("cpu", "0"))
         memory_limits = self._parse_memory_value(limits.get("memory", "0")) / (1024 * 1024 * 1024)  # Convert to GB
         
-        # Check for missing requests (BestEffort pods)
-        if qos_class == "BestEffort":
-            return ResourceValidation(
-                pod_name=pod_name,
-                namespace=namespace,
-                container_name=container_name,
-                validation_type="missing_requests",
-                severity="warning",
-                message="Pod has no resource requests defined",
-                recommendation="Define CPU and memory requests for better resource management",
-                priority_score=7,
-                workload_category="new",
-                estimated_impact="medium"
-            )
+        # Check for missing requests (BestEffort pods) - removed duplicate validation
+        # This is already handled at container level in _validate_container_resources
         
         # Check for missing limits (Burstable pods)
         elif qos_class == "Burstable" and (cpu_limits == 0 or memory_limits == 0):
