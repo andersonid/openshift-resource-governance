@@ -499,25 +499,25 @@ async def get_workload_historical_metrics(
     try:
         prometheus_client = PrometheusClient()
         
-        # Get current usage (latest values)
-        cpu_usage_query = f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}",pod=~"{workload}-.*"}}[5m])'
-        memory_usage_query = f'container_memory_working_set_bytes{{namespace="{namespace}",pod=~"{workload}-.*"}}'
-        
-        cpu_usage_data = await prometheus_client.query(cpu_usage_query)
-        memory_usage_data = await prometheus_client.query(memory_usage_query)
-        
-        # Get resource requests and limits
-        cpu_requests_query = f'kube_pod_container_resource_requests{{namespace="{namespace}",pod=~"{workload}-.*",resource="cpu"}}'
-        memory_requests_query = f'kube_pod_container_resource_requests{{namespace="{namespace}",pod=~"{workload}-.*",resource="memory"}}'
-        
-        cpu_requests_data = await prometheus_client.query(cpu_requests_query)
-        memory_requests_data = await prometheus_client.query(memory_requests_query)
-        
-        cpu_limits_query = f'kube_pod_container_resource_limits{{namespace="{namespace}",pod=~"{workload}-.*",resource="cpu"}}'
-        memory_limits_query = f'kube_pod_container_resource_limits{{namespace="{namespace}",pod=~"{workload}-.*",resource="memory"}}'
-        
-        cpu_limits_data = await prometheus_client.query(cpu_limits_query)
-        memory_limits_data = await prometheus_client.query(memory_limits_query)
+                # Get current usage using OpenShift-specific metrics
+                cpu_usage_query = f'sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{{cluster="", namespace="{namespace}"}} * on(namespace,pod) group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{{cluster="", namespace="{namespace}", workload_type=~".+"}}) by (workload, workload_type)'
+                memory_usage_query = f'sum(container_memory_working_set_bytes{{job="kubelet", metrics_path="/metrics/cadvisor", cluster="", namespace="{namespace}", container!="", image!=""}} * on(namespace,pod) group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{{cluster="", namespace="{namespace}", workload_type=~".+"}}) by (workload, workload_type)'
+                
+                cpu_usage_data = await prometheus_client.query(cpu_usage_query)
+                memory_usage_data = await prometheus_client.query(memory_usage_query)
+                
+                # Get resource requests and limits using OpenShift-specific metrics
+                cpu_requests_query = f'sum(kube_pod_container_resource_requests{{job="kube-state-metrics", cluster="", namespace="{namespace}", resource="cpu"}} * on(namespace,pod) group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{{cluster="", namespace="{namespace}", workload_type=~".+"}}) by (workload, workload_type)'
+                memory_requests_query = f'sum(kube_pod_container_resource_requests{{job="kube-state-metrics", cluster="", namespace="{namespace}", resource="memory"}} * on(namespace,pod) group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{{cluster="", namespace="{namespace}", workload_type=~".+"}}) by (workload, workload_type)'
+                
+                cpu_requests_data = await prometheus_client.query(cpu_requests_query)
+                memory_requests_data = await prometheus_client.query(memory_requests_query)
+                
+                cpu_limits_query = f'sum(kube_pod_container_resource_limits{{job="kube-state-metrics", cluster="", namespace="{namespace}", resource="cpu"}} * on(namespace,pod) group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{{cluster="", namespace="{namespace}", workload_type=~".+"}}) by (workload, workload_type)'
+                memory_limits_query = f'sum(kube_pod_container_resource_limits{{job="kube-state-metrics", cluster="", namespace="{namespace}", resource="memory"}} * on(namespace,pod) group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{{cluster="", namespace="{namespace}", workload_type=~".+"}}) by (workload, workload_type)'
+                
+                cpu_limits_data = await prometheus_client.query(cpu_limits_query)
+                memory_limits_data = await prometheus_client.query(memory_limits_query)
         
         # Get cluster total resources
         cluster_cpu_query = 'sum(kube_node_status_allocatable{resource="cpu"})'
@@ -526,46 +526,70 @@ async def get_workload_historical_metrics(
         cluster_cpu_data = await prometheus_client.query(cluster_cpu_query)
         cluster_memory_data = await prometheus_client.query(cluster_memory_query)
         
-        # Extract values
-        cpu_usage = 0
-        memory_usage = 0
-        cpu_requests = 0
-        memory_requests = 0
-        cpu_limits = 0
-        memory_limits = 0
-        cluster_cpu_total = 0
-        cluster_memory_total = 0
+                # Extract values from OpenShift-specific queries
+                cpu_usage = 0
+                memory_usage = 0
+                cpu_requests = 0
+                memory_requests = 0
+                cpu_limits = 0
+                memory_limits = 0
+                cluster_cpu_total = 0
+                cluster_memory_total = 0
+                
+                # Check if we got any data from Prometheus
+                prometheus_available = False
         
-        # Check if we got any data from Prometheus
-        prometheus_available = False
-        
-        if cpu_usage_data.get("status") == "success" and cpu_usage_data.get("data", {}).get("result"):
-            cpu_usage = float(cpu_usage_data["data"]["result"][0]["value"][1])
-        
-        if memory_usage_data.get("status") == "success" and memory_usage_data.get("data", {}).get("result"):
-            memory_usage = float(memory_usage_data["data"]["result"][0]["value"][1])
-        
-        if cpu_requests_data.get("status") == "success" and cpu_requests_data.get("data", {}).get("result"):
-            cpu_requests = float(cpu_requests_data["data"]["result"][0]["value"][1])
-        
-        if memory_requests_data.get("status") == "success" and memory_requests_data.get("data", {}).get("result"):
-            memory_requests = float(memory_requests_data["data"]["result"][0]["value"][1])
-        
-        if cpu_limits_data.get("status") == "success" and cpu_limits_data.get("data", {}).get("result"):
-            cpu_limits = float(cpu_limits_data["data"]["result"][0]["value"][1])
-        
-        if memory_limits_data.get("status") == "success" and memory_limits_data.get("data", {}).get("result"):
-            memory_limits = float(memory_limits_data["data"]["result"][0]["value"][1])
-        
-        if cluster_cpu_data.get("status") == "success" and cluster_cpu_data.get("data", {}).get("result"):
-            cluster_cpu_total = float(cluster_cpu_data["data"]["result"][0]["value"][1])
-        
-        if cluster_memory_data.get("status") == "success" and cluster_memory_data.get("data", {}).get("result"):
-            cluster_memory_total = float(cluster_memory_data["data"]["result"][0]["value"][1])
-        
-        # Check if Prometheus is available (any non-zero values)
-        if cluster_cpu_total > 0 or cluster_memory_total > 0:
-            prometheus_available = True
+                # Extract CPU usage from workload-specific query
+                if cpu_usage_data.get("status") == "success" and cpu_usage_data.get("data", {}).get("result"):
+                    for result in cpu_usage_data["data"]["result"]:
+                        if result.get("metric", {}).get("workload") == workload:
+                            cpu_usage = float(result["value"][1])
+                            break
+                
+                # Extract Memory usage from workload-specific query
+                if memory_usage_data.get("status") == "success" and memory_usage_data.get("data", {}).get("result"):
+                    for result in memory_usage_data["data"]["result"]:
+                        if result.get("metric", {}).get("workload") == workload:
+                            memory_usage = float(result["value"][1])
+                            break
+                
+                # Extract CPU requests from workload-specific query
+                if cpu_requests_data.get("status") == "success" and cpu_requests_data.get("data", {}).get("result"):
+                    for result in cpu_requests_data["data"]["result"]:
+                        if result.get("metric", {}).get("workload") == workload:
+                            cpu_requests = float(result["value"][1])
+                            break
+                
+                # Extract Memory requests from workload-specific query
+                if memory_requests_data.get("status") == "success" and memory_requests_data.get("data", {}).get("result"):
+                    for result in memory_requests_data["data"]["result"]:
+                        if result.get("metric", {}).get("workload") == workload:
+                            memory_requests = float(result["value"][1])
+                            break
+                
+                # Extract CPU limits from workload-specific query
+                if cpu_limits_data.get("status") == "success" and cpu_limits_data.get("data", {}).get("result"):
+                    for result in cpu_limits_data["data"]["result"]:
+                        if result.get("metric", {}).get("workload") == workload:
+                            cpu_limits = float(result["value"][1])
+                            break
+                
+                # Extract Memory limits from workload-specific query
+                if memory_limits_data.get("status") == "success" and memory_limits_data.get("data", {}).get("result"):
+                    for result in memory_limits_data["data"]["result"]:
+                        if result.get("metric", {}).get("workload") == workload:
+                            memory_limits = float(result["value"][1])
+                            break
+                
+                if cluster_cpu_data.get("status") == "success" and cluster_cpu_data.get("data", {}).get("result"):
+                    cluster_cpu_total = float(cluster_cpu_data["data"]["result"][0]["value"][1])
+                
+                if cluster_memory_data.get("status") == "success" and cluster_memory_data.get("data", {}).get("result"):
+                    cluster_memory_total = float(cluster_memory_data["data"]["result"][0]["value"][1])
+                
+                # Check if Prometheus is available (any non-zero values)
+                if cluster_cpu_total > 0 or cluster_memory_total > 0:
+                    prometheus_available = True
         
         # If Prometheus is not available, provide simulated data for demonstration
         if not prometheus_available:
