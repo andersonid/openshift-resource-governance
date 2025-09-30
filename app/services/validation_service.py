@@ -73,7 +73,7 @@ class ValidationService:
     ) -> List[ResourceValidation]:
         """Validate container resources"""
         validations = []
-        resources = container.resources
+        resources = container["resources"]
         requests = resources.get("requests", {})
         limits = resources.get("limits", {})
         
@@ -85,7 +85,7 @@ class ValidationService:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
                 namespace=namespace,
-                container_name=container.name,
+                container_name=container["name"],
                 validation_type="missing_requests",
                 severity="error",
                 message="Container without defined requests",
@@ -97,7 +97,7 @@ class ValidationService:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
                 namespace=namespace,
-                container_name=container.name,
+                container_name=container["name"],
                 validation_type="missing_limits",
                 severity="warning",
                 message="Container without defined limits",
