@@ -488,6 +488,65 @@ async def get_historical_validations(
         logger.error(f"Error getting historical validations: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/workloads/{namespace}/{workload}/metrics")
+async def get_workload_historical_metrics(
+    namespace: str,
+    workload: str,
+    time_range: str = "24h"
+):
+    """Get historical metrics for a specific workload (deployment/daemonset)"""
+    try:
+        prometheus_client = PrometheusClient()
+        
+        # Get CPU and Memory usage metrics for the workload
+        cpu_usage = await prometheus_client.query_range(
+            f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}",pod=~"{workload}-.*"}}[5m])',
+            time_range
+        )
+        
+        memory_usage = await prometheus_client.query_range(
+            f'container_memory_working_set_bytes{{namespace="{namespace}",pod=~"{workload}-.*"}}',
+            time_range
+        )
+        
+        # Get resource requests and limits
+        cpu_requests = await prometheus_client.query_range(
+            f'kube_pod_container_resource_requests{{namespace="{namespace}",pod=~"{workload}-.*",resource="cpu"}}',
+            time_range
+        )
+        
+        memory_requests = await prometheus_client.query_range(
+            f'kube_pod_container_resource_requests{{namespace="{namespace}",pod=~"{workload}-.*",resource="memory"}}',
+            time_range
+        )
+        
+        cpu_limits = await prometheus_client.query_range(
+            f'kube_pod_container_resource_limits{{namespace="{namespace}",pod=~"{workload}-.*",resource="cpu"}}',
+            time_range
+        )
+        
+        memory_limits = await prometheus_client.query_range(
+            f'kube_pod_container_resource_limits{{namespace="{namespace}",pod=~"{workload}-.*",resource="memory"}}',
+            time_range
+        )
+        
+        return {
+            "workload": workload,
+            "namespace": namespace,
+            "time_range": time_range,
+            "metrics": {
+                "cpu_usage": cpu_usage,
+                "memory_usage": memory_usage,
+                "cpu_requests": cpu_requests,
+                "memory_requests": memory_requests,
+                "cpu_limits": cpu_limits,
+                "memory_limits": memory_limits
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error getting workload metrics for {namespace}/{workload}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/cluster/historical-summary")
 async def get_cluster_historical_summary(
     time_range: str = "24h"

@@ -383,6 +383,34 @@
             margin-top: 20px;
             text-align: right;
         }
+        
+        .workload-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .workload-selector select {
+            margin: 0 10px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .chart-container {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .chart-container canvas {
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
 
         /* Problem Summary Table */
         .problem-summary {
@@ -1334,7 +1362,211 @@
         // Action functions - these are defined above in the main functions
 
         function showHistoricalAnalysis() {
-            showSection('historical-analysis');
+            // Create modal for historical analysis with real Prometheus data
+            let modal = document.getElementById('historicalModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'historicalModal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content" style="width: 90%; max-width: 1200px;">
+                        <div class="modal-header">
+                            <h2>📈 Historical Analysis - Real Prometheus Metrics</h2>
+                            <span class="close">&times;</span>
+                        </div>
+                        <div class="modal-body" id="historicalModalBody">
+                            <div class="workload-selector">
+                                <h3>Select Workload to Analyze:</h3>
+                                <select id="workloadSelect" onchange="loadWorkloadMetrics()">
+                                    <option value="">Choose a workload...</option>
+                                </select>
+                                <select id="timeRangeSelect" onchange="loadWorkloadMetrics()">
+                                    <option value="1h">Last 1 hour</option>
+                                    <option value="6h">Last 6 hours</option>
+                                    <option value="24h" selected>Last 24 hours</option>
+                                    <option value="7d">Last 7 days</option>
+                                </select>
+                            </div>
+                            <div id="metricsCharts" style="display: none;">
+                                <div class="chart-container">
+                                    <h3>CPU Usage vs Requests/Limits</h3>
+                                    <canvas id="cpuChart" width="800" height="300"></canvas>
+                                </div>
+                                <div class="chart-container">
+                                    <h3>Memory Usage vs Requests/Limits</h3>
+                                    <canvas id="memoryChart" width="800" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Add close functionality
+                modal.querySelector('.close').onclick = () => modal.style.display = 'none';
+                modal.onclick = (e) => {
+                    if (e.target === modal) modal.style.display = 'none';
+                };
+            }
+            
+            // Populate workload selector
+            populateWorkloadSelector();
+            modal.style.display = 'block';
+        }
+        
+        function populateWorkloadSelector() {
+            if (!currentData || !currentData.namespaces) return;
+            
+            const select = document.getElementById('workloadSelect');
+            select.innerHTML = '<option value="">Choose a workload...</option>';
+            
+            currentData.namespaces.forEach(namespace => {
+                Object.values(namespace.pods || {}).forEach(pod => {
+                    // Extract workload name from pod name (remove random suffix)
+                    const workloadName = pod.pod_name.replace(/-\w{10}-\w{5}$/, '');
+                    const option = document.createElement('option');
+                    option.value = `${namespace.namespace}/${workloadName}`;
+                    option.textContent = `${namespace.namespace}/${workloadName}`;
+                    select.appendChild(option);
+                });
+            });
+        }
+        
+        async function loadWorkloadMetrics() {
+            const workloadSelect = document.getElementById('workloadSelect');
+            const timeRangeSelect = document.getElementById('timeRangeSelect');
+            const chartsDiv = document.getElementById('metricsCharts');
+            
+            if (!workloadSelect.value) {
+                chartsDiv.style.display = 'none';
+                return;
+            }
+            
+            const [namespace, workload] = workloadSelect.value.split('/');
+            const timeRange = timeRangeSelect.value;
+            
+            try {
+                chartsDiv.style.display = 'block';
+                chartsDiv.innerHTML = '<p>Loading metrics from Prometheus...</p>';
+                
+                const response = await fetch(`/api/v1/workloads/${namespace}/${workload}/metrics?time_range=${timeRange}`);
+                const data = await response.json();
+                
+                if (data.metrics) {
+                    renderMetricsCharts(data.metrics, timeRange);
+                } else {
+                    chartsDiv.innerHTML = '<p>No metrics data available for this workload.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading metrics:', error);
+                chartsDiv.innerHTML = '<p>Error loading metrics. Please try again.</p>';
+            }
+        }
+        
+        function renderMetricsCharts(metrics, timeRange) {
+            const chartsDiv = document.getElementById('metricsCharts');
+            chartsDiv.innerHTML = `
+                <div class="chart-container">
+                    <h3>CPU Usage vs Requests/Limits (${timeRange})</h3>
+                    <canvas id="cpuChart" width="800" height="300"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Memory Usage vs Requests/Limits (${timeRange})</h3>
+                    <canvas id="memoryChart" width="800" height="300"></canvas>
+                </div>
+            `;
+            
+            // Simple chart rendering (you can replace with Chart.js or similar)
+            renderSimpleChart('cpuChart', metrics.cpu_usage, metrics.cpu_requests, metrics.cpu_limits, 'CPU (cores)');
+            renderSimpleChart('memoryChart', metrics.memory_usage, metrics.memory_requests, metrics.memory_limits, 'Memory (bytes)');
+        }
+        
+        function renderSimpleChart(canvasId, usage, requests, limits, unit) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, height - 50);
+            ctx.lineTo(width - 50, height - 50);
+            ctx.moveTo(50, 50);
+            ctx.lineTo(50, height - 50);
+            ctx.stroke();
+            
+            // Draw usage line
+            if (usage && usage.length > 0) {
+                ctx.strokeStyle = '#007bff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                usage.forEach((point, index) => {
+                    const x = 50 + (index * (width - 100) / usage.length);
+                    const y = height - 50 - (point[1] * (height - 100) / Math.max(...usage.map(p => p[1])));
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.stroke();
+            }
+            
+            // Draw requests line
+            if (requests && requests.length > 0) {
+                ctx.strokeStyle = '#28a745';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                
+                requests.forEach((point, index) => {
+                    const x = 50 + (index * (width - 100) / requests.length);
+                    const y = height - 50 - (point[1] * (height - 100) / Math.max(...requests.map(p => p[1])));
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.stroke();
+            }
+            
+            // Draw limits line
+            if (limits && limits.length > 0) {
+                ctx.strokeStyle = '#dc3545';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                
+                limits.forEach((point, index) => {
+                    const x = 50 + (index * (width - 100) / limits.length);
+                    const y = height - 50 - (point[1] * (height - 100) / Math.max(...limits.map(p => p[1])));
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.stroke();
+            }
+            
+            // Reset line dash
+            ctx.setLineDash([]);
+            
+            // Add labels
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.fillText(unit, 10, height / 2);
+            ctx.fillText('Time', width / 2, height - 10);
         }
 
         function exportComplianceReport() {
