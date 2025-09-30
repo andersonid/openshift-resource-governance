@@ -1012,11 +1012,8 @@
             const namespace = currentData.namespaces.find(ns => ns.namespace === namespaceName);
             if (!namespace) return;
             
-            // Create detailed view
-            const detailsHtml = createNamespaceDetails(namespace);
-            
-            // Show details in an alert for now (simpler approach)
-            showNamespaceDetailsSimple(namespaceName, detailsHtml);
+            // Show details in modal
+            showNamespaceDetailsSimple(namespaceName);
         }
         
         // Create detailed HTML for namespace issues
@@ -1093,7 +1090,7 @@
         }
         
         // Show namespace details in modal
-        function showNamespaceDetailsSimple(namespaceName, detailsHtml) {
+        function showNamespaceDetailsSimple(namespaceName) {
             // Create modal if it doesn't exist
             let modal = document.getElementById('namespaceModal');
             if (!modal) {
