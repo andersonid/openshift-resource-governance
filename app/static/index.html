@@ -1405,7 +1405,7 @@
 
             <!-- Resource Overview -->
             <div class="resource-overview">
-                <h3>📊 Resource Consumption <span class="help-icon" onclick="showHelpModal('resource-consumption')">❓</span></h3>
+                <h3>📊 Resource Consumption (Requests) <span class="help-icon" onclick="showHelpModal('resource-consumption')">❓</span></h3>
                 <div class="resource-grid">
                     <div class="resource-card">
                         <h4>CPU <span class="help-icon" onclick="showHelpModal('cpu-resources')">❓</span></h4>
@@ -1432,7 +1432,7 @@
 
             <!-- Top Resource Consumers -->
             <div class="top-consumers">
-                <h3>🥇 Top Resource Consumers <span class="help-icon" onclick="showHelpModal('top-consumers')">❓</span></h3>
+                <h3>🥇 Top Resource Request Consumers <span class="help-icon" onclick="showHelpModal('top-consumers')">❓</span></h3>
                 <div id="topConsumersList" class="consumers-list">
                     <!-- Will be populated by JavaScript -->
                 </div>
@@ -2727,21 +2727,28 @@
                     `
                 },
                 'resource-consumption': {
-                    title: 'Resource Consumption - CPU & Memory Usage',
+                    title: 'Resource Consumption (Requests) - CPU & Memory Requests',
                     content: `
                         <div class="help-content">
-                            <p><strong>Resource Consumption</strong> shows how much CPU and memory your cluster is using compared to its total capacity.</p>
+                            <p><strong>Resource Consumption (Requests)</strong> shows how much CPU and memory your cluster is <em>requesting</em> compared to its total capacity.</p>
                             
                             <h4>What you see:</h4>
                             <ul>
-                                <li><strong>CPU Bar</strong>: Shows CPU usage vs. capacity</li>
-                                <li><strong>Memory Bar</strong>: Shows memory usage vs. capacity</li>
-                                <li><strong>Overcommit %</strong>: How much you're over-allocating resources</li>
+                                <li><strong>CPU Bar</strong>: Shows CPU requests vs. capacity</li>
+                                <li><strong>Memory Bar</strong>: Shows memory requests vs. capacity</li>
+                                <li><strong>Overcommit %</strong>: How much you're over-allocating resources based on requests</li>
+                            </ul>
+                            
+                            <h4>Important distinction:</h4>
+                            <ul>
+                                <li><span class="warning">Requests ≠ Usage</span> - This shows what pods are configured to request, not actual consumption</li>
+                                <li><span class="info">Planning tool</span> - Helps understand resource allocation planning</li>
+                                <li><span class="info">Configuration-based</span> - Based on pod specifications, not real-time metrics</li>
                             </ul>
                             
                             <h4>Reading the bars:</h4>
                             <ul>
-                                <li><span class="success">Green</span>: Safe usage levels</li>
+                                <li><span class="success">Green</span>: Safe request levels</li>
                                 <li><span class="highlight">Yellow</span>: Moderate usage, monitor</li>
                                 <li><span class="warning">Red</span>: High usage, take action</li>
                             </ul>
@@ -2793,21 +2800,28 @@
                     `
                 },
                 'top-consumers': {
-                    title: 'Top Resource Consumers - Biggest Users',
+                    title: 'Top Resource Request Consumers - Who Requests Most Resources',
                     content: `
                         <div class="help-content">
-                            <p><strong>Top Resource Consumers</strong> shows which applications are using the most CPU and memory resources.</p>
+                            <p><strong>Top Resource Request Consumers</strong> shows which applications are <em>requesting</em> the most CPU and memory resources based on their configuration.</p>
                             
                             <h4>What you see:</h4>
                             <ul>
                                 <li><span class="highlight">Ranking</span> from 🥇 (highest) to 5️⃣ (fifth highest)</li>
                                 <li><strong>Pod name</strong> and <strong>namespace</strong></li>
-                                <li><strong>Resource usage</strong> in CPU cores and memory GiB</li>
+                                <li><strong>Resource requests</strong> - what each pod is asking for (not actual usage)</li>
                                 <li><strong>QoS class</strong> (Guaranteed, Burstable, BestEffort)</li>
                             </ul>
                             
+                            <h4>Important distinction:</h4>
+                            <ul>
+                                <li><span class="warning">Requests ≠ Usage</span> - This shows what pods are configured to request, not what they actually use</li>
+                                <li><span class="info">Configuration-based</span> - Based on pod specifications, not real-time metrics</li>
+                                <li><span class="info">Planning tool</span> - Helps understand resource allocation planning</li>
+                            </ul>
+                            
                             <h4>Why it matters:</h4>
-                            <p>Identifying top consumers helps you understand which applications are using the most resources and may need optimization.</p>
+                            <p>Shows which workloads are configured to use the most resources, helping with capacity planning and optimization.</p>
                         </div>
                     `
                 },
@@ -3153,8 +3167,8 @@
                         </div>
                     </div>
                     <div class="consumer-resources">
-                        <div>CPU: ${formatCpuValue(consumer.cpu_requests)}</div>
-                        <div>Memory: ${formatMemoryValue(consumer.memory_requests)}</div>
+                        <div><strong>CPU Request:</strong> ${formatCpuValue(consumer.cpu_requests)}</div>
+                        <div><strong>Memory Request:</strong> ${formatMemoryValue(consumer.memory_requests)}</div>
                         <div class="qos-badge qos-${consumer.qos_class.toLowerCase()}">${consumer.qos_class}</div>
                     </div>
                 `;
