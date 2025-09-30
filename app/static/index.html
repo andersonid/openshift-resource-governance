@@ -411,6 +411,95 @@
             border: 1px solid #eee;
             border-radius: 4px;
         }
+        
+        .cluster-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-card h4 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .metric-section {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .metric-section h4 {
+            margin: 0 0 20px 0;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            font-weight: 500;
+            color: #6c757d;
+            min-width: 120px;
+        }
+        
+        .metric-value {
+            font-weight: bold;
+            color: #212529;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .metric-percent {
+            color: #6c757d;
+            font-size: 12px;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cluster-stats {
+                flex-direction: column;
+            }
+        }
 
         /* Problem Summary Table */
         .problem-summary {
@@ -1369,9 +1458,9 @@
                 modal.id = 'historicalModal';
                 modal.className = 'modal';
                 modal.innerHTML = `
-                    <div class="modal-content" style="width: 90%; max-width: 1200px;">
+                    <div class="modal-content" style="width: 90%; max-width: 1000px;">
                         <div class="modal-header">
-                            <h2>📈 Historical Analysis - Real Prometheus Metrics</h2>
+                            <h2>📊 Resource Consumption Analysis - Real Numbers</h2>
                             <span class="close">&times;</span>
                         </div>
                         <div class="modal-body" id="historicalModalBody">
@@ -1387,14 +1476,14 @@
                                     <option value="7d">Last 7 days</option>
                                 </select>
                             </div>
-                            <div id="metricsCharts" style="display: none;">
-                                <div class="chart-container">
-                                    <h3>CPU Usage vs Requests/Limits</h3>
-                                    <canvas id="cpuChart" width="800" height="300"></canvas>
+                            <div id="metricsData" style="display: none;">
+                                <div class="cluster-info">
+                                    <h3>🏢 Cluster Total Resources</h3>
+                                    <div id="clusterTotal"></div>
                                 </div>
-                                <div class="chart-container">
-                                    <h3>Memory Usage vs Requests/Limits</h3>
-                                    <canvas id="memoryChart" width="800" height="300"></canvas>
+                                <div class="workload-metrics">
+                                    <h3>📈 Workload Resource Consumption</h3>
+                                    <div id="workloadData"></div>
                                 </div>
                             </div>
                         </div>
@@ -1435,10 +1524,10 @@
         async function loadWorkloadMetrics() {
             const workloadSelect = document.getElementById('workloadSelect');
             const timeRangeSelect = document.getElementById('timeRangeSelect');
-            const chartsDiv = document.getElementById('metricsCharts');
+            const metricsDiv = document.getElementById('metricsData');
             
             if (!workloadSelect.value) {
-                chartsDiv.style.display = 'none';
+                metricsDiv.style.display = 'none';
                 return;
             }
             
@@ -1446,128 +1535,98 @@
             const timeRange = timeRangeSelect.value;
             
             try {
-                chartsDiv.style.display = 'block';
-                chartsDiv.innerHTML = '<p>Loading metrics from Prometheus...</p>';
+                metricsDiv.style.display = 'block';
+                metricsDiv.innerHTML = '<p>Loading metrics from Prometheus...</p>';
                 
                 const response = await fetch(`/api/v1/workloads/${namespace}/${workload}/metrics?time_range=${timeRange}`);
                 const data = await response.json();
                 
-                if (data.metrics) {
-                    renderMetricsCharts(data.metrics, timeRange);
+                if (data.workload_metrics) {
+                    renderMetricsData(data);
                 } else {
-                    chartsDiv.innerHTML = '<p>No metrics data available for this workload.</p>';
+                    metricsDiv.innerHTML = '<p>No metrics data available for this workload.</p>';
                 }
             } catch (error) {
                 console.error('Error loading metrics:', error);
-                chartsDiv.innerHTML = '<p>Error loading metrics. Please try again.</p>';
+                metricsDiv.innerHTML = '<p>Error loading metrics. Please try again.</p>';
             }
         }
         
-        function renderMetricsCharts(metrics, timeRange) {
-            const chartsDiv = document.getElementById('metricsCharts');
-            chartsDiv.innerHTML = `
-                <div class="chart-container">
-                    <h3>CPU Usage vs Requests/Limits (${timeRange})</h3>
-                    <canvas id="cpuChart" width="800" height="300"></canvas>
-                </div>
-                <div class="chart-container">
-                    <h3>Memory Usage vs Requests/Limits (${timeRange})</h3>
-                    <canvas id="memoryChart" width="800" height="300"></canvas>
+        function renderMetricsData(data) {
+            const clusterTotalDiv = document.getElementById('clusterTotal');
+            const workloadDataDiv = document.getElementById('workloadData');
+            
+            // Render cluster total resources
+            clusterTotalDiv.innerHTML = `
+                <div class="cluster-stats">
+                    <div class="stat-card">
+                        <h4>CPU Total</h4>
+                        <div class="stat-value">${data.cluster_total.cpu_cores.toFixed(2)} cores</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Memory Total</h4>
+                        <div class="stat-value">${data.cluster_total.memory_gb.toFixed(2)} GB</div>
+                    </div>
                 </div>
             `;
             
-            // Simple chart rendering (you can replace with Chart.js or similar)
-            renderSimpleChart('cpuChart', metrics.cpu_usage, metrics.cpu_requests, metrics.cpu_limits, 'CPU (cores)');
-            renderSimpleChart('memoryChart', metrics.memory_usage, metrics.memory_requests, metrics.memory_limits, 'Memory (bytes)');
+            // Render workload metrics
+            const cpu = data.workload_metrics.cpu;
+            const memory = data.workload_metrics.memory;
+            
+            workloadDataDiv.innerHTML = `
+                <div class="metrics-grid">
+                    <div class="metric-section">
+                        <h4>🖥️ CPU Resources</h4>
+                        <div class="metric-row">
+                            <span class="metric-label">Current Usage:</span>
+                            <span class="metric-value">${cpu.usage_cores.toFixed(3)} cores</span>
+                            <span class="metric-percent">(${cpu.usage_percent}% of cluster)</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Requests:</span>
+                            <span class="metric-value">${cpu.requests_cores.toFixed(3)} cores</span>
+                            <span class="metric-percent">(${cpu.requests_percent}% of cluster)</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Limits:</span>
+                            <span class="metric-value">${cpu.limits_cores.toFixed(3)} cores</span>
+                            <span class="metric-percent">(${cpu.limits_percent}% of cluster)</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Efficiency:</span>
+                            <span class="metric-value ${cpu.usage_cores > 0 ? (cpu.usage_cores / cpu.requests_cores * 100).toFixed(1) + '%' : 'N/A'}">${cpu.usage_cores > 0 ? (cpu.usage_cores / cpu.requests_cores * 100).toFixed(1) + '%' : 'N/A'}</span>
+                            <span class="metric-percent">(usage vs requests)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-section">
+                        <h4>💾 Memory Resources</h4>
+                        <div class="metric-row">
+                            <span class="metric-label">Current Usage:</span>
+                            <span class="metric-value">${memory.usage_mb.toFixed(2)} MB</span>
+                            <span class="metric-percent">(${memory.usage_percent}% of cluster)</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Requests:</span>
+                            <span class="metric-value">${memory.requests_mb.toFixed(2)} MB</span>
+                            <span class="metric-percent">(${memory.requests_percent}% of cluster)</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Limits:</span>
+                            <span class="metric-value">${memory.limits_mb.toFixed(2)} MB</span>
+                            <span class="metric-percent">(${memory.limits_percent}% of cluster)</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Efficiency:</span>
+                            <span class="metric-value ${memory.usage_bytes > 0 ? (memory.usage_bytes / memory.requests_bytes * 100).toFixed(1) + '%' : 'N/A'}">${memory.usage_bytes > 0 ? (memory.usage_bytes / memory.requests_bytes * 100).toFixed(1) + '%' : 'N/A'}</span>
+                            <span class="metric-percent">(usage vs requests)</span>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
         
-        function renderSimpleChart(canvasId, usage, requests, limits, unit) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, width, height);
-            
-            // Draw axes
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(50, height - 50);
-            ctx.lineTo(width - 50, height - 50);
-            ctx.moveTo(50, 50);
-            ctx.lineTo(50, height - 50);
-            ctx.stroke();
-            
-            // Draw usage line
-            if (usage && usage.length > 0) {
-                ctx.strokeStyle = '#007bff';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                
-                usage.forEach((point, index) => {
-                    const x = 50 + (index * (width - 100) / usage.length);
-                    const y = height - 50 - (point[1] * (height - 100) / Math.max(...usage.map(p => p[1])));
-                    
-                    if (index === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                });
-                ctx.stroke();
-            }
-            
-            // Draw requests line
-            if (requests && requests.length > 0) {
-                ctx.strokeStyle = '#28a745';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                
-                requests.forEach((point, index) => {
-                    const x = 50 + (index * (width - 100) / requests.length);
-                    const y = height - 50 - (point[1] * (height - 100) / Math.max(...requests.map(p => p[1])));
-                    
-                    if (index === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                });
-                ctx.stroke();
-            }
-            
-            // Draw limits line
-            if (limits && limits.length > 0) {
-                ctx.strokeStyle = '#dc3545';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                
-                limits.forEach((point, index) => {
-                    const x = 50 + (index * (width - 100) / limits.length);
-                    const y = height - 50 - (point[1] * (height - 100) / Math.max(...limits.map(p => p[1])));
-                    
-                    if (index === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                });
-                ctx.stroke();
-            }
-            
-            // Reset line dash
-            ctx.setLineDash([]);
-            
-            // Add labels
-            ctx.fillStyle = '#333';
-            ctx.font = '12px Arial';
-            ctx.fillText(unit, 10, height / 2);
-            ctx.fillText('Time', width / 2, height - 10);
-        }
 
         function exportComplianceReport() {
             alert('Exporting compliance report...');

@@ -495,53 +495,108 @@ async def get_workload_historical_metrics(
     workload: str,
     time_range: str = "24h"
 ):
-    """Get historical metrics for a specific workload (deployment/daemonset)"""
+    """Get historical metrics for a specific workload with cluster percentages"""
     try:
         prometheus_client = PrometheusClient()
         
-        # Get CPU and Memory usage metrics for the workload
-        cpu_usage = await prometheus_client.query_range(
-            f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}",pod=~"{workload}-.*"}}[5m])',
-            time_range
-        )
+        # Get current usage (latest values)
+        cpu_usage_query = f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}",pod=~"{workload}-.*"}}[5m])'
+        memory_usage_query = f'container_memory_working_set_bytes{{namespace="{namespace}",pod=~"{workload}-.*"}}'
         
-        memory_usage = await prometheus_client.query_range(
-            f'container_memory_working_set_bytes{{namespace="{namespace}",pod=~"{workload}-.*"}}',
-            time_range
-        )
+        cpu_usage_data = await prometheus_client.query(cpu_usage_query)
+        memory_usage_data = await prometheus_client.query(memory_usage_query)
         
         # Get resource requests and limits
-        cpu_requests = await prometheus_client.query_range(
-            f'kube_pod_container_resource_requests{{namespace="{namespace}",pod=~"{workload}-.*",resource="cpu"}}',
-            time_range
-        )
+        cpu_requests_query = f'kube_pod_container_resource_requests{{namespace="{namespace}",pod=~"{workload}-.*",resource="cpu"}}'
+        memory_requests_query = f'kube_pod_container_resource_requests{{namespace="{namespace}",pod=~"{workload}-.*",resource="memory"}}'
         
-        memory_requests = await prometheus_client.query_range(
-            f'kube_pod_container_resource_requests{{namespace="{namespace}",pod=~"{workload}-.*",resource="memory"}}',
-            time_range
-        )
+        cpu_requests_data = await prometheus_client.query(cpu_requests_query)
+        memory_requests_data = await prometheus_client.query(memory_requests_query)
         
-        cpu_limits = await prometheus_client.query_range(
-            f'kube_pod_container_resource_limits{{namespace="{namespace}",pod=~"{workload}-.*",resource="cpu"}}',
-            time_range
-        )
+        cpu_limits_query = f'kube_pod_container_resource_limits{{namespace="{namespace}",pod=~"{workload}-.*",resource="cpu"}}'
+        memory_limits_query = f'kube_pod_container_resource_limits{{namespace="{namespace}",pod=~"{workload}-.*",resource="memory"}}'
         
-        memory_limits = await prometheus_client.query_range(
-            f'kube_pod_container_resource_limits{{namespace="{namespace}",pod=~"{workload}-.*",resource="memory"}}',
-            time_range
-        )
+        cpu_limits_data = await prometheus_client.query(cpu_limits_query)
+        memory_limits_data = await prometheus_client.query(memory_limits_query)
+        
+        # Get cluster total resources
+        cluster_cpu_query = 'sum(kube_node_status_allocatable{resource="cpu"})'
+        cluster_memory_query = 'sum(kube_node_status_allocatable{resource="memory"})'
+        
+        cluster_cpu_data = await prometheus_client.query(cluster_cpu_query)
+        cluster_memory_data = await prometheus_client.query(cluster_memory_query)
+        
+        # Extract values
+        cpu_usage = 0
+        memory_usage = 0
+        cpu_requests = 0
+        memory_requests = 0
+        cpu_limits = 0
+        memory_limits = 0
+        cluster_cpu_total = 0
+        cluster_memory_total = 0
+        
+        if cpu_usage_data.get("status") == "success" and cpu_usage_data.get("data", {}).get("result"):
+            cpu_usage = float(cpu_usage_data["data"]["result"][0]["value"][1])
+        
+        if memory_usage_data.get("status") == "success" and memory_usage_data.get("data", {}).get("result"):
+            memory_usage = float(memory_usage_data["data"]["result"][0]["value"][1])
+        
+        if cpu_requests_data.get("status") == "success" and cpu_requests_data.get("data", {}).get("result"):
+            cpu_requests = float(cpu_requests_data["data"]["result"][0]["value"][1])
+        
+        if memory_requests_data.get("status") == "success" and memory_requests_data.get("data", {}).get("result"):
+            memory_requests = float(memory_requests_data["data"]["result"][0]["value"][1])
+        
+        if cpu_limits_data.get("status") == "success" and cpu_limits_data.get("data", {}).get("result"):
+            cpu_limits = float(cpu_limits_data["data"]["result"][0]["value"][1])
+        
+        if memory_limits_data.get("status") == "success" and memory_limits_data.get("data", {}).get("result"):
+            memory_limits = float(memory_limits_data["data"]["result"][0]["value"][1])
+        
+        if cluster_cpu_data.get("status") == "success" and cluster_cpu_data.get("data", {}).get("result"):
+            cluster_cpu_total = float(cluster_cpu_data["data"]["result"][0]["value"][1])
+        
+        if cluster_memory_data.get("status") == "success" and cluster_memory_data.get("data", {}).get("result"):
+            cluster_memory_total = float(cluster_memory_data["data"]["result"][0]["value"][1])
+        
+        # Calculate percentages
+        cpu_usage_percent = (cpu_usage / cluster_cpu_total * 100) if cluster_cpu_total > 0 else 0
+        memory_usage_percent = (memory_usage / cluster_memory_total * 100) if cluster_memory_total > 0 else 0
+        cpu_requests_percent = (cpu_requests / cluster_cpu_total * 100) if cluster_cpu_total > 0 else 0
+        memory_requests_percent = (memory_requests / cluster_memory_total * 100) if cluster_memory_total > 0 else 0
+        cpu_limits_percent = (cpu_limits / cluster_cpu_total * 100) if cluster_cpu_total > 0 else 0
+        memory_limits_percent = (memory_limits / cluster_memory_total * 100) if cluster_memory_total > 0 else 0
         
         return {
             "workload": workload,
             "namespace": namespace,
             "time_range": time_range,
-            "metrics": {
-                "cpu_usage": cpu_usage,
-                "memory_usage": memory_usage,
-                "cpu_requests": cpu_requests,
-                "memory_requests": memory_requests,
-                "cpu_limits": cpu_limits,
-                "memory_limits": memory_limits
+            "cluster_total": {
+                "cpu_cores": cluster_cpu_total,
+                "memory_bytes": cluster_memory_total,
+                "memory_gb": cluster_memory_total / (1024**3)
+            },
+            "workload_metrics": {
+                "cpu": {
+                    "usage_cores": cpu_usage,
+                    "usage_percent": round(cpu_usage_percent, 2),
+                    "requests_cores": cpu_requests,
+                    "requests_percent": round(cpu_requests_percent, 2),
+                    "limits_cores": cpu_limits,
+                    "limits_percent": round(cpu_limits_percent, 2)
+                },
+                "memory": {
+                    "usage_bytes": memory_usage,
+                    "usage_mb": round(memory_usage / (1024**2), 2),
+                    "usage_percent": round(memory_usage_percent, 2),
+                    "requests_bytes": memory_requests,
+                    "requests_mb": round(memory_requests / (1024**2), 2),
+                    "requests_percent": round(memory_requests_percent, 2),
+                    "limits_bytes": memory_limits,
+                    "limits_mb": round(memory_limits / (1024**2), 2),
+                    "limits_percent": round(memory_limits_percent, 2)
+                }
             }
         }
     except Exception as e:
