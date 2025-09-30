@@ -16,7 +16,7 @@ class PodResource(BaseModel):
     namespace: str
     node_name: Optional[str] = None
     phase: str
-    containers: List[ContainerResource]
+    containers: List[Dict[str, Any]]
     cpu_requests: float = 0.0
     memory_requests: float = 0.0
     cpu_limits: float = 0.0
