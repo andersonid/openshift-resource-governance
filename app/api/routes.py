@@ -560,7 +560,7 @@ async def get_workload_historical_metrics(
         if cluster_cpu_data.get("status") == "success" and cluster_cpu_data.get("data", {}).get("result"):
             cluster_cpu_total = float(cluster_cpu_data["data"]["result"][0]["value"][1])
         
-                if cluster_memory_data.get("status") == "success" and cluster_memory_data.get("data", {}).get("result"):
+        if cluster_memory_data.get("status") == "success" and cluster_memory_data.get("data", {}).get("result"):
             cluster_memory_total = float(cluster_memory_data["data"]["result"][0]["value"][1])
         
         # Check if Prometheus is available (any non-zero values)
