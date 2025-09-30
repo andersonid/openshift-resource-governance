@@ -526,18 +526,18 @@ async def get_workload_historical_metrics(
         cluster_cpu_data = await prometheus_client.query(cluster_cpu_query)
         cluster_memory_data = await prometheus_client.query(cluster_memory_query)
         
-                # Extract values
-                cpu_usage = 0
-                memory_usage = 0
-                cpu_requests = 0
-                memory_requests = 0
-                cpu_limits = 0
-                memory_limits = 0
-                cluster_cpu_total = 0
-                cluster_memory_total = 0
-                
-                # Check if we got any data from Prometheus
-                prometheus_available = False
+        # Extract values
+        cpu_usage = 0
+        memory_usage = 0
+        cpu_requests = 0
+        memory_requests = 0
+        cpu_limits = 0
+        memory_limits = 0
+        cluster_cpu_total = 0
+        cluster_memory_total = 0
+        
+        # Check if we got any data from Prometheus
+        prometheus_available = False
         
         if cpu_usage_data.get("status") == "success" and cpu_usage_data.get("data", {}).get("result"):
             cpu_usage = float(cpu_usage_data["data"]["result"][0]["value"][1])
@@ -561,60 +561,60 @@ async def get_workload_historical_metrics(
             cluster_cpu_total = float(cluster_cpu_data["data"]["result"][0]["value"][1])
         
                 if cluster_memory_data.get("status") == "success" and cluster_memory_data.get("data", {}).get("result"):
-                    cluster_memory_total = float(cluster_memory_data["data"]["result"][0]["value"][1])
-                
-                # Check if Prometheus is available (any non-zero values)
-                if cluster_cpu_total > 0 or cluster_memory_total > 0:
-                    prometheus_available = True
-                
-                # If Prometheus is not available, provide simulated data for demonstration
-                if not prometheus_available:
-                    # Simulate cluster resources (typical OpenShift cluster)
-                    cluster_cpu_total = 24.0  # 6 nodes * 4 cores each
-                    cluster_memory_total = 96.0 * (1024**3)  # 6 nodes * 16GB each
-                    
-                    # Simulate workload metrics based on namespace
-                    if namespace == "resource-governance":
-                        cpu_usage = 0.05
-                        memory_usage = 128 * (1024**2)  # 128MB
-                        cpu_requests = 0.1
-                        memory_requests = 128 * (1024**2)
-                        cpu_limits = 0.5
-                        memory_limits = 512 * (1024**2)
-                    elif namespace == "shishika01":
-                        cpu_usage = 0.15
-                        memory_usage = 256 * (1024**2)  # 256MB
-                        cpu_requests = 0.2
-                        memory_requests = 256 * (1024**2)
-                        cpu_limits = 1.0
-                        memory_limits = 1024 * (1024**2)
-                    else:
-                        cpu_usage = 0.08
-                        memory_usage = 192 * (1024**2)  # 192MB
-                        cpu_requests = 0.15
-                        memory_requests = 192 * (1024**2)
-                        cpu_limits = 0.8
-                        memory_limits = 768 * (1024**2)
-                
-                # Calculate percentages
-                cpu_usage_percent = (cpu_usage / cluster_cpu_total * 100) if cluster_cpu_total > 0 else 0
-                memory_usage_percent = (memory_usage / cluster_memory_total * 100) if cluster_memory_total > 0 else 0
-                cpu_requests_percent = (cpu_requests / cluster_cpu_total * 100) if cluster_cpu_total > 0 else 0
-                memory_requests_percent = (memory_requests / cluster_memory_total * 100) if cluster_memory_total > 0 else 0
-                cpu_limits_percent = (cpu_limits / cluster_cpu_total * 100) if cluster_cpu_total > 0 else 0
-                memory_limits_percent = (memory_limits / cluster_memory_total * 100) if cluster_memory_total > 0 else 0
+            cluster_memory_total = float(cluster_memory_data["data"]["result"][0]["value"][1])
         
-                return {
-                    "workload": workload,
-                    "namespace": namespace,
-                    "time_range": time_range,
-                    "prometheus_available": prometheus_available,
-                    "data_source": "simulated" if not prometheus_available else "prometheus",
-                    "cluster_total": {
-                        "cpu_cores": cluster_cpu_total,
-                        "memory_bytes": cluster_memory_total,
-                        "memory_gb": cluster_memory_total / (1024**3)
-                    },
+        # Check if Prometheus is available (any non-zero values)
+        if cluster_cpu_total > 0 or cluster_memory_total > 0:
+            prometheus_available = True
+        
+        # If Prometheus is not available, provide simulated data for demonstration
+        if not prometheus_available:
+            # Simulate cluster resources (typical OpenShift cluster)
+            cluster_cpu_total = 24.0  # 6 nodes * 4 cores each
+            cluster_memory_total = 96.0 * (1024**3)  # 6 nodes * 16GB each
+            
+            # Simulate workload metrics based on namespace
+            if namespace == "resource-governance":
+                cpu_usage = 0.05
+                memory_usage = 128 * (1024**2)  # 128MB
+                cpu_requests = 0.1
+                memory_requests = 128 * (1024**2)
+                cpu_limits = 0.5
+                memory_limits = 512 * (1024**2)
+            elif namespace == "shishika01":
+                cpu_usage = 0.15
+                memory_usage = 256 * (1024**2)  # 256MB
+                cpu_requests = 0.2
+                memory_requests = 256 * (1024**2)
+                cpu_limits = 1.0
+                memory_limits = 1024 * (1024**2)
+            else:
+                cpu_usage = 0.08
+                memory_usage = 192 * (1024**2)  # 192MB
+                cpu_requests = 0.15
+                memory_requests = 192 * (1024**2)
+                cpu_limits = 0.8
+                memory_limits = 768 * (1024**2)
+        
+        # Calculate percentages
+        cpu_usage_percent = (cpu_usage / cluster_cpu_total * 100) if cluster_cpu_total > 0 else 0
+        memory_usage_percent = (memory_usage / cluster_memory_total * 100) if cluster_memory_total > 0 else 0
+        cpu_requests_percent = (cpu_requests / cluster_cpu_total * 100) if cluster_cpu_total > 0 else 0
+        memory_requests_percent = (memory_requests / cluster_memory_total * 100) if cluster_memory_total > 0 else 0
+        cpu_limits_percent = (cpu_limits / cluster_cpu_total * 100) if cluster_cpu_total > 0 else 0
+        memory_limits_percent = (memory_limits / cluster_memory_total * 100) if cluster_memory_total > 0 else 0
+        
+        return {
+            "workload": workload,
+            "namespace": namespace,
+            "time_range": time_range,
+            "prometheus_available": prometheus_available,
+            "data_source": "simulated" if not prometheus_available else "prometheus",
+            "cluster_total": {
+                "cpu_cores": cluster_cpu_total,
+                "memory_bytes": cluster_memory_total,
+                "memory_gb": cluster_memory_total / (1024**3)
+            },
             "workload_metrics": {
                 "cpu": {
                     "usage_cores": cpu_usage,
