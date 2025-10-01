@@ -45,21 +45,22 @@ async def get_cluster_status(
         pods = await k8s_client.get_all_pods()
         nodes_info = await k8s_client.get_nodes_info()
         
-        # Validate resources with historical analysis
+        # Validate resources with historical analysis (includes static validations)
         all_validations = []
-        historical_service = HistoricalAnalysisService()
         
         for pod in pods:
-            # Static validations
-            pod_validations = validation_service.validate_pod_resources(pod)
-            all_validations.extend(pod_validations)
-            
-            # Historical analysis (async)
+            # Historical analysis includes static validations
             try:
                 historical_validations = await validation_service.validate_pod_resources_with_historical_analysis(pod, "24h")
                 all_validations.extend(historical_validations)
             except Exception as e:
                 logger.warning(f"Error in historical analysis for pod {pod.name}: {e}")
+                # Fallback to static validations only if historical analysis fails
+                try:
+                    static_validations = validation_service.validate_pod_resources(pod)
+                    all_validations.extend(static_validations)
+                except Exception as static_e:
+                    logger.error(f"Error in static validation for pod {pod.name}: {static_e}")
         
         # Get overcommit information
         overcommit_info = await prometheus_client.get_cluster_overcommit()
