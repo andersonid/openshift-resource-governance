@@ -295,6 +295,7 @@ class HistoricalAnalysisService:
         
         # Calculate usage statistics
         usage_values = [float(point[1]) for point in usage_data if point[1] != 'NaN']
+        logger.info(f"CPU analysis for {pod_name}/{container_name}: {len(usage_data)} raw points, {len(usage_values)} valid points")
         if not usage_values:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
@@ -307,8 +308,8 @@ class HistoricalAnalysisService:
             ))
             return validations
         
-        # Check for minimal data points (less than 10 data points)
-        if len(usage_values) < 10:
+        # Check for minimal data points (less than 5 data points)
+        if len(usage_values) < 5:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
                 namespace=namespace,
@@ -417,6 +418,7 @@ class HistoricalAnalysisService:
         
         # Calculate usage statistics
         usage_values = [float(point[1]) for point in usage_data if point[1] != 'NaN']
+        logger.info(f"Memory analysis for {pod_name}/{container_name}: {len(usage_data)} raw points, {len(usage_values)} valid points")
         if not usage_values:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
@@ -429,8 +431,8 @@ class HistoricalAnalysisService:
             ))
             return validations
         
-        # Check for minimal data points (less than 10 data points)
-        if len(usage_values) < 10:
+        # Check for minimal data points (less than 5 data points)
+        if len(usage_values) < 5:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
                 namespace=namespace,
@@ -535,11 +537,20 @@ class HistoricalAnalysisService:
             connector = aiohttp.TCPConnector(ssl=False)
             
             async with aiohttp.ClientSession(connector=connector, headers=headers) as session:
+                # Calculate appropriate step based on time range
+                time_diff = (end_time - start_time).total_seconds()
+                if time_diff <= 3600:  # 1 hour or less
+                    step = '30s'
+                elif time_diff <= 86400:  # 24 hours or less
+                    step = '300s'  # 5 minutes
+                else:  # More than 24 hours
+                    step = '1800s'  # 30 minutes
+                
                 params = {
                     'query': query,
                     'start': start_time.timestamp(),
                     'end': end_time.timestamp(),
-                    'step': '60s'  # 1 minute resolution
+                    'step': step
                 }
                 
                 async with session.get(
