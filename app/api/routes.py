@@ -520,15 +520,15 @@ async def get_workload_historical_metrics(
                 cluster_memory_total += float(result["value"][1])
         
         # Get workload-specific metrics using more precise queries
-        # CPU usage for specific pod (using exact pod name match)
-        cpu_usage_query = f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}", pod="{workload}"}}[5m])'
-        memory_usage_query = f'container_memory_working_set_bytes{{namespace="{namespace}", pod="{workload}", container!="", image!=""}}'
+        # CPU usage for specific pod (using regex pattern to match pod name with suffix)
+        cpu_usage_query = f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}", pod=~"{workload}.*"}}[5m])'
+        memory_usage_query = f'container_memory_working_set_bytes{{namespace="{namespace}", pod=~"{workload}.*", container!="", image!=""}}'
         
         # Resource requests and limits for specific pod
-        cpu_requests_query = f'sum(kube_pod_container_resource_requests{{namespace="{namespace}", pod="{workload}", resource="cpu"}})'
-        memory_requests_query = f'sum(kube_pod_container_resource_requests{{namespace="{namespace}", pod="{workload}", resource="memory"}})'
-        cpu_limits_query = f'sum(kube_pod_container_resource_limits{{namespace="{namespace}", pod="{workload}", resource="cpu"}})'
-        memory_limits_query = f'sum(kube_pod_container_resource_limits{{namespace="{namespace}", pod="{workload}", resource="memory"}})'
+        cpu_requests_query = f'sum(kube_pod_container_resource_requests{{namespace="{namespace}", pod=~"{workload}.*", resource="cpu"}})'
+        memory_requests_query = f'sum(kube_pod_container_resource_requests{{namespace="{namespace}", pod=~"{workload}.*", resource="memory"}})'
+        cpu_limits_query = f'sum(kube_pod_container_resource_limits{{namespace="{namespace}", pod=~"{workload}.*", resource="cpu"}})'
+        memory_limits_query = f'sum(kube_pod_container_resource_limits{{namespace="{namespace}", pod=~"{workload}.*", resource="memory"}})'
         
         # Execute queries
         cpu_usage_data = await prometheus_client.query(cpu_usage_query)
