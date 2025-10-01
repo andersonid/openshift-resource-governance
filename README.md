@@ -8,8 +8,9 @@ A resource governance tool for OpenShift clusters that goes beyond what Metrics 
 - **Red Hat Validations**: Validates capacity management best practices with specific request/limit values
 - **Smart Resource Analysis**: Identifies workloads without requests/limits and provides detailed analysis
 - **Detailed Problem Analysis**: Modal-based detailed view showing pod and container resource issues
-- **Historical Analysis**: Workload-based historical resource usage analysis (1d, 7d, 30d)
-- **Prometheus Integration**: Collects real consumption metrics from OpenShift monitoring
+- **Historical Analysis**: Workload-based historical resource usage analysis with real numerical data (1h, 6h, 24h, 7d)
+- **Prometheus Integration**: Collects real consumption metrics from OpenShift monitoring with OpenShift-specific queries
+- **Cluster Overcommit Analysis**: Real-time cluster capacity vs requests analysis with detailed tooltips
 - **Export Reports**: Generates reports in JSON, CSV formats
 - **Modern Web UI**: Pragmatic dashboard with modal-based analysis and professional interface
 - **Cluster Agnostic**: Works on any OpenShift cluster without configuration
@@ -20,7 +21,7 @@ A resource governance tool for OpenShift clusters that goes beyond what Metrics 
 - Prometheus (native in OCP)
 - VPA (optional, for recommendations)
 - Python 3.11+
-- Docker
+- Podman (preferred) or Docker
 - OpenShift CLI (oc)
 
 ## 🛠️ Installation
@@ -264,6 +265,15 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
 
+### Run with Podman (Recommended)
+```bash
+# Build
+podman build -t resource-governance .
+
+# Run
+podman run -p 8080:8080 resource-governance
+```
+
 ### Run with Docker
 ```bash
 # Build
@@ -334,6 +344,17 @@ curl http://localhost:8080/health
   - Calculate P95/P99 percentiles for recommendations
   - Identify seasonal patterns and trends
   - Flag workloads with insufficient historical data
+  - Real numerical consumption data with cluster percentages
+  - OpenShift-specific Prometheus queries for better accuracy
+  - Workload selector with time ranges (1h, 6h, 24h, 7d)
+  - Simulated data fallback for demonstration
+
+#### 1.3 Cluster Overcommit Analysis
+- [x] **Real-time Overcommit Monitoring**
+  - CPU and Memory capacity vs requests analysis
+  - Detailed tooltips with capacity, requests, and available resources
+  - Modal-based detailed breakdown of overcommit calculations
+  - Resource utilization tracking
 
 ---
 
