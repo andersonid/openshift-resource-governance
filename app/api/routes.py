@@ -196,7 +196,11 @@ async def get_cluster_status(
                 "cpu_overcommit_percent": cpu_overcommit_percent,
                 "memory_overcommit_percent": memory_overcommit_percent,
                 "namespaces_in_overcommit": namespaces_in_overcommit,
-                "resource_quota_coverage": resource_quota_coverage
+                "resource_quota_coverage": resource_quota_coverage,
+                "cpu_capacity": cpu_capacity if 'cpu_capacity' in locals() else 0,
+                "cpu_requests": cpu_requests if 'cpu_requests' in locals() else 0,
+                "memory_capacity": memory_capacity if 'memory_capacity' in locals() else 0,
+                "memory_requests": memory_requests if 'memory_requests' in locals() else 0
             }
         }
         
