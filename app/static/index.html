@@ -873,10 +873,10 @@
                                 <div class="metric-value" id="namespacesInOvercommit">-</div>
                                 <div class="metric-label">Namespaces in Overcommit</div>
                             </div>
-                            <div class="metric-card">
-                                <div class="metric-value" id="resourceUtilization">-</div>
-                                <div class="metric-label">Resource Utilization</div>
-                            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="resourceUtilization">-</div>
+                <div class="metric-label">Resource Utilization <span class="info-icon" onclick="showResourceUtilizationDetails()">ℹ️</span></div>
+            </div>
                         </div>
                     </div>
                 </div>
@@ -1792,6 +1792,59 @@
                     </div>
                     <div class="modal-body">
                         ${content}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+
+            // Add close functionality
+            const closeBtn = modal.querySelector('.close');
+            closeBtn.onclick = () => modal.remove();
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+
+        function showResourceUtilizationDetails() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>📊 Resource Utilization Details</h2>
+                        <span class="close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="overcommit-details">
+                            <h3>Resource Utilization Analysis</h3>
+                            <div class="metric-detail">
+                                <strong>Current Status:</strong> Placeholder Implementation
+                            </div>
+                            <div class="metric-detail">
+                                <strong>Purpose:</strong> Shows actual resource usage vs. requested resources across the cluster
+                            </div>
+                            <div class="metric-detail">
+                                <strong>Formula:</strong> (Total Usage ÷ Total Requests) × 100
+                            </div>
+                            <div class="metric-detail">
+                                <strong>Current Value:</strong> 75% (simulated data)
+                            </div>
+                            <div class="metric-detail">
+                                <strong>Implementation Status:</strong> 
+                                <span style="color: #f39c12;">⚠️ Phase 2 - Smart Recommendations Engine</span>
+                            </div>
+                            <div class="metric-detail">
+                                <strong>Next Steps:</strong> 
+                                <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                    <li>Integrate real Prometheus usage metrics</li>
+                                    <li>Calculate actual cluster-wide resource utilization</li>
+                                    <li>Provide insights on resource efficiency</li>
+                                    <li>Identify over/under-provisioned workloads</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
