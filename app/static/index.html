@@ -199,15 +199,39 @@
             border-left-color: #27ae60;
         }
         
-        .metric-value {
-            cursor: help;
-            position: relative;
+        .info-icon {
+            cursor: pointer;
+            color: #3498db;
+            font-size: 14px;
+            margin-left: 5px;
+            display: inline-block;
         }
         
-        .metric-value:hover {
-            background-color: #e3f2fd;
+        .info-icon:hover {
+            color: #2980b9;
+        }
+        
+        .overcommit-details {
+            padding: 1rem;
+        }
+        
+        .overcommit-details h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5rem;
+        }
+        
+        .metric-detail {
+            margin: 0.75rem 0;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-left: 3px solid #3498db;
             border-radius: 4px;
-            padding: 2px 4px;
+        }
+        
+        .metric-detail strong {
+            color: #2c3e50;
         }
 
         /* Status Overview */
@@ -838,20 +862,20 @@
                         <h3>📊 Cluster Overcommit Summary</h3>
                         <div class="metrics-grid">
                             <div class="metric-card">
-                                <div class="metric-value" id="cpuOvercommit" title="CPU Overcommit Details">-</div>
-                                <div class="metric-label">CPU Overcommit</div>
+                                <div class="metric-value" id="cpuOvercommit">-</div>
+                                <div class="metric-label">CPU Overcommit <span class="info-icon" onclick="showOvercommitDetails('cpu')">ℹ️</span></div>
                             </div>
                             <div class="metric-card">
-                                <div class="metric-value" id="memoryOvercommit" title="Memory Overcommit Details">-</div>
-                                <div class="metric-label">Memory Overcommit</div>
+                                <div class="metric-value" id="memoryOvercommit">-</div>
+                                <div class="metric-label">Memory Overcommit <span class="info-icon" onclick="showOvercommitDetails('memory')">ℹ️</span></div>
                             </div>
                             <div class="metric-card">
                                 <div class="metric-value" id="namespacesInOvercommit">-</div>
                                 <div class="metric-label">Namespaces in Overcommit</div>
                             </div>
                             <div class="metric-card">
-                                <div class="metric-value" id="resourceQuotaCoverage">-</div>
-                                <div class="metric-label">Resource Quota Coverage</div>
+                                <div class="metric-value" id="resourceUtilization">-</div>
+                                <div class="metric-label">Resource Utilization</div>
                             </div>
                         </div>
                     </div>
@@ -1064,31 +1088,21 @@
 
             // Update overcommit metrics
             if (data.overcommit) {
-                // CPU Overcommit with detailed tooltip
-                const cpuElement = document.getElementById('cpuOvercommit');
-                cpuElement.textContent = `${data.overcommit.cpu_overcommit_percent}%`;
-                if (data.overcommit.cpu_capacity && data.overcommit.cpu_requests) {
-                    const cpuCapacity = data.overcommit.cpu_capacity;
-                    const cpuRequests = data.overcommit.cpu_requests;
-                    cpuElement.title = `CPU Overcommit Details:\n• Capacity Total: ${cpuCapacity} cores\n• Requests Total: ${cpuRequests} cores\n• Overcommit: ${data.overcommit.cpu_overcommit_percent}% (${cpuRequests} ÷ ${cpuCapacity} × 100)`;
-                }
-                
-                // Memory Overcommit with detailed tooltip
-                const memoryElement = document.getElementById('memoryOvercommit');
-                memoryElement.textContent = `${data.overcommit.memory_overcommit_percent}%`;
-                if (data.overcommit.memory_capacity && data.overcommit.memory_requests) {
-                    const memoryCapacityGB = (data.overcommit.memory_capacity / (1024**3)).toFixed(1);
-                    const memoryRequestsGB = (data.overcommit.memory_requests / (1024**3)).toFixed(1);
-                    memoryElement.title = `Memory Overcommit Details:\n• Capacity Total: ${data.overcommit.memory_capacity.toLocaleString()} bytes (≈ ${memoryCapacityGB} GB)\n• Requests Total: ${data.overcommit.memory_requests.toLocaleString()} bytes (≈ ${memoryRequestsGB} GB)\n• Overcommit: ${data.overcommit.memory_overcommit_percent}% (${memoryRequestsGB} ÷ ${memoryCapacityGB} × 100)`;
-                }
-                
+                document.getElementById('cpuOvercommit').textContent = `${data.overcommit.cpu_overcommit_percent}%`;
+                document.getElementById('memoryOvercommit').textContent = `${data.overcommit.memory_overcommit_percent}%`;
                 document.getElementById('namespacesInOvercommit').textContent = data.overcommit.namespaces_in_overcommit || 0;
-                document.getElementById('resourceQuotaCoverage').textContent = `${data.overcommit.resource_quota_coverage}%`;
+                
+                // Calculate resource utilization (usage vs requests)
+                const resourceUtilization = data.overcommit.resource_utilization || 0;
+                document.getElementById('resourceUtilization').textContent = `${resourceUtilization}%`;
+                
+                // Store overcommit data for modal display
+                window.overcommitData = data.overcommit;
             } else {
                 document.getElementById('cpuOvercommit').textContent = '0%';
                 document.getElementById('memoryOvercommit').textContent = '0%';
                 document.getElementById('namespacesInOvercommit').textContent = '0';
-                document.getElementById('resourceQuotaCoverage').textContent = '0%';
+                document.getElementById('resourceUtilization').textContent = '0%';
             }
 
             // Update status
@@ -1711,6 +1725,78 @@
         function showError(message) {
             document.getElementById('problemTableBody').innerHTML = 
                 `<tr><td colspan="5" style="text-align: center; color: #e74c3c;">${message}</td></tr>`;
+        }
+
+        function showOvercommitDetails(type) {
+            if (!window.overcommitData) {
+                alert('Overcommit data not available');
+                return;
+            }
+
+            const data = window.overcommitData;
+            let title, content;
+
+            if (type === 'cpu') {
+                title = '🖥️ CPU Overcommit Details';
+                const cpuCapacity = data.cpu_capacity || 0;
+                const cpuRequests = data.cpu_requests || 0;
+                content = `
+                    <div class="overcommit-details">
+                        <h3>CPU Resource Analysis</h3>
+                        <div class="metric-detail">
+                            <strong>Capacity Total:</strong> ${cpuCapacity} cores
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Requests Total:</strong> ${cpuRequests} cores
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Overcommit:</strong> ${data.cpu_overcommit_percent}% (${cpuRequests} ÷ ${cpuCapacity} × 100)
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Available:</strong> ${(cpuCapacity - cpuRequests).toFixed(2)} cores
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'memory') {
+                title = '💾 Memory Overcommit Details';
+                const memoryCapacity = data.memory_capacity || 0;
+                const memoryRequests = data.memory_requests || 0;
+                const memoryCapacityGB = (memoryCapacity / (1024**3)).toFixed(1);
+                const memoryRequestsGB = (memoryRequests / (1024**3)).toFixed(1);
+                content = `
+                    <div class="overcommit-details">
+                        <h3>Memory Resource Analysis</h3>
+                        <div class="metric-detail">
+                            <strong>Capacity Total:</strong> ${memoryCapacity.toLocaleString()} bytes (≈ ${memoryCapacityGB} GB)
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Requests Total:</strong> ${memoryRequests.toLocaleString()} bytes (≈ ${memoryRequestsGB} GB)
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Overcommit:</strong> ${data.memory_overcommit_percent}% (${memoryRequestsGB} ÷ ${memoryCapacityGB} × 100)
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Available:</strong> ${((memoryCapacity - memoryRequests) / (1024**3)).toFixed(1)} GB
+                        </div>
+                    </div>
+                `;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${title}</h2>
+                        <span class="close" onclick="closeModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        ${content}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
         }
     </script>
 </body>

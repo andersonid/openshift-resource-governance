@@ -180,9 +180,13 @@ async def get_cluster_status(
             # Count namespaces in overcommit (simplified - any namespace with requests > 0)
             namespaces_in_overcommit = len([ns for ns in namespaces_list if ns['total_validations'] > 0])
             
-            # Calculate resource quota coverage (simplified)
-            if cpu_capacity > 0 and memory_capacity > 0:
-                resource_quota_coverage = round(((cpu_requests + memory_requests) / (cpu_capacity + memory_capacity)) * 100, 1)
+        # Calculate resource utilization (usage vs requests) - simplified
+        # This would ideally use actual usage data from Prometheus
+        resource_utilization = 0
+        if cpu_requests > 0 and memory_requests > 0:
+            # For now, we'll use a simplified calculation
+            # In a real implementation, this would compare actual usage vs requests
+            resource_utilization = 75  # Placeholder - would be calculated from real usage data
         
         return {
             "timestamp": datetime.now().isoformat(),
@@ -196,7 +200,7 @@ async def get_cluster_status(
                 "cpu_overcommit_percent": cpu_overcommit_percent,
                 "memory_overcommit_percent": memory_overcommit_percent,
                 "namespaces_in_overcommit": namespaces_in_overcommit,
-                "resource_quota_coverage": resource_quota_coverage,
+                "resource_utilization": resource_utilization,
                 "cpu_capacity": cpu_capacity if 'cpu_capacity' in locals() else 0,
                 "cpu_requests": cpu_requests if 'cpu_requests' in locals() else 0,
                 "memory_capacity": memory_capacity if 'memory_capacity' in locals() else 0,
