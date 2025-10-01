@@ -136,6 +136,50 @@ async def get_cluster_status(
         total_errors = sum(ns['severity_breakdown']['error'] for ns in namespaces_list)
         total_warnings = sum(ns['severity_breakdown']['warning'] for ns in namespaces_list)
         
+        # Process overcommit information
+        cpu_overcommit_percent = 0
+        memory_overcommit_percent = 0
+        namespaces_in_overcommit = 0
+        resource_quota_coverage = 0
+        
+        if overcommit_info and overcommit_info.get("cpu") and overcommit_info.get("memory"):
+            cpu_capacity = 0
+            cpu_requests = 0
+            memory_capacity = 0
+            memory_requests = 0
+            
+            # Extract CPU data
+            if overcommit_info["cpu"].get("capacity", {}).get("status") == "success":
+                for result in overcommit_info["cpu"]["capacity"].get("data", {}).get("result", []):
+                    cpu_capacity += float(result["value"][1])
+            
+            if overcommit_info["cpu"].get("requests", {}).get("status") == "success":
+                for result in overcommit_info["cpu"]["requests"].get("data", {}).get("result", []):
+                    cpu_requests += float(result["value"][1])
+            
+            # Extract Memory data
+            if overcommit_info["memory"].get("capacity", {}).get("status") == "success":
+                for result in overcommit_info["memory"]["capacity"].get("data", {}).get("result", []):
+                    memory_capacity += float(result["value"][1])
+            
+            if overcommit_info["memory"].get("requests", {}).get("status") == "success":
+                for result in overcommit_info["memory"]["requests"].get("data", {}).get("result", []):
+                    memory_requests += float(result["value"][1])
+            
+            # Calculate overcommit percentages
+            if cpu_capacity > 0:
+                cpu_overcommit_percent = round((cpu_requests / cpu_capacity) * 100, 1)
+            
+            if memory_capacity > 0:
+                memory_overcommit_percent = round((memory_requests / memory_capacity) * 100, 1)
+            
+            # Count namespaces in overcommit (simplified - any namespace with requests > 0)
+            namespaces_in_overcommit = len([ns for ns in namespaces_list if ns['total_validations'] > 0])
+            
+            # Calculate resource quota coverage (simplified)
+            if cpu_capacity > 0 and memory_capacity > 0:
+                resource_quota_coverage = round(((cpu_requests + memory_requests) / (cpu_capacity + memory_capacity)) * 100, 1)
+        
         return {
             "timestamp": datetime.now().isoformat(),
             "total_pods": len(pods),
@@ -143,7 +187,13 @@ async def get_cluster_status(
             "total_nodes": len(nodes_info) if nodes_info else 0,
             "total_errors": total_errors,
             "total_warnings": total_warnings,
-            "namespaces": namespaces_list
+            "namespaces": namespaces_list,
+            "overcommit": {
+                "cpu_overcommit_percent": cpu_overcommit_percent,
+                "memory_overcommit_percent": memory_overcommit_percent,
+                "namespaces_in_overcommit": namespaces_in_overcommit,
+                "resource_quota_coverage": resource_quota_coverage
+            }
         }
         
     except Exception as e:

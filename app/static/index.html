@@ -1052,10 +1052,17 @@
             document.getElementById('criticalIssues').textContent = data.critical_issues || 0;
 
             // Update overcommit metrics
-            document.getElementById('cpuOvercommit').textContent = data.cpu_overcommit ? `${data.cpu_overcommit}%` : '0%';
-            document.getElementById('memoryOvercommit').textContent = data.memory_overcommit ? `${data.memory_overcommit}%` : '0%';
-            document.getElementById('namespacesInOvercommit').textContent = data.namespaces_in_overcommit || 0;
-            document.getElementById('resourceQuotaCoverage').textContent = data.resource_quota_coverage ? `${data.resource_quota_coverage}%` : '0%';
+            if (data.overcommit) {
+                document.getElementById('cpuOvercommit').textContent = `${data.overcommit.cpu_overcommit_percent}%`;
+                document.getElementById('memoryOvercommit').textContent = `${data.overcommit.memory_overcommit_percent}%`;
+                document.getElementById('namespacesInOvercommit').textContent = data.overcommit.namespaces_in_overcommit || 0;
+                document.getElementById('resourceQuotaCoverage').textContent = `${data.overcommit.resource_quota_coverage}%`;
+            } else {
+                document.getElementById('cpuOvercommit').textContent = '0%';
+                document.getElementById('memoryOvercommit').textContent = '0%';
+                document.getElementById('namespacesInOvercommit').textContent = '0';
+                document.getElementById('resourceQuotaCoverage').textContent = '0%';
+            }
 
             // Update status
             const statusIcon = document.getElementById('clusterStatusIcon');
