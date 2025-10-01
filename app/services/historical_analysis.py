@@ -94,7 +94,7 @@ class HistoricalAnalysisService:
                 # Query for CPU usage rate
                 cpu_query = f'''
                 rate(container_cpu_usage_seconds_total{{
-                    pod="{pod.name}",
+                    pod=~"{pod.name}.*",
                     namespace="{pod.namespace}",
                     container="{container_name}",
                     container!="POD",
@@ -105,7 +105,7 @@ class HistoricalAnalysisService:
                 # Query for CPU requests
                 cpu_requests_query = f'''
                 kube_pod_container_resource_requests{{
-                    pod="{pod.name}",
+                    pod=~"{pod.name}.*",
                     namespace="{pod.namespace}",
                     resource="cpu"
                 }}
@@ -114,7 +114,7 @@ class HistoricalAnalysisService:
                 # Query for CPU limits
                 cpu_limits_query = f'''
                 kube_pod_container_resource_limits{{
-                    pod="{pod.name}",
+                    pod=~"{pod.name}.*",
                     namespace="{pod.namespace}",
                     resource="cpu"
                 }}
@@ -154,7 +154,7 @@ class HistoricalAnalysisService:
                 # Query for memory usage
                 memory_query = f'''
                 container_memory_working_set_bytes{{
-                    pod="{pod.name}",
+                    pod=~"{pod.name}.*",
                     namespace="{pod.namespace}",
                     container="{container_name}",
                     container!="POD",
@@ -165,7 +165,7 @@ class HistoricalAnalysisService:
                 # Query for memory requests
                 memory_requests_query = f'''
                 kube_pod_container_resource_requests{{
-                    pod="{pod.name}",
+                    pod=~"{pod.name}.*",
                     namespace="{pod.namespace}",
                     resource="memory"
                 }}
@@ -174,7 +174,7 @@ class HistoricalAnalysisService:
                 # Query for memory limits
                 memory_limits_query = f'''
                 kube_pod_container_resource_limits{{
-                    pod="{pod.name}",
+                    pod=~"{pod.name}.*",
                     namespace="{pod.namespace}",
                     resource="memory"
                 }}
