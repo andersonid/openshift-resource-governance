@@ -1181,78 +1181,6 @@
             showNamespaceDetailsSimple(namespaceName);
         }
         
-        // Create detailed HTML for namespace issues
-        function createNamespaceDetails(namespace) {
-            let html = `
-                <div class="namespace-details">
-                    <h3>📋 ${namespace.namespace} - Detailed Analysis</h3>
-                    <div class="namespace-summary">
-                        <p><strong>Pods:</strong> ${Object.keys(namespace.pods || {}).length}</p>
-                        <p><strong>Total Issues:</strong> ${namespace.total_validations || 0}</p>
-                        <p><strong>Severity Breakdown:</strong></p>
-                        <ul>
-                            <li>Errors: ${namespace.severity_breakdown?.error || 0}</li>
-                            <li>Warnings: ${namespace.severity_breakdown?.warning || 0}</li>
-                            <li>Info: ${namespace.severity_breakdown?.info || 0}</li>
-                        </ul>
-                    </div>
-                    <div class="pods-details">
-                        <h4>🔍 Pod Analysis</h4>
-            `;
-            
-            // Add details for each pod
-            Object.values(namespace.pods || {}).forEach(pod => {
-                html += `
-                    <div class="pod-detail">
-                        <h5>📦 ${pod.pod_name}</h5>
-                        <p><strong>Status:</strong> ${pod.phase}</p>
-                        <p><strong>Node:</strong> ${pod.node_name}</p>
-                        <div class="containers-detail">
-                            <h6>Containers:</h6>
-                `;
-                
-                pod.containers.forEach(container => {
-                    const hasRequests = Object.keys(container.resources?.requests || {}).length > 0;
-                    const hasLimits = Object.keys(container.resources?.limits || {}).length > 0;
-                    
-                    html += `
-                        <div class="container-detail">
-                            <p><strong>${container.name}</strong> (${container.image})</p>
-                            <p>Requests: ${hasRequests ? JSON.stringify(container.resources.requests) : '❌ Not defined'}</p>
-                            <p>Limits: ${hasLimits ? JSON.stringify(container.resources.limits) : '❌ Not defined'}</p>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                        <div class="validations-detail">
-                            <h6>Issues Found:</h6>
-                `;
-                
-                pod.validations.forEach(validation => {
-                    const severityClass = `severity-${validation.severity}`;
-                    html += `
-                        <div class="validation-item ${severityClass}">
-                            <p><strong>${validation.rule_name}:</strong> ${validation.message}</p>
-                            <p><em>Recommendation:</em> ${validation.recommendation}</p>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += `
-                    </div>
-                </div>
-            `;
-            
-            return html;
-        }
         
         // Show namespace details in modal
         function showNamespaceDetailsSimple(namespaceName) {
@@ -1336,7 +1264,7 @@
                         const severityClass = `severity-${validation.severity}`;
                         content += `
                             <div class="validation-item ${severityClass}">
-                                <p><strong>${validation.rule_name}:</strong> ${validation.message}</p>
+                                <p><strong>${validation.validation_type}:</strong> ${validation.message}</p>
                                 <p><em>Recommendation:</em> ${validation.recommendation}</p>
                             </div>
                         `;
