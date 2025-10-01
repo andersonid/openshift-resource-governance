@@ -173,6 +173,10 @@ async def get_cluster_status(
             if memory_capacity > 0:
                 memory_overcommit_percent = round((memory_requests / memory_capacity) * 100, 1)
             
+            # Debug logging
+            logger.info(f"Overcommit Debug - CPU Capacity: {cpu_capacity}, CPU Requests: {cpu_requests}, CPU Overcommit: {cpu_overcommit_percent}%")
+            logger.info(f"Overcommit Debug - Memory Capacity: {memory_capacity}, Memory Requests: {memory_requests}, Memory Overcommit: {memory_overcommit_percent}%")
+            
             # Count namespaces in overcommit (simplified - any namespace with requests > 0)
             namespaces_in_overcommit = len([ns for ns in namespaces_list if ns['total_validations'] > 0])
             
