@@ -1788,7 +1788,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h2>${title}</h2>
-                        <span class="close" onclick="closeModal()">&times;</span>
+                        <span class="close">&times;</span>
                     </div>
                     <div class="modal-body">
                         ${content}
@@ -1797,6 +1797,19 @@
             `;
             document.body.appendChild(modal);
             modal.style.display = 'block';
+
+            // Add close functionality
+            const closeBtn = modal.querySelector('.close');
+            closeBtn.onclick = () => modal.remove();
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+
+        function closeModal() {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => modal.remove());
         }
     </script>
 </body>
