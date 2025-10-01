@@ -104,12 +104,7 @@ class ValidationService:
                 recommendation="Define limits to avoid excessive resource consumption"
             ))
         
-        # 3. QoS Class validation based on Red Hat recommendations
-        qos_validation = self._validate_qos_class(pod_name, namespace, container["name"], qos_class, requests, limits)
-        if qos_validation:
-            validations.append(qos_validation)
-        
-        # 3. Validate limit:request ratio
+        # 3. Validate limit:request ratio (only if both requests and limits exist)
         if requests and limits:
             cpu_validation = self._validate_cpu_ratio(
                 pod_name, namespace, container["name"], requests, limits
@@ -123,7 +118,7 @@ class ValidationService:
             if memory_validation:
                 validations.append(memory_validation)
         
-        # 4. Add container resource metrics validation
+        # 4. Add container resource metrics validation (only if resources exist)
         if requests or limits:
             metrics_validation = self._validate_container_metrics(
                 pod_name, namespace, container["name"], requests, limits
@@ -131,7 +126,7 @@ class ValidationService:
             if metrics_validation:
                 validations.append(metrics_validation)
         
-        # 5. Validate minimum values
+        # 5. Validate minimum values (only if requests exist)
         if requests:
             min_validation = self._validate_minimum_values(
                 pod_name, namespace, container["name"], requests
@@ -387,32 +382,6 @@ class ValidationService:
         else:
             return "BestEffort"
     
-    def _validate_qos_class(self, pod_name: str, namespace: str, container_name: str, qos_class: str, requests: Dict[str, str], limits: Dict[str, str]) -> Optional[ResourceValidation]:
-        """Validate QoS class and provide recommendations"""
-        cpu_requests = self._parse_cpu_value(requests.get("cpu", "0"))
-        memory_requests = self._parse_memory_value(requests.get("memory", "0")) / (1024 * 1024 * 1024)  # Convert to GB
-        cpu_limits = self._parse_cpu_value(limits.get("cpu", "0"))
-        memory_limits = self._parse_memory_value(limits.get("memory", "0")) / (1024 * 1024 * 1024)  # Convert to GB
-        
-        # Check for missing requests (BestEffort pods) - removed duplicate validation
-        # This is already handled at container level in _validate_container_resources
-        
-        # Check for missing limits (Burstable pods)
-        if qos_class == "Burstable" and (cpu_limits == 0 or memory_limits == 0):
-            return ResourceValidation(
-                pod_name=pod_name,
-                namespace=namespace,
-                container_name=container_name,
-                validation_type="missing_limits",
-                severity="warning",
-                message="Pod has requests but no limits defined",
-                recommendation="Define resource limits to prevent resource starvation",
-                priority_score=5,
-                workload_category="established",
-                estimated_impact="low"
-            )
-        
-        return None
     
     def validate_namespace_overcommit(
         self, 

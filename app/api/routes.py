@@ -519,16 +519,16 @@ async def get_workload_historical_metrics(
             for result in cluster_memory_data["data"]["result"]:
                 cluster_memory_total += float(result["value"][1])
         
-        # Get workload-specific metrics using simpler queries
-        # CPU usage for specific pod
-        cpu_usage_query = f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}", pod=~".*{workload}.*"}}[5m])'
-        memory_usage_query = f'container_memory_working_set_bytes{{namespace="{namespace}", pod=~".*{workload}.*", container!="", image!=""}}'
+        # Get workload-specific metrics using more precise queries
+        # CPU usage for specific pod (using exact pod name match)
+        cpu_usage_query = f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}", pod="{workload}"}}[5m])'
+        memory_usage_query = f'container_memory_working_set_bytes{{namespace="{namespace}", pod="{workload}", container!="", image!=""}}'
         
         # Resource requests and limits for specific pod
-        cpu_requests_query = f'sum(kube_pod_container_resource_requests{{namespace="{namespace}", pod=~".*{workload}.*", resource="cpu"}})'
-        memory_requests_query = f'sum(kube_pod_container_resource_requests{{namespace="{namespace}", pod=~".*{workload}.*", resource="memory"}})'
-        cpu_limits_query = f'sum(kube_pod_container_resource_limits{{namespace="{namespace}", pod=~".*{workload}.*", resource="cpu"}})'
-        memory_limits_query = f'sum(kube_pod_container_resource_limits{{namespace="{namespace}", pod=~".*{workload}.*", resource="memory"}})'
+        cpu_requests_query = f'sum(kube_pod_container_resource_requests{{namespace="{namespace}", pod="{workload}", resource="cpu"}})'
+        memory_requests_query = f'sum(kube_pod_container_resource_requests{{namespace="{namespace}", pod="{workload}", resource="memory"}})'
+        cpu_limits_query = f'sum(kube_pod_container_resource_limits{{namespace="{namespace}", pod="{workload}", resource="cpu"}})'
+        memory_limits_query = f'sum(kube_pod_container_resource_limits{{namespace="{namespace}", pod="{workload}", resource="memory"}})'
         
         # Execute queries
         cpu_usage_data = await prometheus_client.query(cpu_usage_query)
@@ -600,7 +600,8 @@ async def get_workload_historical_metrics(
                         "requests_cores": 0,
                         "requests_percent": 0,
                         "limits_cores": 0,
-                        "limits_percent": 0
+                        "limits_percent": 0,
+                        "efficiency_percent": 0
                     },
                     "memory": {
                         "usage_bytes": 0,
@@ -611,7 +612,8 @@ async def get_workload_historical_metrics(
                         "requests_percent": 0,
                         "limits_bytes": 0,
                         "limits_mb": 0,
-                        "limits_percent": 0
+                        "limits_percent": 0,
+                        "efficiency_percent": 0
                     }
                 }
             }
@@ -624,12 +626,17 @@ async def get_workload_historical_metrics(
         cpu_limits_percent = (cpu_limits / cluster_cpu_total * 100) if cluster_cpu_total > 0 else 0
         memory_limits_percent = (memory_limits / cluster_memory_total * 100) if cluster_memory_total > 0 else 0
         
+        # Calculate efficiency (usage vs requests)
+        cpu_efficiency = (cpu_usage / cpu_requests * 100) if cpu_requests > 0 else 0
+        memory_efficiency = (memory_usage / memory_requests * 100) if memory_requests > 0 else 0
+        
         return {
             "workload": workload,
             "namespace": namespace,
             "time_range": time_range,
             "prometheus_available": True,
             "data_source": "prometheus",
+            "timestamp": datetime.now().isoformat(),
             "cluster_total": {
                 "cpu_cores": cluster_cpu_total,
                 "memory_bytes": cluster_memory_total,
@@ -642,7 +649,8 @@ async def get_workload_historical_metrics(
                     "requests_cores": cpu_requests,
                     "requests_percent": round(cpu_requests_percent, 2),
                     "limits_cores": cpu_limits,
-                    "limits_percent": round(cpu_limits_percent, 2)
+                    "limits_percent": round(cpu_limits_percent, 2),
+                    "efficiency_percent": round(cpu_efficiency, 1)
                 },
                 "memory": {
                     "usage_bytes": memory_usage,
@@ -653,7 +661,8 @@ async def get_workload_historical_metrics(
                     "requests_percent": round(memory_requests_percent, 2),
                     "limits_bytes": memory_limits,
                     "limits_mb": round(memory_limits / (1024**2), 2),
-                    "limits_percent": round(memory_limits_percent, 2)
+                    "limits_percent": round(memory_limits_percent, 2),
+                    "efficiency_percent": round(memory_efficiency, 1)
                 }
             }
         }

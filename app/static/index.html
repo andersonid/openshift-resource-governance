@@ -1609,7 +1609,7 @@
                         </div>
                         <div class="metric-row">
                             <span class="metric-label">Efficiency:</span>
-                            <span class="metric-value ${cpu.usage_cores > 0 ? (cpu.usage_cores / cpu.requests_cores * 100).toFixed(1) + '%' : 'N/A'}">${cpu.usage_cores > 0 ? (cpu.usage_cores / cpu.requests_cores * 100).toFixed(1) + '%' : 'N/A'}</span>
+                            <span class="metric-value ${cpu.usage_cores > 0 && cpu.requests_cores > 0 ? (cpu.usage_cores / cpu.requests_cores * 100).toFixed(1) + '%' : 'N/A'}">${cpu.usage_cores > 0 && cpu.requests_cores > 0 ? (cpu.usage_cores / cpu.requests_cores * 100).toFixed(1) + '%' : 'N/A'}</span>
                             <span class="metric-percent">(usage vs requests)</span>
                         </div>
                     </div>
@@ -1633,7 +1633,7 @@
                         </div>
                         <div class="metric-row">
                             <span class="metric-label">Efficiency:</span>
-                            <span class="metric-value ${memory.usage_bytes > 0 ? (memory.usage_bytes / memory.requests_bytes * 100).toFixed(1) + '%' : 'N/A'}">${memory.usage_bytes > 0 ? (memory.usage_bytes / memory.requests_bytes * 100).toFixed(1) + '%' : 'N/A'}</span>
+                            <span class="metric-value ${memory.usage_bytes > 0 && memory.requests_bytes > 0 ? (memory.usage_bytes / memory.requests_bytes * 100).toFixed(1) + '%' : 'N/A'}">${memory.usage_bytes > 0 && memory.requests_bytes > 0 ? (memory.usage_bytes / memory.requests_bytes * 100).toFixed(1) + '%' : 'N/A'}</span>
                             <span class="metric-percent">(usage vs requests)</span>
                         </div>
                     </div>
