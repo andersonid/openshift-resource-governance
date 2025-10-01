@@ -1566,9 +1566,9 @@
             const workloadDataDiv = document.getElementById('workloadData');
             
             // Add data source indicator
-            const dataSourceIndicator = data.data_source === 'simulated' ? 
-                '<div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 10px; margin-bottom: 15px; color: #856404;"><strong>📊 Demo Mode:</strong> Showing simulated data for demonstration. Prometheus integration requires proper RBAC configuration.</div>' : 
-                '<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; padding: 10px; margin-bottom: 15px; color: #155724;"><strong>✅ Live Data:</strong> Real metrics from Prometheus</div>';
+            const dataSourceIndicator = data.data_source === 'prometheus' ? 
+                '<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; padding: 10px; margin-bottom: 15px; color: #155724;"><strong>✅ Live Data:</strong> Real metrics from Prometheus</div>' : 
+                '<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 10px; margin-bottom: 15px; color: #721c24;"><strong>⚠️ No Data:</strong> No metrics available for this workload</div>';
             
             // Render cluster total resources
             clusterTotalDiv.innerHTML = dataSourceIndicator + `
