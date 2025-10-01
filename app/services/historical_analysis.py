@@ -308,8 +308,8 @@ class HistoricalAnalysisService:
             ))
             return validations
         
-        # Check for minimal data points (less than 5 data points)
-        if len(usage_values) < 5:
+        # Check for minimal data points (less than 3 data points)
+        if len(usage_values) < 3:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
                 namespace=namespace,
@@ -431,8 +431,8 @@ class HistoricalAnalysisService:
             ))
             return validations
         
-        # Check for minimal data points (less than 5 data points)
-        if len(usage_values) < 5:
+        # Check for minimal data points (less than 3 data points)
+        if len(usage_values) < 3:
             validations.append(ResourceValidation(
                 pod_name=pod_name,
                 namespace=namespace,
@@ -537,20 +537,11 @@ class HistoricalAnalysisService:
             connector = aiohttp.TCPConnector(ssl=False)
             
             async with aiohttp.ClientSession(connector=connector, headers=headers) as session:
-                # Calculate appropriate step based on time range
-                time_diff = (end_time - start_time).total_seconds()
-                if time_diff <= 3600:  # 1 hour or less
-                    step = '30s'
-                elif time_diff <= 86400:  # 24 hours or less
-                    step = '300s'  # 5 minutes
-                else:  # More than 24 hours
-                    step = '1800s'  # 30 minutes
-                
                 params = {
                     'query': query,
                     'start': start_time.timestamp(),
                     'end': end_time.timestamp(),
-                    'step': step
+                    'step': '60s'  # 1 minute resolution
                 }
                 
                 async with session.get(
@@ -559,10 +550,17 @@ class HistoricalAnalysisService:
                     timeout=aiohttp.ClientTimeout(total=30),
                     ssl=False
                 ) as response:
+                    logger.info(f"Prometheus query: {query}, status: {response.status}")
                     if response.status == 200:
                         data = await response.json()
+                        logger.info(f"Prometheus response: {data}")
                         if data['status'] == 'success' and data['data']['result']:
-                            return data['data']['result'][0]['values']
+                            values = data['data']['result'][0]['values']
+                            logger.info(f"Returning {len(values)} data points")
+                            return values
+                        else:
+                            logger.warning(f"No data in Prometheus response: {data}")
+                            return []
                     else:
                         logger.warning(f"Prometheus query failed: {response.status}")
                         return []
