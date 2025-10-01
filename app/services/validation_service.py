@@ -64,6 +64,39 @@ class ValidationService:
             logger.warning(f"Error in historical analysis for pod {pod.name}: {e}")
         
         return static_validations
+
+    async def validate_workload_resources_with_historical_analysis(
+        self, 
+        pods: List[PodResource], 
+        time_range: str = '24h'
+    ) -> List[ResourceValidation]:
+        """Validate workload resources including historical analysis (recommended approach)"""
+        all_validations = []
+        
+        # Static validations for all pods
+        for pod in pods:
+            static_validations = self.validate_pod_resources(pod)
+            all_validations.extend(static_validations)
+        
+        # Historical analysis by workload (more reliable than individual pods)
+        try:
+            historical_validations = await self.historical_analysis.analyze_workload_historical_usage(
+                pods, time_range
+            )
+            all_validations.extend(historical_validations)
+        except Exception as e:
+            logger.warning(f"Error in workload historical analysis: {e}")
+            # Fallback to individual pod analysis
+            for pod in pods:
+                try:
+                    pod_historical = await self.historical_analysis.analyze_pod_historical_usage(
+                        pod, time_range
+                    )
+                    all_validations.extend(pod_historical)
+                except Exception as pod_e:
+                    logger.warning(f"Error in historical analysis for pod {pod.name}: {pod_e}")
+        
+        return all_validations
     
     def _validate_container_resources(
         self, 

@@ -45,22 +45,39 @@ async def get_cluster_status(
         pods = await k8s_client.get_all_pods()
         nodes_info = await k8s_client.get_nodes_info()
         
-        # Validate resources with historical analysis (includes static validations)
+        # Validate resources with historical analysis by workload (more reliable)
         all_validations = []
         
+        # Group pods by namespace for workload analysis
+        namespace_pods = {}
         for pod in pods:
-            # Historical analysis includes static validations
+            if pod.namespace not in namespace_pods:
+                namespace_pods[pod.namespace] = []
+            namespace_pods[pod.namespace].append(pod)
+        
+        # Analyze each namespace's workloads
+        for namespace, namespace_pod_list in namespace_pods.items():
             try:
-                historical_validations = await validation_service.validate_pod_resources_with_historical_analysis(pod, "24h")
-                all_validations.extend(historical_validations)
+                # Use workload-based analysis (more reliable than individual pods)
+                workload_validations = await validation_service.validate_workload_resources_with_historical_analysis(
+                    namespace_pod_list, "24h"
+                )
+                all_validations.extend(workload_validations)
             except Exception as e:
-                logger.warning(f"Error in historical analysis for pod {pod.name}: {e}")
-                # Fallback to static validations only if historical analysis fails
-                try:
-                    static_validations = validation_service.validate_pod_resources(pod)
-                    all_validations.extend(static_validations)
-                except Exception as static_e:
-                    logger.error(f"Error in static validation for pod {pod.name}: {static_e}")
+                logger.warning(f"Error in workload analysis for namespace {namespace}: {e}")
+                # Fallback to individual pod analysis
+                for pod in namespace_pod_list:
+                    try:
+                        pod_validations = await validation_service.validate_pod_resources_with_historical_analysis(pod, "24h")
+                        all_validations.extend(pod_validations)
+                    except Exception as pod_e:
+                        logger.warning(f"Error in historical analysis for pod {pod.name}: {pod_e}")
+                        # Final fallback to static validations only
+                        try:
+                            static_validations = validation_service.validate_pod_resources(pod)
+                            all_validations.extend(static_validations)
+                        except Exception as static_e:
+                            logger.error(f"Error in static validation for pod {pod.name}: {static_e}")
         
         # Get overcommit information
         overcommit_info = await prometheus_client.get_cluster_overcommit()
