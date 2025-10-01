@@ -225,7 +225,38 @@ class HistoricalAnalysisService:
             cpu_limits_data = await self._query_prometheus(cpu_limits_query, time_range)
             memory_limits_data = await self._query_prometheus(memory_limits_query, time_range)
             
-            # Analyze CPU metrics for workload
+            # Check if we have sufficient data for both CPU and Memory before doing historical analysis
+            cpu_has_data = cpu_usage_data and len([p for p in cpu_usage_data if p[1] != 'NaN']) >= 3
+            memory_has_data = memory_usage_data and len([p for p in memory_usage_data if p[1] != 'NaN']) >= 3
+            
+            # If either CPU or Memory has insufficient data, add insufficient data warning
+            if not cpu_has_data or not memory_has_data:
+                if not cpu_has_data:
+                    validations.append(ResourceValidation(
+                        pod_name=workload_name,
+                        namespace=namespace,
+                        container_name="workload",
+                        validation_type="insufficient_historical_data",
+                        severity="warning",
+                        message=f"Limited CPU usage data ({len([p for p in cpu_usage_data if p[1] != 'NaN']) if cpu_usage_data else 0} points) for {time_range}",
+                        recommendation="Wait for more data points or extend time range for reliable analysis"
+                    ))
+                
+                if not memory_has_data:
+                    validations.append(ResourceValidation(
+                        pod_name=workload_name,
+                        namespace=namespace,
+                        container_name="workload",
+                        validation_type="insufficient_historical_data",
+                        severity="warning",
+                        message=f"Limited memory usage data ({len([p for p in memory_usage_data if p[1] != 'NaN']) if memory_usage_data else 0} points) for {time_range}",
+                        recommendation="Wait for more data points or extend time range for reliable analysis"
+                    ))
+                
+                # Don't proceed with historical analysis if any resource has insufficient data
+                return validations
+            
+            # Analyze CPU metrics for workload (only if we have sufficient data)
             if cpu_usage_data and cpu_requests_data and cpu_limits_data:
                 cpu_validations = self._analyze_cpu_metrics(
                     workload_name, namespace, "workload", 
@@ -233,7 +264,7 @@ class HistoricalAnalysisService:
                 )
                 validations.extend(cpu_validations)
             
-            # Analyze memory metrics for workload
+            # Analyze memory metrics for workload (only if we have sufficient data)
             if memory_usage_data and memory_requests_data and memory_limits_data:
                 memory_validations = self._analyze_memory_metrics(
                     workload_name, namespace, "workload", 
