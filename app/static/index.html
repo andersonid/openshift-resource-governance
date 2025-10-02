@@ -1305,6 +1305,15 @@
             return max.toFixed(3);
         }
         
+        function getSeverityColor(severity) {
+            switch(severity) {
+                case 'error': return 'var(--pf-global--danger-color--100)';
+                case 'warning': return 'var(--pf-global--warning-color--100)';
+                case 'info': return 'var(--pf-global--info-color--100)';
+                default: return 'var(--pf-global--Color--300)';
+            }
+        }
+        
         function createCPUChart(canvasId, cpuData) {
             const ctx = document.getElementById(canvasId);
             if (!ctx) return;
