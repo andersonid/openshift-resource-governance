@@ -1616,6 +1616,15 @@
                                     </div>
                                 ` : ''}
 
+                                <div style="display: flex; gap: 0.5rem; margin-top: 1rem; margin-bottom: 1rem;">
+                                    ${rec.vpa_yaml ? `
+                                        <button onclick="showVPAYaml(${index})" 
+                                                style="padding: 0.5rem 1rem; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+                                            📄 Generate VPA YAML
+                                        </button>
+                                    ` : ''}
+                                </div>
+
                                 ${rec.kubectl_commands && rec.kubectl_commands.length > 0 ? `
                                     <div style="margin-bottom: 1rem;">
                                         <h4 style="color: #2c3e50; margin-bottom: 0.5rem; font-size: 1rem;">OpenShift Commands:</h4>
@@ -1624,15 +1633,6 @@
                                         </div>
                                     </div>
                                 ` : ''}
-
-                                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                                    ${rec.vpa_yaml ? `
-                                        <button onclick="showVPAYaml(${index})" 
-                                                style="padding: 0.5rem 1rem; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
-                                            📄 Generate VPA YAML
-                                        </button>
-                                    ` : ''}
-                                </div>
                             </div>
                         </div>
                     `;
