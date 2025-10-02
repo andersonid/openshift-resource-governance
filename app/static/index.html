@@ -781,6 +781,86 @@
                 flex-direction: column;
             }
         }
+
+        /* PromQL Queries Styles */
+        .promql-queries {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .promql-queries h4 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .promql-queries h5 {
+            color: #6c757d;
+            margin: 20px 0 10px 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .query-section {
+            margin-bottom: 25px;
+        }
+
+        .query-item {
+            margin-bottom: 15px;
+        }
+
+        .query-item label {
+            display: block;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .query-box {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 8px 12px;
+            gap: 10px;
+        }
+
+        .query-box code {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.85rem;
+            color: #e83e8c;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+
+        .copy-btn:hover {
+            background: #0056b3;
+        }
+
+        .copy-btn:active {
+            background: #004085;
+        }
     </style>
 </head>
 <body>
@@ -1614,6 +1694,85 @@
                         </div>
                     </div>
                 </div>
+                
+                ${data.promql_queries ? `
+                <div class="promql-queries" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
+                    <h4>🔍 PromQL Queries Used</h4>
+                    <p style="color: #6c757d; margin-bottom: 15px;">Copy these queries to validate in OpenShift Console → Monitoring → Metrics:</p>
+                    
+                    <div class="query-section">
+                        <h5>Cluster Total Resources:</h5>
+                        <div class="query-item">
+                            <label>CPU Total:</label>
+                            <div class="query-box">
+                                <code>${data.promql_queries.cluster_cpu_total}</code>
+                                <button onclick="copyToClipboard('${data.promql_queries.cluster_cpu_total}')" class="copy-btn">📋 Copy</button>
+                            </div>
+                        </div>
+                        <div class="query-item">
+                            <label>Memory Total:</label>
+                            <div class="query-box">
+                                <code>${data.promql_queries.cluster_memory_total}</code>
+                                <button onclick="copyToClipboard('${data.promql_queries.cluster_memory_total}')" class="copy-btn">📋 Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="query-section">
+                        <h5>Workload Resource Usage:</h5>
+                        <div class="query-item">
+                            <label>CPU Usage:</label>
+                            <div class="query-box">
+                                <code>${data.promql_queries.cpu_usage}</code>
+                                <button onclick="copyToClipboard('${data.promql_queries.cpu_usage}')" class="copy-btn">📋 Copy</button>
+                            </div>
+                        </div>
+                        <div class="query-item">
+                            <label>Memory Usage:</label>
+                            <div class="query-box">
+                                <code>${data.promql_queries.memory_usage}</code>
+                                <button onclick="copyToClipboard('${data.promql_queries.memory_usage}')" class="copy-btn">📋 Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="query-section">
+                        <h5>Workload Resource Requests:</h5>
+                        <div class="query-item">
+                            <label>CPU Requests:</label>
+                            <div class="query-box">
+                                <code>${data.promql_queries.cpu_requests}</code>
+                                <button onclick="copyToClipboard('${data.promql_queries.cpu_requests}')" class="copy-btn">📋 Copy</button>
+                            </div>
+                        </div>
+                        <div class="query-item">
+                            <label>Memory Requests:</label>
+                            <div class="query-box">
+                                <code>${data.promql_queries.memory_requests}</code>
+                                <button onclick="copyToClipboard('${data.promql_queries.memory_requests}')" class="copy-btn">📋 Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="query-section">
+                        <h5>Workload Resource Limits:</h5>
+                        <div class="query-item">
+                            <label>CPU Limits:</label>
+                            <div class="query-box">
+                                <code>${data.promql_queries.cpu_limits}</code>
+                                <button onclick="copyToClipboard('${data.promql_queries.cpu_limits}')" class="copy-btn">📋 Copy</button>
+                            </div>
+                        </div>
+                        <div class="query-item">
+                            <label>Memory Limits:</label>
+                            <div class="query-box">
+                                <code>${data.promql_queries.memory_limits}</code>
+                                <button onclick="copyToClipboard('${data.promql_queries.memory_limits}')" class="copy-btn">📋 Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
             `;
         }
         
@@ -1642,6 +1801,40 @@
             link.download = 'resource-governance-report.json';
             link.click();
             URL.revokeObjectURL(url);
+        }
+
+        // Copy to clipboard function for PromQL queries
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                // Show a brief success message
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                button.style.background = '#28a745';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                button.style.background = '#28a745';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                }, 2000);
+            }
         }
 
         // Utility functions

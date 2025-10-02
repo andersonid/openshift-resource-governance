@@ -744,6 +744,16 @@ async def get_workload_historical_metrics(
                     "limits_percent": round(memory_limits_percent, 2),
                     "efficiency_percent": round(memory_efficiency, 1)
                 }
+            },
+            "promql_queries": {
+                "cluster_cpu_total": cluster_cpu_query,
+                "cluster_memory_total": cluster_memory_query,
+                "cpu_usage": cpu_usage_query,
+                "memory_usage": memory_usage_query,
+                "cpu_requests": cpu_requests_query,
+                "memory_requests": memory_requests_query,
+                "cpu_limits": cpu_limits_query,
+                "memory_limits": memory_limits_query
             }
         }
     except Exception as e:
