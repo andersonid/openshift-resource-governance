@@ -1226,7 +1226,7 @@ async def get_historical_analysis(
         workloads = {}
         for pod in pods:
             # Extract workload name from pod name (remove replica set suffix)
-            workload_name = self._extract_workload_name(pod.name)
+            workload_name = _extract_workload_name(pod.name)
             namespace = pod.namespace
             
             if workload_name not in workloads:
