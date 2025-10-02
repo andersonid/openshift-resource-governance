@@ -118,12 +118,12 @@ class SmartRecommendationsService:
         
         # Analyze resource configuration
         has_requests = all(
-            any(container.resources.get("requests") for container in pod.containers)
+            any(container.get("resources", {}).get("requests") for container in pod.containers)
             for pod in pods
         )
         
         has_limits = all(
-            any(container.resources.get("limits") for container in pod.containers)
+            any(container.get("resources", {}).get("limits") for container in pod.containers)
             for pod in pods
         )
         
@@ -131,7 +131,7 @@ class SmartRecommendationsService:
         has_optimal_ratios = True
         for pod in pods:
             for container in pod.containers:
-                resources = container.resources
+                resources = container.get("resources", {})
                 requests = resources.get("requests", {})
                 limits = resources.get("limits", {})
                 
