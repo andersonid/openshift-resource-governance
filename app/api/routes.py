@@ -1482,6 +1482,59 @@ async def get_workload_historical_details(
         logger.error(f"Error getting workload historical details: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error getting workload details: {str(e)}")
 
+@api_router.get("/vpa/list")
+async def list_vpas(
+    namespace: Optional[str] = None,
+    k8s_client=Depends(get_k8s_client)
+):
+    """List VPA resources"""
+    try:
+        vpas = await k8s_client.list_vpas(namespace)
+        return {
+            "vpas": vpas,
+            "count": len(vpas),
+            "namespace": namespace or "all"
+        }
+    except Exception as e:
+        logger.error(f"Error listing VPAs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/vpa/create")
+async def create_vpa(
+    namespace: str,
+    vpa_manifest: dict,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Create a VPA resource"""
+    try:
+        result = await k8s_client.create_vpa(namespace, vpa_manifest)
+        return {
+            "message": "VPA created successfully",
+            "vpa": result,
+            "namespace": namespace
+        }
+    except Exception as e:
+        logger.error(f"Error creating VPA: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/vpa/{vpa_name}")
+async def delete_vpa(
+    vpa_name: str,
+    namespace: str,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Delete a VPA resource"""
+    try:
+        result = await k8s_client.delete_vpa(vpa_name, namespace)
+        return {
+            "message": "VPA deleted successfully",
+            "vpa_name": vpa_name,
+            "namespace": namespace
+        }
+    except Exception as e:
+        logger.error(f"Error deleting VPA: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/health")
 async def health_check():
     """API health check"""
