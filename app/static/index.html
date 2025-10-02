@@ -1124,8 +1124,14 @@
             });
 
             // Show selected section
-            document.getElementById(section + 'Section').style.display = 'block';
-            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+            const sectionElement = document.getElementById(section + 'Section');
+            if (sectionElement) {
+                sectionElement.style.display = 'block';
+            }
+            const navElement = document.querySelector(`[data-section="${section}"]`);
+            if (navElement) {
+                navElement.classList.add('active');
+            }
 
             // Load section data
             switch(section) {
