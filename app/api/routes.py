@@ -1212,8 +1212,8 @@ async def get_historical_analysis(
         # Group pods by workload
         workloads = {}
         for pod in pods:
-            workload_name = pod.metadata.labels.get('app', pod.metadata.labels.get('name', 'unknown'))
-            namespace = pod.metadata.namespace
+            workload_name = pod.labels.get('app', pod.labels.get('name', 'unknown'))
+            namespace = pod.namespace
             
             if workload_name not in workloads:
                 workloads[workload_name] = {
