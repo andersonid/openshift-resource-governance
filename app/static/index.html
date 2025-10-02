@@ -1470,6 +1470,7 @@
 
         // Update smart recommendations
         function updateSmartRecommendations(data) {
+            console.log('updateSmartRecommendations called with data:', data);
             const content = document.getElementById('smartRecommendationsContent');
             
             if (!data || !data.recommendations) {
