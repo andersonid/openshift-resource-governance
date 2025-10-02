@@ -965,7 +965,36 @@
         function updateWorkloadsTable(data) {
             const container = document.getElementById('workloads-table-container');
             
-            if (!data.namespaces || data.namespaces.length === 0) {
+            // Group validations by namespace
+            const namespaceGroups = {};
+            if (data.validations && data.validations.length > 0) {
+                data.validations.forEach(validation => {
+                    const namespace = validation.namespace;
+                    if (!namespaceGroups[namespace]) {
+                        namespaceGroups[namespace] = {
+                            namespace: namespace,
+                            validations: [],
+                            pods: new Set(),
+                            severity_breakdown: { error: 0, warning: 0, info: 0 }
+                        };
+                    }
+                    namespaceGroups[namespace].validations.push(validation);
+                    namespaceGroups[namespace].pods.add(validation.pod_name);
+                    
+                    // Count severity
+                    if (validation.severity === 'error') {
+                        namespaceGroups[namespace].severity_breakdown.error++;
+                    } else if (validation.severity === 'warning') {
+                        namespaceGroups[namespace].severity_breakdown.warning++;
+                    } else if (validation.severity === 'info') {
+                        namespaceGroups[namespace].severity_breakdown.info++;
+                    }
+                });
+            }
+            
+            const namespaces = Object.values(namespaceGroups);
+            
+            if (namespaces.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: var(--pf-global--Color--300);">
                         <i class="fas fa-check-circle" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--success-color--100);"></i>
@@ -988,13 +1017,13 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${data.namespaces.map(namespace => `
+                        ${namespaces.map(namespace => `
                             <tr>
                                 <td>
                                     <strong style="color: var(--pf-global--Color--100);">${namespace.namespace}</strong>
                                 </td>
-                                <td>${Object.keys(namespace.pods || {}).length}</td>
-                                <td>${namespace.total_validations || 0}</td>
+                                <td>${namespace.pods.size}</td>
+                                <td>${namespace.validations.length}</td>
                                 <td>
                                     <span class="status-indicator ${getSeverityClass(namespace)}">
                                         ${getSeverityText(namespace)}
@@ -1300,16 +1329,46 @@
             }
 
         function analyzeNamespace(namespaceName) {
-            if (!currentData || !currentData.validations || !currentData.validations.namespaces) return;
+            if (!currentData || !currentData.validations || !currentData.validations.validations) return;
             
-            const namespace = currentData.validations.namespaces.find(ns => ns.namespace === namespaceName);
-            if (!namespace) return;
+            // Filter validations for this namespace
+            const namespaceValidations = currentData.validations.validations.filter(v => v.namespace === namespaceName);
+            if (namespaceValidations.length === 0) return;
+            
+            // Group by pod
+            const podGroups = {};
+            namespaceValidations.forEach(validation => {
+                const podName = validation.pod_name;
+                if (!podGroups[podName]) {
+                    podGroups[podName] = {
+                        pod_name: podName,
+                        namespace: namespaceName,
+                        phase: 'Running', // Default phase
+                        node_name: 'Unknown', // Default node
+                        containers: [],
+                        validations: []
+                    };
+                }
+                podGroups[podName].validations.push(validation);
+            });
+            
+            // Create namespace object for compatibility
+            const namespace = {
+                namespace: namespaceName,
+                pods: podGroups,
+                validations: namespaceValidations,
+                severity_breakdown: {
+                    error: namespaceValidations.filter(v => v.severity === 'error').length,
+                    warning: namespaceValidations.filter(v => v.severity === 'warning').length,
+                    info: namespaceValidations.filter(v => v.severity === 'info').length
+                }
+            };
             
             // Show details in modal
-            showNamespaceDetails(namespaceName);
+            showNamespaceDetails(namespaceName, namespace);
         }
         
-        function showNamespaceDetails(namespaceName) {
+        function showNamespaceDetails(namespaceName, namespace) {
             // Create modal if it doesn't exist
             let modal = document.getElementById('namespaceModal');
             if (!modal) {
@@ -1334,8 +1393,7 @@
                 };
             }
             
-            // Create detailed content
-            const namespace = currentData.validations.namespaces.find(ns => ns.namespace === namespaceName);
+            // Use the passed namespace object
             if (!namespace) return;
             
             let content = `
