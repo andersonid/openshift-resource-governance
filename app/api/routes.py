@@ -15,6 +15,7 @@ from app.models.resource_models import (
 from app.services.validation_service import ValidationService
 from app.services.report_service import ReportService
 from app.services.historical_analysis import HistoricalAnalysisService
+from app.services.smart_recommendations import SmartRecommendationsService
 from app.core.prometheus_client import PrometheusClient
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ api_router = APIRouter()
 # Initialize services
 validation_service = ValidationService()
 report_service = ReportService()
+smart_recommendations_service = SmartRecommendationsService()
 
 def get_k8s_client(request: Request):
     """Dependency to get Kubernetes client"""
@@ -1135,6 +1137,66 @@ async def get_pod_health_scores(
         
     except Exception as e:
         logger.error(f"Error getting pod health scores: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/smart-recommendations")
+async def get_smart_recommendations(
+    namespace: Optional[str] = None,
+    priority: Optional[str] = None,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Get smart recommendations for resource optimization"""
+    try:
+        # Get all pods
+        pods = await k8s_client.get_all_pods()
+        
+        if namespace:
+            pods = [pod for pod in pods if pod.namespace == namespace]
+        
+        # Categorize workloads
+        categories = await smart_recommendations_service.categorize_workloads(pods)
+        
+        # Generate smart recommendations
+        recommendations = await smart_recommendations_service.generate_smart_recommendations(pods, categories)
+        
+        # Filter by priority if specified
+        if priority:
+            recommendations = [r for r in recommendations if r.priority == priority]
+        
+        # Group by namespace
+        recommendations_by_namespace = {}
+        for rec in recommendations:
+            if rec.namespace not in recommendations_by_namespace:
+                recommendations_by_namespace[rec.namespace] = []
+            recommendations_by_namespace[rec.namespace].append(rec)
+        
+        # Calculate summary
+        summary = {
+            "total_recommendations": len(recommendations),
+            "by_priority": {
+                "critical": len([r for r in recommendations if r.priority == "critical"]),
+                "high": len([r for r in recommendations if r.priority == "high"]),
+                "medium": len([r for r in recommendations if r.priority == "medium"]),
+                "low": len([r for r in recommendations if r.priority == "low"])
+            },
+            "by_type": {
+                "resource_config": len([r for r in recommendations if r.recommendation_type == "resource_config"]),
+                "vpa_activation": len([r for r in recommendations if r.recommendation_type == "vpa_activation"]),
+                "ratio_adjustment": len([r for r in recommendations if r.recommendation_type == "ratio_adjustment"])
+            },
+            "namespaces_affected": len(recommendations_by_namespace)
+        }
+        
+        return {
+            "recommendations": recommendations,
+            "categories": categories,
+            "grouped_by_namespace": recommendations_by_namespace,
+            "summary": summary,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting smart recommendations: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/health")

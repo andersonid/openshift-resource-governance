@@ -1450,7 +1450,8 @@
         // Load smart recommendations
         async function loadSmartRecommendations() {
             try {
-                const response = await fetch('/api/recommendations');
+                showLoading();
+                const response = await fetch('/api/v1/smart-recommendations');
                 const data = await response.json();
                 updateSmartRecommendations(data);
             } catch (error) {
@@ -1463,7 +1464,155 @@
         // Update smart recommendations
         function updateSmartRecommendations(data) {
             const content = document.getElementById('smartRecommendationsContent');
-            content.innerHTML = '<p>Smart recommendations feature coming soon...</p>';
+            
+            if (!data || !data.recommendations) {
+                content.innerHTML = '<p style="color: #e74c3c;">No recommendations data available</p>';
+                return;
+            }
+
+            const recommendations = data.recommendations;
+            const summary = data.summary;
+            
+            let html = `
+                <!-- Summary Cards -->
+                <div class="summary-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div class="summary-card" style="background: #e8f5e8; border: 1px solid #4caf50; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <h3 style="color: #2e7d32; margin: 0 0 0.5rem 0;">${summary.total_recommendations}</h3>
+                        <p style="color: #388e3c; margin: 0; font-size: 0.9rem;">Total Recommendations</p>
+                    </div>
+                    <div class="summary-card" style="background: #ffebee; border: 1px solid #f44336; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <h3 style="color: #c62828; margin: 0 0 0.5rem 0;">${summary.by_priority.critical}</h3>
+                        <p style="color: #d32f2f; margin: 0; font-size: 0.9rem;">Critical Issues</p>
+                    </div>
+                    <div class="summary-card" style="background: #fff3e0; border: 1px solid #ff9800; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <h3 style="color: #ef6c00; margin: 0 0 0.5rem 0;">${summary.by_priority.high}</h3>
+                        <p style="color: #f57c00; margin: 0; font-size: 0.9rem;">High Priority</p>
+                    </div>
+                    <div class="summary-card" style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <h3 style="color: #1565c0; margin: 0 0 0.5rem 0;">${summary.namespaces_affected}</h3>
+                        <p style="color: #1976d2; margin: 0; font-size: 0.9rem;">Namespaces Affected</p>
+                    </div>
+                </div>
+
+                <!-- Filter Controls -->
+                <div class="filter-controls" style="margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <div>
+                        <label for="priorityFilter" style="font-weight: 500; margin-right: 0.5rem;">Priority:</label>
+                        <select id="priorityFilter" onchange="filterRecommendations()" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="">All Priorities</option>
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="typeFilter" style="font-weight: 500; margin-right: 0.5rem;">Type:</label>
+                        <select id="typeFilter" onchange="filterRecommendations()" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="">All Types</option>
+                            <option value="resource_config">Resource Config</option>
+                            <option value="vpa_activation">VPA Activation</option>
+                            <option value="ratio_adjustment">Ratio Adjustment</option>
+                        </select>
+                    </div>
+                    <button onclick="refreshRecommendations()" style="padding: 0.5rem 1rem; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        🔄 Refresh
+                    </button>
+                </div>
+
+                <!-- Recommendations List -->
+                <div id="recommendationsList">
+            `;
+
+            if (recommendations.length === 0) {
+                html += `
+                    <div style="text-align: center; padding: 3rem; color: #7f8c8d;">
+                        <h3>🎉 No Recommendations Needed</h3>
+                        <p>All workloads are properly configured with optimal resource settings.</p>
+                    </div>
+                `;
+            } else {
+                recommendations.forEach((rec, index) => {
+                    const priorityColor = {
+                        'critical': '#e74c3c',
+                        'high': '#f39c12',
+                        'medium': '#3498db',
+                        'low': '#95a5a6'
+                    }[rec.priority] || '#95a5a6';
+
+                    const priorityIcon = {
+                        'critical': '🔴',
+                        'high': '🟠',
+                        'medium': '🔵',
+                        'low': '⚪'
+                    }[rec.priority] || '⚪';
+
+                    html += `
+                        <div class="recommendation-card" data-priority="${rec.priority}" data-type="${rec.recommendation_type}" 
+                             style="border: 1px solid #ddd; border-radius: 8px; margin-bottom: 1rem; overflow: hidden; background: white;">
+                            <div class="recommendation-header" style="background: #f8f9fa; padding: 1rem; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h3 style="margin: 0 0 0.5rem 0; color: #2c3e50;">${priorityIcon} ${rec.title}</h3>
+                                    <p style="margin: 0; color: #7f8c8d; font-size: 0.9rem;">
+                                        <strong>Workload:</strong> ${rec.workload_name} | 
+                                        <strong>Namespace:</strong> ${rec.namespace} | 
+                                        <strong>Type:</strong> ${rec.recommendation_type.replace('_', ' ').toUpperCase()}
+                                    </p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="background: ${priorityColor}; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 500;">
+                                        ${rec.priority.toUpperCase()}
+                                    </span>
+                                    ${rec.confidence_level ? `<div style="margin-top: 0.5rem; font-size: 0.8rem; color: #7f8c8d;">Confidence: ${Math.round(rec.confidence_level * 100)}%</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="recommendation-body" style="padding: 1rem;">
+                                <p style="margin: 0 0 1rem 0; color: #2c3e50;">${rec.description}</p>
+                                
+                                ${rec.implementation_steps ? `
+                                    <div style="margin-bottom: 1rem;">
+                                        <h4 style="color: #2c3e50; margin-bottom: 0.5rem; font-size: 1rem;">Implementation Steps:</h4>
+                                        <ol style="margin: 0; padding-left: 1.5rem; color: #555;">
+                                            ${rec.implementation_steps.map(step => `<li style="margin-bottom: 0.25rem;">${step}</li>`).join('')}
+                                        </ol>
+                                    </div>
+                                ` : ''}
+
+                                ${rec.kubectl_commands && rec.kubectl_commands.length > 0 ? `
+                                    <div style="margin-bottom: 1rem;">
+                                        <h4 style="color: #2c3e50; margin-bottom: 0.5rem; font-size: 1rem;">Kubectl Commands:</h4>
+                                        <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 0.75rem; font-family: 'Courier New', monospace; font-size: 0.9rem;">
+                                            ${rec.kubectl_commands.map(cmd => `<div style="margin-bottom: 0.5rem;">${cmd}</div>`).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+
+                                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                    <button onclick="showRecommendationDetails(${index})" 
+                                            style="padding: 0.5rem 1rem; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+                                        📋 View Details
+                                    </button>
+                                    ${rec.vpa_yaml ? `
+                                        <button onclick="showVPAYaml(${index})" 
+                                                style="padding: 0.5rem 1rem; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+                                            📄 VPA YAML
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            html += `
+                </div>
+            `;
+
+            content.innerHTML = html;
+            
+            // Store recommendations data for modal access
+            window.currentRecommendations = recommendations;
         }
 
         // Load VPA management
@@ -1835,6 +1984,141 @@
                     button.style.background = '';
                 }, 2000);
             }
+        }
+
+        // Smart Recommendations Functions
+        function filterRecommendations() {
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const cards = document.querySelectorAll('.recommendation-card');
+            
+            cards.forEach(card => {
+                const priority = card.getAttribute('data-priority');
+                const type = card.getAttribute('data-type');
+                
+                let show = true;
+                
+                if (priorityFilter && priority !== priorityFilter) {
+                    show = false;
+                }
+                
+                if (typeFilter && type !== typeFilter) {
+                    show = false;
+                }
+                
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
+
+        function refreshRecommendations() {
+            loadSmartRecommendations();
+        }
+
+        function showRecommendationDetails(index) {
+            const rec = window.currentRecommendations[index];
+            if (!rec) return;
+            
+            let modalContent = `
+                <div class="modal-header">
+                    <h2>📋 Recommendation Details</h2>
+                    <span class="close" onclick="closeModal()">&times;</span>
+                </div>
+                <div class="modal-body" style="padding: 2rem;">
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="color: #2c3e50; margin-bottom: 1rem;">${rec.title}</h3>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <p><strong>Workload:</strong> ${rec.workload_name}</p>
+                            <p><strong>Namespace:</strong> ${rec.namespace}</p>
+                            <p><strong>Type:</strong> ${rec.recommendation_type.replace('_', ' ').toUpperCase()}</p>
+                            <p><strong>Priority:</strong> <span style="background: ${getPriorityColor(rec.priority)}; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">${rec.priority.toUpperCase()}</span></p>
+                            ${rec.confidence_level ? `<p><strong>Confidence:</strong> ${Math.round(rec.confidence_level * 100)}%</p>` : ''}
+                        </div>
+                        
+                        <h4 style="color: #2c3e50; margin-bottom: 1rem;">Description</h4>
+                        <p style="margin-bottom: 2rem; color: #555;">${rec.description}</p>
+                        
+                        ${rec.implementation_steps ? `
+                            <h4 style="color: #2c3e50; margin-bottom: 1rem;">Implementation Steps</h4>
+                            <ol style="margin-bottom: 2rem; padding-left: 1.5rem; color: #555;">
+                                ${rec.implementation_steps.map(step => `<li style="margin-bottom: 0.5rem;">${step}</li>`).join('')}
+                            </ol>
+                        ` : ''}
+
+                        ${rec.kubectl_commands && rec.kubectl_commands.length > 0 ? `
+                            <h4 style="color: #2c3e50; margin-bottom: 1rem;">Kubectl Commands</h4>
+                            <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 1rem; margin-bottom: 2rem; font-family: 'Courier New', monospace; font-size: 0.9rem;">
+                                ${rec.kubectl_commands.map(cmd => `<div style="margin-bottom: 0.5rem;">${cmd}</div>`).join('')}
+                            </div>
+                        ` : ''}
+
+                        <div style="text-align: center; margin-top: 2rem;">
+                            <button onclick="copyRecommendationCommands(${index})" style="padding: 0.75rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 1rem;">
+                                📋 Copy Commands
+                            </button>
+                            <button onclick="closeModal()" style="padding: 0.75rem 1.5rem; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            showModal(modalContent);
+        }
+
+        function showVPAYaml(index) {
+            const rec = window.currentRecommendations[index];
+            if (!rec || !rec.vpa_yaml) return;
+            
+            let modalContent = `
+                <div class="modal-header">
+                    <h2>📄 VPA YAML Configuration</h2>
+                    <span class="close" onclick="closeModal()">&times;</span>
+                </div>
+                <div class="modal-body" style="padding: 2rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <p><strong>Workload:</strong> ${rec.workload_name} | <strong>Namespace:</strong> ${rec.namespace}</p>
+                    </div>
+                    <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.9rem; white-space: pre-wrap; overflow-x: auto;">
+${rec.vpa_yaml}
+                    </div>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <button onclick="copyVPAYaml(${index})" style="padding: 0.75rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 1rem;">
+                            📋 Copy YAML
+                        </button>
+                        <button onclick="closeModal()" style="padding: 0.75rem 1.5rem; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            showModal(modalContent);
+        }
+
+        function copyRecommendationCommands(index) {
+            const rec = window.currentRecommendations[index];
+            if (!rec || !rec.kubectl_commands) return;
+            
+            const commands = rec.kubectl_commands.join('\n');
+            copyToClipboard(commands);
+        }
+
+        function copyVPAYaml(index) {
+            const rec = window.currentRecommendations[index];
+            if (!rec || !rec.vpa_yaml) return;
+            
+            copyToClipboard(rec.vpa_yaml);
+        }
+
+        function getPriorityColor(priority) {
+            const colors = {
+                'critical': '#e74c3c',
+                'high': '#f39c12',
+                'medium': '#3498db',
+                'low': '#95a5a6'
+            };
+            return colors[priority] || '#95a5a6';
         }
 
         // Utility functions
