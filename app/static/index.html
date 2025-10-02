@@ -1602,7 +1602,7 @@
 
                                 ${rec.kubectl_commands && rec.kubectl_commands.length > 0 ? `
                                     <div style="margin-bottom: 1rem;">
-                                        <h4 style="color: #2c3e50; margin-bottom: 0.5rem; font-size: 1rem;">Kubectl Commands:</h4>
+                                        <h4 style="color: #2c3e50; margin-bottom: 0.5rem; font-size: 1rem;">OpenShift Commands:</h4>
                                         <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 0.75rem; font-family: 'Courier New', monospace; font-size: 0.9rem;">
                                             ${rec.kubectl_commands.map(cmd => `<div style="margin-bottom: 0.5rem;">${cmd}</div>`).join('')}
                                         </div>
@@ -2041,7 +2041,7 @@
             if (!rec) return;
             
             let modalContent = `
-                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; position: relative;">
+                <div class="modal-header" style="background: #f8f9fa; color: #2c3e50; padding: 2rem; position: relative; border-bottom: 1px solid #dee2e6;">
                     <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600;">📋 Recommendation Details</h2>
                     <span class="close" onclick="closeModal()">&times;</span>
                 </div>
@@ -2067,9 +2067,14 @@
                         ` : ''}
 
                         ${rec.kubectl_commands && rec.kubectl_commands.length > 0 ? `
-                            <h4 style="color: #2c3e50; margin-bottom: 1rem;">Kubectl Commands</h4>
+                            <h4 style="color: #2c3e50; margin-bottom: 1rem;">OpenShift Commands</h4>
                             <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 1rem; margin-bottom: 2rem; font-family: 'Courier New', monospace; font-size: 0.9rem;">
                                 ${rec.kubectl_commands.map(cmd => `<div style="margin-bottom: 0.5rem;">${cmd}</div>`).join('')}
+                            </div>
+                            <div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 4px; padding: 1rem; margin-bottom: 2rem;">
+                                <p style="margin: 0; color: #1565c0; font-size: 0.9rem;">
+                                    <strong>💡 Note:</strong> To get the VPA YAML file, click the "📄 VPA YAML" button in the recommendation card.
+                                </p>
                             </div>
                         ` : ''}
 
