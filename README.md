@@ -1,6 +1,6 @@
-# OpenShift Resource Governance Tool
+# UWRU Scanner - User Workloads and Resource Usage Scanner
 
-A resource governance tool for OpenShift clusters that goes beyond what Metrics Server and VPA offer, providing validations, reports and consolidated recommendations.
+A comprehensive tool for analyzing user workloads and resource usage in OpenShift clusters that goes beyond what Metrics Server and VPA offer, providing validations, reports and consolidated recommendations.
 
 ## 🚀 Features
 
