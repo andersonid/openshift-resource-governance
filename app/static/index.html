@@ -435,6 +435,129 @@
         }
         
         /* Buttons */
+        .priority-critical {
+            background-color: var(--pf-global--danger-color--100);
+            color: var(--pf-global--Color--100);
+        }
+        
+        .priority-high {
+            background-color: var(--pf-global--warning-color--100);
+            color: var(--pf-global--Color--100);
+        }
+        
+        .priority-medium {
+            background-color: var(--pf-global--info-color--100);
+            color: var(--pf-global--Color--100);
+        }
+        
+        .priority-low {
+            background-color: var(--pf-global--Color--400);
+            color: var(--pf-global--Color--100);
+        }
+        
+        /* PatternFly Code Editor Styles */
+        .pf-v6-c-code-editor {
+            background-color: var(--pf-global--BackgroundColor--100);
+            border: 1px solid var(--pf-global--BorderColor--200);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .pf-v6-c-code-editor__header {
+            background-color: var(--pf-global--BackgroundColor--200);
+            border-bottom: 1px solid var(--pf-global--BorderColor--200);
+            display: flex;
+            flex-direction: column;
+            padding: 12px 16px;
+        }
+        
+        .pf-v6-c-code-editor__header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .pf-v6-c-code-editor__controls {
+            display: flex;
+            align-items: center;
+        }
+        
+        .pf-v6-c-code-editor__controls-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .pf-v6-c-code-editor__header-main {
+            color: var(--pf-global--Color--100);
+            font-weight: 600;
+            font-size: 14px;
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .pf-v6-c-code-editor__tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--pf-global--Color--100);
+            font-size: 12px;
+            font-weight: 500;
+            background-color: var(--pf-global--BackgroundColor--300);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--pf-global--BorderColor--200);
+        }
+        
+        .pf-v6-c-code-editor__tab-icon {
+            font-size: 14px;
+        }
+        
+        .pf-v6-c-code-editor__main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .pf-v6-c-code-editor__code {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .pf-v6-c-code-editor__code-pre {
+            flex: 1;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+            padding: 16px;
+            overflow: auto;
+            white-space: pre;
+            word-wrap: normal;
+        }
+        
+        .pf-v6-c-button.pf-m-plain {
+            background: transparent;
+            border: none;
+            color: var(--pf-global--Color--200);
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .pf-v6-c-button.pf-m-plain:hover {
+            background-color: var(--pf-global--BackgroundColor--300);
+            color: var(--pf-global--Color--100);
+        }
+        
         .openshift-button {
             background: linear-gradient(135deg, var(--pf-global--primary-color--100) 0%, var(--pf-global--primary-color--200) 100%);
             color: white;
@@ -461,10 +584,74 @@
             color: var(--pf-global--Color--100);
         }
         
+        .openshift-select {
+            background-color: var(--pf-global--Color--200);
+            color: var(--pf-global--Color--100);
+            border: 1px solid var(--pf-global--Color--300);
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+        
+        .openshift-select:focus {
+            outline: none;
+            border-color: var(--pf-global--primary-color--100);
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+        }
+        
+        .info-icon {
+            cursor: pointer;
+            margin-left: 8px;
+            color: var(--pf-global--info-color--100);
+            font-size: 14px;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+        
+        .info-icon:hover {
+            opacity: 1;
+        }
+        
+        .overcommit-details {
+            padding: 16px 0;
+        }
+        
+        .overcommit-details h3 {
+            color: var(--pf-global--Color--100);
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+        
+        .metric-detail {
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--pf-global--BorderColor--200);
+        }
+        
+        .metric-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-detail strong {
+            color: var(--pf-global--Color--100);
+            display: inline-block;
+            min-width: 140px;
+        }
+        
+        .metric-detail ul {
+            margin: 8px 0 0 20px;
+            color: var(--pf-global--Color--200);
+        }
+        
+        .metric-detail li {
+            margin-bottom: 4px;
+        }
+        
         .openshift-button.secondary:hover {
             background: linear-gradient(135deg, #505050 0%, #404040 100%);
         }
-        
+
         /* Loading States */
         .loading-spinner {
             display: flex;
@@ -507,7 +694,7 @@
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .metrics-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -547,7 +734,7 @@
         
         /* Modal Styles */
         .modal {
-            display: none;
+            display: block;
             position: fixed;
             z-index: 1000;
             left: 0;
@@ -560,11 +747,14 @@
         
         .modal-content {
             background-color: var(--pf-global--BackgroundColor--100);
-            margin: 2% auto;
+            margin: 5% auto;
             padding: 0;
             border-radius: 8px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
             animation: modalSlideIn 0.3s ease-out;
+            width: 90%;
+            max-width: 600px;
+            min-width: 400px;
         }
         
         @keyframes modalSlideIn {
@@ -684,18 +874,18 @@
         </div>
         
         <div class="sidebar-section">
-            <h3 class="sidebar-section-title">Favorites</h3>
+            <h3 class="sidebar-section-title">VPA</h3>
             <ul class="sidebar-nav">
                 <li class="sidebar-nav-item">
-                    <a href="#" class="sidebar-nav-link" data-section="workload-scanner">
-                        <i class="fas fa-search sidebar-nav-icon"></i>
-                        <span>UWRU Scanner</span>
+                    <a href="#" class="sidebar-nav-link" data-section="smart-recommendations">
+                        <i class="fas fa-lightbulb sidebar-nav-icon"></i>
+                        <span>Smart Recommendations</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="#" class="sidebar-nav-link" data-section="historical-analysis">
-                        <i class="fas fa-chart-line sidebar-nav-icon"></i>
-                        <span>Historical Analysis</span>
+                    <a href="#" class="sidebar-nav-link" data-section="vpa-management">
+                        <i class="fas fa-cogs sidebar-nav-icon"></i>
+                        <span>VPA Management</span>
                     </a>
                 </li>
             </ul>
@@ -787,6 +977,47 @@
                             </div>
                     <div class="metric-value" id="total-warnings">-</div>
                     <div class="metric-label">Warnings</div>
+                        </div>
+                    </div>
+
+            <!-- Cluster Overcommit Summary -->
+            <div class="metrics-grid" style="margin-top: 24px;">
+                            <div class="metric-card">
+                    <div class="metric-icon info">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div class="metric-value" id="cpu-overcommit">-</div>
+                    <div class="metric-label">
+                        CPU Overcommit 
+                        <span class="info-icon" onclick="showOvercommitDetails('cpu')" title="Click for details">ℹ️</span>
+                    </div>
+                            </div>
+                            <div class="metric-card">
+                    <div class="metric-icon warning">
+                        <i class="fas fa-memory"></i>
+                    </div>
+                    <div class="metric-value" id="memory-overcommit">-</div>
+                    <div class="metric-label">
+                        Memory Overcommit 
+                        <span class="info-icon" onclick="showOvercommitDetails('memory')" title="Click for details">ℹ️</span>
+                    </div>
+                            </div>
+                            <div class="metric-card">
+                    <div class="metric-icon danger">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <div class="metric-value" id="namespaces-in-overcommit">-</div>
+                                <div class="metric-label">Namespaces in Overcommit</div>
+                            </div>
+            <div class="metric-card">
+                    <div class="metric-icon success">
+                        <i class="fas fa-chart-pie"></i>
+            </div>
+                    <div class="metric-value" id="resource-utilization">-</div>
+                    <div class="metric-label">
+                        Resource Utilization 
+                        <span class="info-icon" onclick="showResourceUtilizationDetails()" title="Click for details">ℹ️</span>
+                        </div>
                     </div>
                 </div>
 
@@ -808,29 +1039,87 @@
                     </div>
         </section>
 
-        <!-- Historical Analysis Section -->
+        <!-- Smart Recommendations Section -->
+        <section id="smart-recommendations-section" class="section-hidden">
+            <div class="page-header">
+                <h1 class="page-title">Smart Recommendations</h1>
+                <p class="page-description">AI-powered recommendations for resource optimization and VPA activation</p>
+                </div>
+
+            <!-- Smart Recommendations Content -->
+            <div class="openshift-card">
+                <div class="card-header">
+                    <h2 class="card-title">Recommendations</h2>
+                    <button class="openshift-button" onclick="loadSmartRecommendations()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                        </button>
+                    </div>
+                <div class="table-content" id="smart-recommendations-container">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Loading recommendations...
+                </div>
+            </div>
+                    </div>
+        </section>
+
+            <!-- VPA Management Section -->
+        <section id="vpa-management-section" class="section-hidden">
+            <div class="page-header">
+                <h1 class="page-title">VPA Management</h1>
+                <p class="page-description">Manage Vertical Pod Autoscaler configurations and monitor VPA status</p>
+                    </div>
+
+            <!-- VPA Management Content -->
+            <div class="openshift-card">
+                <div class="card-header">
+                    <h2 class="card-title">VPA Status</h2>
+                    <button class="openshift-button" onclick="loadVPAManagement()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+                <div class="table-content" id="vpa-management-container">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Loading VPA data...
+            </div>
+                </div>
+            </div>
+        </section>
+
+            <!-- Historical Analysis Section -->
         <section id="historical-analysis-section" class="section-hidden">
             <div class="page-header">
                 <h1 class="page-title">Historical Analysis</h1>
                 <p class="page-description">Resource consumption analysis and historical data</p>
-                </div>
+                    </div>
 
             <!-- Workloads List Card -->
             <div class="openshift-card">
                 <div class="card-header">
                     <h2 class="card-title">Available Workloads</h2>
-                    <button class="openshift-button" id="refresh-historical">
-                        <i class="fas fa-sync-alt"></i>
-                        Refresh
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <select id="timeRangeSelect" class="openshift-select" onchange="loadHistoricalWorkloads()">
+                            <option value="1h">Last 1 Hour</option>
+                            <option value="24h" selected>Last 24 Hours</option>
+                            <option value="7d">Last 7 Days</option>
+                            <option value="30d">Last 30 Days</option>
+                        </select>
+                        <button class="openshift-button" id="refresh-historical">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
                         </button>
-                    </div>
+                </div>
+                </div>
                 <div class="table-content" id="historical-workloads-container">
                     <div class="loading-spinner">
                         <div class="spinner"></div>
                         Loading historical data...
-                    </div>
-                </div>
             </div>
+        </div>
+    </div>
 
             <!-- Workload Details Card (hidden initially) -->
             <div class="openshift-card section-hidden" id="workload-details-container">
@@ -909,6 +1198,10 @@
             // Load section data
             if (section === 'workload-scanner') {
                 loadWorkloadScanner();
+            } else             if (section === 'smart-recommendations') {
+                    loadSmartRecommendations();
+            } else if (section === 'vpa-management') {
+                    loadVPAManagement();
             } else if (section === 'historical-analysis') {
                     loadHistoricalAnalysis();
             }
@@ -940,12 +1233,477 @@
             }
         }
         
+        // Load smart recommendations
+        async function loadSmartRecommendations() {
+            try {
+                showLoading('smart-recommendations-container');
+                
+                const response = await fetch('/api/v1/smart-recommendations');
+                const data = await response.json();
+                updateSmartRecommendations(data);
+            } catch (error) {
+                console.error('Error loading smart recommendations:', error);
+                document.getElementById('smart-recommendations-container').innerHTML = 
+                    '<div class="error-message">Failed to load recommendations</div>';
+            }
+        }
+
+        // Update smart recommendations
+        function updateSmartRecommendations(data) {
+            const container = document.getElementById('smart-recommendations-container');
+            
+            // Store recommendations globally for button functions
+            window.currentRecommendations = data.recommendations || [];
+            
+            if (!data || !data.recommendations || data.recommendations.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--pf-global--Color--300);">
+                        <i class="fas fa-lightbulb" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--Color--400);"></i>
+                        <h3>No Recommendations Available</h3>
+                        <p>No smart recommendations found for the current cluster state.</p>
+                            </div>
+                `;
+                return;
+            }
+
+            const recommendationsHtml = data.recommendations.map(rec => `
+                <div class="openshift-card" style="margin-bottom: 16px;">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-${getRecommendationIcon(rec.recommendation_type)}" style="margin-right: 8px; color: ${getPriorityColor(rec.priority)};"></i>
+                            ${rec.title}
+                        </h3>
+                        <span class="priority-badge priority-${rec.priority}">${rec.priority.toUpperCase()}</span>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p style="margin-bottom: 16px; color: var(--pf-global--Color--200);">${rec.description}</p>
+                        
+                        ${rec.workload_list && rec.workload_list.length > 0 ? `
+                            <div style="margin-bottom: 16px;">
+                                <strong style="color: var(--pf-global--Color--100);">Affected Workloads:</strong>
+                                <ul style="margin: 8px 0 0 20px; color: var(--pf-global--Color--200);">
+                                    ${rec.workload_list.map(workload => {
+                                        // Extract priority from workload string (e.g., "example (shishika01) - HIGH")
+                                        const priorityMatch = workload.match(/\s-\s(\w+)$/);
+                                        const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'low';
+                                        const priorityColor = getPriorityColor(priority);
+                                        return `<li style="color: ${priorityColor}; font-weight: 500;">${workload}</li>`;
+                                    }).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        ${rec.implementation_steps && rec.implementation_steps.length > 0 ? `
+                            <div style="margin-bottom: 16px;">
+                                <strong style="color: var(--pf-global--Color--100);">Implementation Steps:</strong>
+                                <ol style="margin: 8px 0 0 20px; color: var(--pf-global--Color--200);">
+                                    ${rec.implementation_steps.map(step => `<li>${step}</li>`).join('')}
+                                </ol>
+                            </div>
+                        ` : ''}
+                        
+                        <div style="display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap;">
+                            ${rec.vpa_yaml ? `
+                                <button class="openshift-button openshift-button-primary" onclick="downloadVPAYAML('${rec.workload_name}', '${rec.namespace}')">
+                                    <i class="fas fa-download"></i>
+                                    Generate VPA YAML
+                                </button>
+                            ` : ''}
+                            
+                            ${rec.kubectl_commands && rec.kubectl_commands.length > 0 ? `
+                                <button class="openshift-button" onclick="showOpenShiftCommands('${rec.workload_name}', '${rec.namespace}')">
+                                    <i class="fas fa-terminal"></i>
+                                    OpenShift Commands
+                                </button>
+                            ` : ''}
+                            
+                            <button class="openshift-button openshift-button-success" onclick="applySmartRecommendation('${rec.workload_name}', '${rec.namespace}', '${rec.recommendation_type}', '${rec.priority}')">
+                                <i class="fas fa-check"></i>
+                                Apply Recommendation
+                            </button>
+                            
+                            <button class="openshift-button" onclick="previewSmartRecommendation('${rec.workload_name}', '${rec.namespace}', '${rec.recommendation_type}', '${rec.priority}')">
+                                <i class="fas fa-eye"></i>
+                                Preview Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = recommendationsHtml;
+        }
+
+        // Load VPA management
+        async function loadVPAManagement() {
+            try {
+                showLoading('vpa-management-container');
+                
+                const response = await fetch('/api/v1/vpa-status');
+                const data = await response.json();
+                updateVPAManagement(data);
+            } catch (error) {
+                console.error('Error loading VPA management:', error);
+                document.getElementById('vpa-management-container').innerHTML = 
+                    '<div class="error-message">Failed to load VPA data</div>';
+            }
+        }
+
+        // Update VPA management
+        function updateVPAManagement(data) {
+            const container = document.getElementById('vpa-management-container');
+            
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--pf-global--Color--300);">
+                    <i class="fas fa-cogs" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--Color--400);"></i>
+                    <h3>VPA Management</h3>
+                    <p>VPA management features coming soon...</p>
+                    <p style="font-size: 14px; color: var(--pf-global--Color--400);">
+                        This section will show VPA status, configurations, and management options.
+                    </p>
+                        </div>
+                    `;
+        }
+
+        // Helper functions for recommendations
+        function getRecommendationIcon(type) {
+            switch(type) {
+                case 'vpa_activation': return 'fa-rocket';
+                case 'resource_config': return 'fa-cog';
+                case 'ratio_adjustment': return 'fa-balance-scale';
+                default: return 'fa-lightbulb';
+            }
+        }
+
+        function getPriorityColor(priority) {
+            switch(priority) {
+                case 'critical': return 'var(--pf-global--danger-color--100)';
+                case 'high': return 'var(--pf-global--warning-color--100)';
+                case 'medium': return 'var(--pf-global--info-color--100)';
+                case 'low': return 'var(--pf-global--Color--300)';
+                default: return 'var(--pf-global--Color--300)';
+            }
+        }
+
+        // Show VPA YAML in Code Editor Modal
+        function downloadVPAYAML(workloadName, namespace) {
+            // Find the recommendation data
+            const recommendations = window.currentRecommendations || [];
+            const recommendation = recommendations.find(rec => 
+                rec.workload_name === workloadName && rec.namespace === namespace
+            );
+            
+            if (!recommendation || !recommendation.vpa_yaml) {
+                alert('VPA YAML not available for this recommendation');
+                return;
+            }
+            
+            // Create modal with PatternFly Code Editor
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="width: 90%; max-width: 1200px; min-width: 800px; height: 80vh;">
+                    <div class="modal-header">
+                        <h3>VPA YAML - ${workloadName}</h3>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <button class="openshift-button" onclick="downloadVPAYAMLFile('${workloadName}', '${namespace}')">
+                                <i class="fas fa-download"></i>
+                                Download
+                            </button>
+                            <button class="openshift-button" onclick="copyVPAYAMLToClipboard()">
+                                <i class="fas fa-copy"></i>
+                                Copy
+                            </button>
+                            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                        </div>
+                    </div>
+                    <div class="modal-body" style="padding: 0; height: calc(100% - 60px);">
+                        <div class="pf-v6-c-code-editor" style="height: 100%;">
+                            <div class="pf-v6-c-code-editor__header">
+                                <div class="pf-v6-c-code-editor__header-content">
+                                    <div class="pf-v6-c-code-editor__header-main">
+                                        <span>VPA Configuration YAML</span>
+                                    </div>
+                                    <div class="pf-v6-c-code-editor__controls">
+                                        <div class="pf-v6-c-code-editor__controls-buttons">
+                                            <button class="pf-v6-c-button pf-m-plain" type="button" aria-label="Copy to clipboard" onclick="copyVPAYAMLToClipboard()">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                            <button class="pf-v6-c-button pf-m-plain" type="button" aria-label="Download" onclick="downloadVPAYAMLFile('${workloadName}', '${namespace}')">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pf-v6-c-code-editor__tab">
+                                    <div class="pf-v6-c-code-editor__tab-icon">
+                                        <i class="fas fa-code"></i>
+                                    </div>
+                                    <div class="pf-v6-c-code-editor__tab-text">
+                                        YAML
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pf-v6-c-code-editor__main" style="height: calc(100% - 60px);">
+                                <div class="pf-v6-c-code-editor__code">
+                                    <pre class="pf-v6-c-code-editor__code-pre" style="height: 100%; overflow: auto; background-color: #1e1e1e; color: #d4d4d4; padding: 16px; margin: 0; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 14px; line-height: 1.5;">${recommendation.vpa_yaml}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Store YAML content globally for copy/download functions
+            window.currentVPAYAML = recommendation.vpa_yaml;
+            window.currentVPAFileName = `vpa-${workloadName}-${namespace}.yaml`;
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        // Download VPA YAML file
+        function downloadVPAYAMLFile(workloadName, namespace) {
+            if (!window.currentVPAYAML) return;
+            
+            const blob = new Blob([window.currentVPAYAML], { type: 'text/yaml' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = window.currentVPAFileName || `vpa-${workloadName}-${namespace}.yaml`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Copy VPA YAML to clipboard
+        function copyVPAYAMLToClipboard() {
+            if (!window.currentVPAYAML) return;
+            
+            navigator.clipboard.writeText(window.currentVPAYAML).then(() => {
+                // Show temporary success message
+                const buttons = document.querySelectorAll('button[onclick*="copyVPAYAMLToClipboard"]');
+                buttons.forEach(button => {
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    button.style.color = 'var(--pf-global--success-color--100)';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.color = '';
+                    }, 2000);
+                });
+            }).catch(err => {
+                console.error('Failed to copy to clipboard:', err);
+                alert('Failed to copy to clipboard');
+            });
+        }
+
+        // Apply smart recommendation
+        async function applySmartRecommendation(workloadName, namespace, recommendationType, priority) {
+            try {
+                // Find the recommendation data
+                const recommendations = window.currentRecommendations || [];
+                const recommendation = recommendations.find(rec => 
+                    rec.workload_name === workloadName && 
+                    rec.namespace === namespace && 
+                    rec.recommendation_type === recommendationType &&
+                    rec.priority === priority
+                );
+                
+                if (!recommendation) {
+                    alert('Recommendation not found');
+                    return;
+                }
+                
+                // Confirm action
+                const confirmed = confirm(`Are you sure you want to apply this recommendation?\n\n${recommendation.title}\n\nThis will make changes to your cluster.`);
+                if (!confirmed) return;
+                
+                // Apply recommendation
+                const response = await fetch('/api/v1/recommendations/apply', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ...recommendation,
+                        dry_run: false
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Show success message
+                alert(`Recommendation applied successfully!\n\n${result.message}`);
+                
+                // Refresh recommendations
+                loadSmartRecommendations();
+                
+            } catch (error) {
+                console.error('Error applying recommendation:', error);
+                alert(`Failed to apply recommendation: ${error.message}`);
+            }
+        }
+
+        // Preview smart recommendation
+        async function previewSmartRecommendation(workloadName, namespace, recommendationType, priority) {
+            try {
+                // Find the recommendation data
+                const recommendations = window.currentRecommendations || [];
+                const recommendation = recommendations.find(rec => 
+                    rec.workload_name === workloadName && 
+                    rec.namespace === namespace && 
+                    rec.recommendation_type === recommendationType &&
+                    rec.priority === priority
+                );
+                
+                if (!recommendation) {
+                    alert('Recommendation not found');
+                    return;
+                }
+                
+                // Preview recommendation (dry run)
+                const response = await fetch('/api/v1/recommendations/apply', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ...recommendation,
+                        dry_run: true
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Show preview modal
+                showRecommendationPreview(result);
+                
+            } catch (error) {
+                console.error('Error previewing recommendation:', error);
+                alert(`Failed to preview recommendation: ${error.message}`);
+            }
+        }
+
+        // Show recommendation preview modal
+        function showRecommendationPreview(result) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="width: 80%; max-width: 800px;">
+                    <div class="modal-header">
+                        <h3>Recommendation Preview</h3>
+                        <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div style="margin-bottom: 20px;">
+                            <h4>${result.title}</h4>
+                            <p style="color: var(--pf-global--Color--200);">${result.description}</p>
+                        </div>
+                        
+                        ${result.implementation_steps && result.implementation_steps.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h5>Implementation Steps:</h5>
+                                <ol style="margin: 8px 0 0 20px; color: var(--pf-global--Color--200);">
+                                    ${result.implementation_steps.map(step => `<li>${step}</li>`).join('')}
+                                </ol>
+                            </div>
+                        ` : ''}
+                        
+                        ${result.kubectl_commands && result.kubectl_commands.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h5>Kubectl Commands:</h5>
+                                <div style="background-color: var(--pf-global--BackgroundColor--200); padding: 12px; border-radius: 4px; font-family: monospace; font-size: 12px; color: var(--pf-global--Color--100);">
+                                    ${result.kubectl_commands.map(cmd => `<div>${cmd}</div>`).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div style="text-align: right; margin-top: 20px;">
+                            <button class="openshift-button" onclick="this.closest('.modal').remove()">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        // Show OpenShift Commands
+        function showOpenShiftCommands(workloadName, namespace) {
+            // Find the recommendation data
+            const recommendations = window.currentRecommendations || [];
+            const recommendation = recommendations.find(rec => 
+                rec.workload_name === workloadName && rec.namespace === namespace
+            );
+            
+            if (!recommendation || !recommendation.kubectl_commands) {
+                alert('OpenShift commands not available for this recommendation');
+                return;
+            }
+            
+            // Create modal with commands
+            const modal = document.createElement('div');
+                modal.className = 'modal';
+            modal.style.display = 'block'; // Force display
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h3>OpenShift Commands - ${workloadName}</h3>
+                        <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                        </div>
+                    <div class="modal-body">
+                        <p><strong>Namespace:</strong> ${namespace}</p>
+                        <p><strong>Commands:</strong></p>
+                        <pre style="background-color: #1e1e1e; padding: 16px; border-radius: 4px; overflow-x: auto; color: var(--pf-global--Color--100);">${recommendation.kubectl_commands.join('\n')}</pre>
+                    </div>
+                    </div>
+                `;
+            
+                document.body.appendChild(modal);
+                
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+        
         async function loadHistoricalAnalysis() {
             try {
                 showLoading('historical-workloads-container');
                 
+                // Get selected time range
+                const timeRange = document.getElementById('timeRangeSelect')?.value || '24h';
+                
                 // Load historical data
-                const response = await fetch('/api/v1/historical-analysis');
+                const response = await fetch(`/api/v1/historical-analysis?time_range=${timeRange}`);
                 const data = await response.json();
                 
                 updateHistoricalWorkloads(data);
@@ -956,11 +1714,32 @@
             }
         }
         
+        // Alias for the select onchange
+        function loadHistoricalWorkloads() {
+            loadHistoricalAnalysis();
+        }
+        
         function updateMetricsCards(data) {
             document.getElementById('total-workloads').textContent = data.total_pods || 0;
             document.getElementById('total-namespaces').textContent = data.total_namespaces || 0;
-            document.getElementById('critical-issues').textContent = data.critical_issues || 0;
+            document.getElementById('critical-issues').textContent = data.total_errors || 0;
             document.getElementById('total-warnings').textContent = data.total_warnings || 0;
+            
+            // Update overcommit metrics
+            if (data.overcommit) {
+                document.getElementById('cpu-overcommit').textContent = `${data.overcommit.cpu_overcommit_percent || 0}%`;
+                document.getElementById('memory-overcommit').textContent = `${data.overcommit.memory_overcommit_percent || 0}%`;
+                document.getElementById('namespaces-in-overcommit').textContent = data.overcommit.namespaces_in_overcommit || 0;
+                document.getElementById('resource-utilization').textContent = `${data.overcommit.resource_utilization || 0}%`;
+                
+                // Store overcommit data for modal display
+                window.overcommitData = data.overcommit;
+            } else {
+                document.getElementById('cpu-overcommit').textContent = '0%';
+                document.getElementById('memory-overcommit').textContent = '0%';
+                document.getElementById('namespaces-in-overcommit').textContent = '0';
+                document.getElementById('resource-utilization').textContent = '0%';
+            }
         }
         
         function updateWorkloadsTable(data) {
@@ -1001,8 +1780,8 @@
                         <i class="fas fa-check-circle" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--success-color--100);"></i>
                         <h3 style="margin: 0 0 8px 0; color: var(--pf-global--Color--100);">No Issues Found</h3>
                         <p style="margin: 0;">All workloads are properly configured</p>
-                    </div>
-                `;
+                            </div>
+                        `;
                 return;
             }
 
@@ -1054,7 +1833,7 @@
                         <i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--info-color--100);"></i>
                         <h3 style="margin: 0 0 8px 0; color: var(--pf-global--Color--100);">No Historical Data</h3>
                         <p style="margin: 0;">No workloads available for analysis</p>
-                    </div>
+                        </div>
                 `;
                 return;
             }
@@ -1102,8 +1881,8 @@
                                         <div class="loading-spinner">
                                             <div class="spinner"></div>
                                             Loading workload details...
-                    </div>
-                        </div>
+                            </div>
+                                </div>
                                 </td>
                             </tr>
                         `).join('')}
@@ -1159,17 +1938,23 @@
             const container = document.getElementById(`details-content-${index}`);
             
             try {
+                // Get selected time range
+                const timeRange = document.getElementById('timeRangeSelect')?.value || '24h';
+                
                 container.innerHTML = `
                     <div class="loading-spinner">
                         <div class="spinner"></div>
-                        Loading workload details...
+                        Loading workload details for ${timeRange}...
                     </div>
                 `;
                 
-                const response = await fetch(`/api/v1/historical-analysis/${namespace}/${workloadName}`);
+                const response = await fetch(`/api/v1/historical-analysis/${namespace}/${workloadName}?time_range=${timeRange}`);
                 const data = await response.json();
                 
                 updateWorkloadDetailsAccordion(data, index);
+                
+                // Expand the accordion after loading
+                toggleWorkloadDetails(index);
                 
             } catch (error) {
                 console.error('Error loading workload details:', error);
@@ -1204,30 +1989,30 @@
                                     <i class="fas fa-microchip" style="margin-right: 8px; color: var(--pf-global--info-color--100);"></i>
                                     CPU Usage (24h)
                                 </h3>
-                            </div>
+                        </div>
                             <div style="padding: 20px;">
                                 <div style="height: 300px; position: relative;">
                                     <canvas id="${cpuChartId}" width="400" height="200"></canvas>
-                                </div>
+                        </div>
                                 ${cpuData.data && cpuData.data.length > 0 ? `
                                     <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
                                         <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
                                             <div style="font-size: 12px; color: var(--pf-global--Color--300);">Current</div>
                                             <div style="font-weight: bold; color: var(--pf-global--Color--100);">${getCurrentValue(cpuData.data)} cores</div>
-                                        </div>
+                        </div>
                                         <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
                                             <div style="font-size: 12px; color: var(--pf-global--Color--300);">Average</div>
                                             <div style="font-weight: bold; color: var(--pf-global--Color--100);">${getAverageValue(cpuData.data)} cores</div>
-                                        </div>
+                        </div>
                                         <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
                                             <div style="font-size: 12px; color: var(--pf-global--Color--300);">Peak</div>
                                             <div style="font-weight: bold; color: var(--pf-global--warning-color--100);">${getPeakValue(cpuData.data)} cores</div>
-                                        </div>
-                                    </div>
-                                ` : ''}
-                            </div>
+                    </div>
                         </div>
-                        
+                                ` : ''}
+                    </div>
+                </div>
+                
                         <div class="openshift-card">
                             <div class="card-header">
                                 <h3 class="card-title">
@@ -1238,22 +2023,22 @@
                             <div style="padding: 20px;">
                                 <div style="height: 300px; position: relative;">
                                     <canvas id="${memoryChartId}" width="400" height="200"></canvas>
-                                </div>
+                        </div>
                                 ${memoryData.data && memoryData.data.length > 0 ? `
                                     <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
                                         <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
                                             <div style="font-size: 12px; color: var(--pf-global--Color--300);">Current</div>
                                             <div style="font-weight: bold; color: var(--pf-global--Color--100);">${getCurrentValue(memoryData.data)} MB</div>
-                                        </div>
+                            </div>
                                         <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
                                             <div style="font-size: 12px; color: var(--pf-global--Color--300);">Average</div>
                                             <div style="font-weight: bold; color: var(--pf-global--Color--100);">${getAverageValue(memoryData.data)} MB</div>
-                                        </div>
+                        </div>
                                         <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
                                             <div style="font-size: 12px; color: var(--pf-global--Color--300);">Peak</div>
                                             <div style="font-weight: bold; color: var(--pf-global--warning-color--100);">${getPeakValue(memoryData.data)} MB</div>
-                                        </div>
-                                    </div>
+                    </div>
+                            </div>
                                 ` : ''}
                             </div>
                         </div>
@@ -1272,11 +2057,11 @@
                                     <div style="margin-bottom: 16px; padding: 16px; background-color: #2B2B2B; border-radius: 6px; border-left: 4px solid ${getSeverityColor(rec.severity)};">
                                         <p style="margin: 0 0 8px 0; color: var(--pf-global--Color--100);"><strong>${rec.type}:</strong> ${rec.message}</p>
                                         <p style="margin: 0; color: var(--pf-global--Color--300);"><em>Recommendation:</em> ${rec.recommendation}</p>
-                                    </div>
-                                `).join('')}
-                            </div>
                         </div>
-                    ` : ''}
+                                `).join('')}
+                    </div>
+                </div>
+                ` : ''}
                 </div>
             `;
             
@@ -1312,6 +2097,144 @@
                 case 'info': return 'var(--pf-global--info-color--100)';
                 default: return 'var(--pf-global--Color--300)';
             }
+        }
+
+        function showOvercommitDetails(type) {
+            if (!window.overcommitData) {
+                alert('Overcommit data not available');
+                return;
+            }
+
+            const data = window.overcommitData;
+            let title, content;
+
+            if (type === 'cpu') {
+                title = '🖥️ CPU Overcommit Details';
+                const cpuCapacity = data.cpu_capacity || 0;
+                const cpuRequests = data.cpu_requests || 0;
+                content = `
+                    <div class="overcommit-details">
+                        <h3>CPU Resource Analysis</h3>
+                        <div class="metric-detail">
+                            <strong>Capacity Total:</strong> ${cpuCapacity} cores
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Requests Total:</strong> ${cpuRequests} cores
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Overcommit:</strong> ${data.cpu_overcommit_percent}% (${cpuRequests} ÷ ${cpuCapacity} × 100)
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Available:</strong> ${(cpuCapacity - cpuRequests).toFixed(2)} cores
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'memory') {
+                title = '💾 Memory Overcommit Details';
+                const memoryCapacity = data.memory_capacity || 0;
+                const memoryRequests = data.memory_requests || 0;
+                const memoryCapacityGB = (memoryCapacity / (1024**3)).toFixed(1);
+                const memoryRequestsGB = (memoryRequests / (1024**3)).toFixed(1);
+                content = `
+                    <div class="overcommit-details">
+                        <h3>Memory Resource Analysis</h3>
+                        <div class="metric-detail">
+                            <strong>Capacity Total:</strong> ${memoryCapacity.toLocaleString()} bytes (≈ ${memoryCapacityGB} GB)
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Requests Total:</strong> ${memoryRequests.toLocaleString()} bytes (≈ ${memoryRequestsGB} GB)
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Overcommit:</strong> ${data.memory_overcommit_percent}% (${memoryRequestsGB} ÷ ${memoryCapacityGB} × 100)
+                        </div>
+                        <div class="metric-detail">
+                            <strong>Available:</strong> ${((memoryCapacity - memoryRequests) / (1024**3)).toFixed(1)} GB
+                        </div>
+                    </div>
+                `;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${title}</h2>
+                        <span class="close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        ${content}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+
+            // Close modal functionality
+            const closeBtn = modal.querySelector('.close');
+            closeBtn.onclick = () => {
+                modal.remove();
+            };
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+        }
+
+        function showResourceUtilizationDetails() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>📊 Resource Utilization Details</h2>
+                        <span class="close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="overcommit-details">
+                            <h3>Resource Utilization Analysis</h3>
+                            <div class="metric-detail">
+                                <strong>Current Status:</strong> Placeholder Implementation
+                            </div>
+                            <div class="metric-detail">
+                                <strong>Purpose:</strong> Shows actual resource usage vs. requested resources across the cluster
+                            </div>
+                            <div class="metric-detail">
+                                <strong>Formula:</strong> (Total Usage ÷ Total Requests) × 100
+                            </div>
+                            <div class="metric-detail">
+                                <strong>Current Value:</strong> ${window.overcommitData?.resource_utilization || 0}% (simulated data)
+                            </div>
+                            <div class="metric-detail">
+                                <strong>Implementation Status:</strong> 
+                                <span style="color: #f39c12;">⚠️ Phase 2 - Smart Recommendations Engine</span>
+                            </div>
+                            <div class="metric-detail">
+                                <strong>Next Steps:</strong> 
+                                <ul>
+                                    <li>Integrate with Prometheus usage metrics</li>
+                                    <li>Calculate real-time resource utilization</li>
+                                    <li>Provide optimization recommendations</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+
+            // Close modal functionality
+            const closeBtn = modal.querySelector('.close');
+            closeBtn.onclick = () => {
+                modal.remove();
+            };
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
         }
         
         function createCPUChart(canvasId, cpuData) {
@@ -1511,21 +2434,21 @@
             if (!modal) {
                 modal = document.createElement('div');
                 modal.id = 'namespaceModal';
-                modal.className = 'modal';
-                modal.innerHTML = `
+            modal.className = 'modal';
+            modal.innerHTML = `
                     <div class="modal-content" style="width: 90%; max-width: 1000px;">
-                        <div class="modal-header">
+                    <div class="modal-header">
                             <h2>📋 Namespace Analysis - ${namespaceName}</h2>
-                            <span class="close">&times;</span>
-                        </div>
-                        <div class="modal-body" id="modalBody"></div>
+                        <span class="close">&times;</span>
                     </div>
-                `;
-                document.body.appendChild(modal);
-                
-                // Add close functionality
+                        <div class="modal-body" id="modalBody"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Add close functionality
                 modal.querySelector('.close').onclick = () => modal.style.display = 'none';
-                modal.onclick = (e) => {
+            modal.onclick = (e) => {
                     if (e.target === modal) modal.style.display = 'none';
                 };
             }
@@ -1540,7 +2463,7 @@
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
                             <div>
                                 <strong>Pods:</strong> ${Object.keys(namespace.pods || {}).length}
-                            </div>
+                    </div>
                             <div>
                                 <strong>Total Issues:</strong> ${namespace.validations?.length || 0}
                             </div>
@@ -1550,8 +2473,8 @@
                             <div>
                                 <strong>Warnings:</strong> <span style="color: var(--pf-global--warning-color--100);">${namespace.severity_breakdown?.warning || 0}</span>
                             </div>
-                        </div>
-                    </div>
+                            </div>
+                            </div>
                     <div class="pods-details">
                         <h3 style="color: var(--pf-global--Color--100);">🔍 Pod Analysis</h3>
             `;
@@ -1564,7 +2487,7 @@
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
                             <div><strong>Status:</strong> ${pod.phase}</div>
                             <div><strong>Node:</strong> ${pod.node_name}</div>
-                        </div>
+                            </div>
                         <div class="containers-detail">
                             <h5 style="color: var(--pf-global--Color--100);">Containers:</h5>
                 `;
@@ -1591,10 +2514,10 @@
                                         `<span style="color: var(--pf-global--success-color--100);">${JSON.stringify(container.resources.limits)}</span>` : 
                                         '<span style="color: var(--pf-global--warning-color--100);">❌ Not defined</span>'
                                     }
-                                </div>
-                            </div>
                         </div>
-                    `;
+                    </div>
+                </div>
+            `;
                 });
                 
                 content += `

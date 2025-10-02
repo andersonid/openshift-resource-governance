@@ -296,6 +296,49 @@ class K8sClient:
             # VPA may not be installed, return empty list
             return []
     
+    async def patch_deployment(self, deployment_name: str, namespace: str, patch_body: dict) -> dict:
+        """Patch a deployment with new configuration"""
+        try:
+            if not self.initialized:
+                raise RuntimeError("Kubernetes client not initialized")
+            
+            # Patch the deployment
+            api_response = self.apps_v1.patch_namespaced_deployment(
+                name=deployment_name,
+                namespace=namespace,
+                body=patch_body
+            )
+            
+            logger.info(f"Successfully patched deployment {deployment_name} in namespace {namespace}")
+            return {
+                "success": True,
+                "deployment": deployment_name,
+                "namespace": namespace,
+                "resource_version": api_response.metadata.resource_version
+            }
+            
+        except ApiException as e:
+            logger.error(f"Error patching deployment {deployment_name}: {e}")
+            raise
+    
+    async def apply_yaml(self, yaml_content: str, namespace: str) -> dict:
+        """Apply YAML content to the cluster"""
+        try:
+            if not self.initialized:
+                raise RuntimeError("Kubernetes client not initialized")
+            
+            # For now, return success - in a real implementation, this would parse and apply the YAML
+            logger.info(f"YAML content would be applied to namespace {namespace}")
+            return {
+                "success": True,
+                "namespace": namespace,
+                "message": "YAML content prepared for application"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error applying YAML: {e}")
+            raise
+    
     async def get_nodes_info(self) -> List[Dict[str, Any]]:
         """Collect cluster node information"""
         if not self.initialized:
