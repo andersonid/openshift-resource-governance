@@ -482,12 +482,12 @@
             animation: spin 1s linear infinite;
             margin-right: 12px;
         }
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         /* Responsive */
         @media (max-width: 768px) {
             .openshift-sidebar {
@@ -498,11 +498,11 @@
             .openshift-sidebar.open {
                 transform: translateX(0);
             }
-            
+
             .main-content {
                 margin-left: 0;
             }
-            
+
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
@@ -522,9 +522,6 @@
     <!-- OpenShift-like Header -->
     <header class="openshift-header">
         <div class="openshift-header-left">
-            <button class="hamburger-menu" id="sidebar-toggle">
-                <i class="fas fa-bars"></i>
-            </button>
             <a href="#" class="openshift-logo">UWRU Scanner</a>
         </div>
         <div class="openshift-header-right">
@@ -605,8 +602,8 @@
                     </a>
                 </li>
             </ul>
-        </div>
-        
+    </div>
+
         <div class="sidebar-section">
             <h3 class="sidebar-section-title">Observe</h3>
             <ul class="sidebar-nav">
@@ -635,40 +632,40 @@
             <div class="page-header">
                 <h1 class="page-title">UWRU Scanner</h1>
                 <p class="page-description">User Workloads and Resource Usage Scanner - Identify and analyze workloads with resource configuration issues</p>
-            </div>
-            
+                    </div>
+
             <!-- Metrics Cards -->
             <div class="metrics-grid" id="metrics-grid">
-                <div class="metric-card">
+                        <div class="metric-card">
                     <div class="metric-icon success">
                         <i class="fas fa-cube"></i>
                     </div>
                     <div class="metric-value" id="total-workloads">-</div>
                     <div class="metric-label">Total Workloads</div>
-                </div>
-                <div class="metric-card">
+                        </div>
+                        <div class="metric-card">
                     <div class="metric-icon info">
                         <i class="fas fa-layer-group"></i>
                     </div>
                     <div class="metric-value" id="total-namespaces">-</div>
-                    <div class="metric-label">Namespaces</div>
-                </div>
-                <div class="metric-card">
+                            <div class="metric-label">Namespaces</div>
+                        </div>
+                        <div class="metric-card">
                     <div class="metric-icon danger">
                         <i class="fas fa-exclamation-triangle"></i>
-                    </div>
+                        </div>
                     <div class="metric-value" id="critical-issues">-</div>
-                    <div class="metric-label">Critical Issues</div>
-                </div>
-                <div class="metric-card">
+                            <div class="metric-label">Critical Issues</div>
+                        </div>
+                            <div class="metric-card">
                     <div class="metric-icon warning">
                         <i class="fas fa-exclamation-circle"></i>
-                    </div>
+                            </div>
                     <div class="metric-value" id="total-warnings">-</div>
                     <div class="metric-label">Warnings</div>
+                    </div>
                 </div>
-            </div>
-            
+
             <!-- Workloads Table Card -->
             <div class="openshift-card">
                 <div class="card-header">
@@ -677,14 +674,14 @@
                         <i class="fas fa-sync-alt"></i>
                         Refresh
                     </button>
-                </div>
+                        </div>
                 <div class="table-content" id="workloads-table-container">
                     <div class="loading-spinner">
                         <div class="spinner"></div>
                         Loading workloads...
+                        </div>
+                        </div>
                     </div>
-                </div>
-            </div>
         </section>
 
         <!-- Historical Analysis Section -->
@@ -692,8 +689,8 @@
             <div class="page-header">
                 <h1 class="page-title">Historical Analysis</h1>
                 <p class="page-description">Resource consumption analysis and historical data</p>
-            </div>
-            
+                </div>
+
             <!-- Workloads List Card -->
             <div class="openshift-card">
                 <div class="card-header">
@@ -701,8 +698,8 @@
                     <button class="openshift-button" id="refresh-historical">
                         <i class="fas fa-sync-alt"></i>
                         Refresh
-                    </button>
-                </div>
+                        </button>
+                    </div>
                 <div class="table-content" id="historical-workloads-container">
                     <div class="loading-spinner">
                         <div class="spinner"></div>
@@ -710,7 +707,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Workload Details Card (hidden initially) -->
             <div class="openshift-card section-hidden" id="workload-details-container">
                 <div class="card-header">
@@ -719,7 +716,7 @@
                         <i class="fas fa-times"></i>
                         Close
                     </button>
-                </div>
+                    </div>
                 <div class="table-content" id="workload-details-content">
                     <!-- Workload details will be populated here -->
                 </div>
@@ -732,7 +729,7 @@
         // Global variables
         let currentData = null;
         let currentSection = 'workload-scanner';
-        
+
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
@@ -756,12 +753,7 @@
                     showSection(section);
                 });
             });
-            
-            // Sidebar toggle
-            document.getElementById('sidebar-toggle').addEventListener('click', function() {
-                const sidebar = document.getElementById('sidebar');
-                sidebar.classList.toggle('open');
-            });
+
             
             // Close workload details
             document.getElementById('close-workload-details').addEventListener('click', function() {
@@ -789,12 +781,12 @@
             document.querySelector(`.sidebar-nav-link[data-section="${section}"]`).classList.add('active');
             
             currentSection = section;
-            
+
             // Load section data
             if (section === 'workload-scanner') {
                 loadWorkloadScanner();
             } else if (section === 'historical-analysis') {
-                loadHistoricalAnalysis();
+                    loadHistoricalAnalysis();
             }
         }
         
@@ -860,7 +852,7 @@
                 `;
                 return;
             }
-            
+
             const tableHTML = `
                 <table class="table">
                     <thead>
@@ -878,8 +870,8 @@
                                 <td>
                                     <strong style="color: var(--pf-global--Color--100);">${namespace.namespace}</strong>
                                 </td>
-                                <td>${Object.keys(namespace.pods || {}).length}</td>
-                                <td>${namespace.total_validations || 0}</td>
+                        <td>${Object.keys(namespace.pods || {}).length}</td>
+                        <td>${namespace.total_validations || 0}</td>
                                 <td>
                                     <span class="status-indicator ${getSeverityClass(namespace)}">
                                         ${getSeverityText(namespace)}
@@ -890,8 +882,8 @@
                                         <i class="fas fa-search"></i>
                                         Analyze
                                     </button>
-                                </td>
-                            </tr>
+                        </td>
+                    </tr>
                         `).join('')}
                     </tbody>
                 </table>
@@ -990,19 +982,19 @@
                         <div style="padding: 20px; text-align: center; color: var(--pf-global--Color--300);">
                             <i class="fas fa-microchip" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--info-color--100);"></i>
                             <p>CPU usage data will be displayed here</p>
-                        </div>
-                    </div>
+                            </div>
+                                </div>
                     <div class="openshift-card">
                         <div class="card-header">
                             <h3 class="card-title">Memory Usage</h3>
-                        </div>
+                                </div>
                         <div style="padding: 20px; text-align: center; color: var(--pf-global--Color--300);">
                             <i class="fas fa-memory" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--warning-color--100);"></i>
                             <p>Memory usage data will be displayed here</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
         }
         
         function analyzeWorkload(namespace) {
@@ -1043,8 +1035,8 @@
                     <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 16px;"></i>
                     <h3 style="margin: 0 0 8px 0; color: var(--pf-global--Color--100);">Error</h3>
                     <p style="margin: 0;">${message}</p>
-                </div>
-            `;
+                    </div>
+                `;
         }
     </script>
 </body>
