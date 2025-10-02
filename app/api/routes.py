@@ -36,6 +36,19 @@ def get_prometheus_client(request: Request):
     """Dependency to get Prometheus client"""
     return request.app.state.prometheus_client
 
+def _extract_workload_name(pod_name: str) -> str:
+    """Extract workload name from pod name (remove replica set suffix)"""
+    # Pod names typically follow pattern: workload-name-hash-suffix
+    # e.g., resource-governance-798b5579d6-7h298 -> resource-governance
+    parts = pod_name.split('-')
+    if len(parts) >= 3 and parts[-1].isalnum() and len(parts[-1]) == 5:
+        # Remove the last two parts (hash and suffix)
+        return '-'.join(parts[:-2])
+    elif len(parts) >= 2 and parts[-1].isalnum() and len(parts[-1]) == 5:
+        # Remove the last part (suffix)
+        return '-'.join(parts[:-1])
+    return pod_name
+
 @api_router.get("/cluster/status")
 async def get_cluster_status(
     k8s_client=Depends(get_k8s_client),
@@ -1212,7 +1225,8 @@ async def get_historical_analysis(
         # Group pods by workload
         workloads = {}
         for pod in pods:
-            workload_name = pod.labels.get('app', pod.labels.get('name', 'unknown'))
+            # Extract workload name from pod name (remove replica set suffix)
+            workload_name = self._extract_workload_name(pod.name)
             namespace = pod.namespace
             
             if workload_name not in workloads:
