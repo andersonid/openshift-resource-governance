@@ -46,7 +46,9 @@ All outdated files have been removed to maintain only current and relevant docum
 - Issue Categorization (Missing requests, missing limits, wrong ratios)
 - Clear recommendations for each issue
 - Historical Analysis Integration with real numerical data
-- Cluster Overcommit Analysis with detailed tooltips
+- Cluster Overcommit Analysis with detailed tooltips and modals
+- PromQL Query Display for validation in OpenShift console
+- Professional UI with info icons and modal interactions
 
 ### **Phase 2: Smart Recommendations Engine (SHORT TERM - 2-3 weeks)**
 - Dedicated Recommendations Section

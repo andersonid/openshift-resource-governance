@@ -10,7 +10,8 @@ A resource governance tool for OpenShift clusters that goes beyond what Metrics 
 - **Detailed Problem Analysis**: Modal-based detailed view showing pod and container resource issues
 - **Historical Analysis**: Workload-based historical resource usage analysis with real numerical data (1h, 6h, 24h, 7d)
 - **Prometheus Integration**: Collects real consumption metrics from OpenShift monitoring with OpenShift-specific queries
-- **Cluster Overcommit Analysis**: Real-time cluster capacity vs requests analysis with detailed tooltips
+- **Cluster Overcommit Analysis**: Real-time cluster capacity vs requests analysis with detailed tooltips and modals
+- **PromQL Query Display**: Shows raw Prometheus queries used for data collection, allowing validation in OpenShift console
 - **Export Reports**: Generates reports in JSON, CSV formats
 - **Modern Web UI**: Pragmatic dashboard with modal-based analysis and professional interface
 - **Cluster Agnostic**: Works on any OpenShift cluster without configuration
@@ -124,6 +125,11 @@ GET /api/v1/validations?namespace=default&severity=error
 GET /api/v1/namespace/{namespace}/workload/{workload}/historical-analysis?time_range=24h
 ```
 
+#### Workload Metrics with PromQL Queries
+```bash
+GET /api/v1/workloads/{namespace}/{workload}/metrics?time_range=24h
+```
+
 #### Export Report
 ```bash
 POST /api/v1/export
@@ -183,6 +189,16 @@ curl "https://your-route-url/api/v1/validations?severity=critical"
 - **Problem**: Requests exceed cluster capacity
 - **Severity**: Critical
 - **Recommendation**: Reduce requests or add nodes
+
+### 6. Insufficient Historical Data
+- **Problem**: Workloads with limited historical data for analysis
+- **Severity**: Warning
+- **Recommendation**: Wait for more data points or enable VPA for new workloads
+
+### 7. Seasonal Pattern Detection
+- **Problem**: Workloads with unpredictable usage patterns
+- **Severity**: Info
+- **Recommendation**: Consider VPA for dynamic resource adjustments
 
 ## 📈 Reports
 
@@ -348,6 +364,7 @@ curl http://localhost:8080/health
   - OpenShift-specific Prometheus queries for better accuracy
   - Workload selector with time ranges (1h, 6h, 24h, 7d)
   - Simulated data fallback for demonstration
+  - PromQL query display for validation in OpenShift console
 
 #### 1.3 Cluster Overcommit Analysis
 - [x] **Real-time Overcommit Monitoring**
@@ -355,6 +372,7 @@ curl http://localhost:8080/health
   - Detailed tooltips with capacity, requests, and available resources
   - Modal-based detailed breakdown of overcommit calculations
   - Resource utilization tracking
+  - Professional UI with info icons and modal interactions
 
 ---
 
