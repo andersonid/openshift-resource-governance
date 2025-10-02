@@ -543,6 +543,102 @@
         .workload-row:hover {
             background-color: rgba(255, 255, 255, 0.02);
         }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background-color: var(--pf-global--BackgroundColor--100);
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #2B2B2B 0%, #1E1E1E 100%);
+            color: var(--pf-global--Color--100);
+            padding: 20px 24px;
+            border-bottom: 1px solid #404040;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .close {
+            color: var(--pf-global--Color--300);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .close:hover {
+            color: var(--pf-global--Color--100);
+        }
+        
+        .modal-body {
+            padding: 24px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .status-indicator {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-indicator.danger {
+            background-color: var(--pf-global--danger-color--100);
+            color: white;
+        }
+        
+        .status-indicator.warning {
+            background-color: var(--pf-global--warning-color--100);
+            color: black;
+        }
+        
+        .status-indicator.info {
+            background-color: var(--pf-global--info-color--100);
+            color: white;
+        }
+        
+        .status-indicator.success {
+            background-color: var(--pf-global--success-color--100);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -897,20 +993,20 @@
                                 <td>
                                     <strong style="color: var(--pf-global--Color--100);">${namespace.namespace}</strong>
                                 </td>
-                        <td>${Object.keys(namespace.pods || {}).length}</td>
-                        <td>${namespace.total_validations || 0}</td>
+                                <td>${Object.keys(namespace.pods || {}).length}</td>
+                                <td>${namespace.total_validations || 0}</td>
                                 <td>
                                     <span class="status-indicator ${getSeverityClass(namespace)}">
                                         ${getSeverityText(namespace)}
                                     </span>
                                 </td>
                                 <td>
-                                    <button class="openshift-button secondary" onclick="analyzeWorkload('${namespace.namespace}')">
+                                    <button class="openshift-button secondary" onclick="analyzeNamespace('${namespace.namespace}')">
                                         <i class="fas fa-search"></i>
                                         Analyze
                                     </button>
-                        </td>
-                    </tr>
+                                </td>
+                            </tr>
                         `).join('')}
                     </tbody>
                 </table>
@@ -1203,9 +1299,147 @@
                 `;
             }
 
-        function analyzeWorkload(namespace) {
-            console.log('Analyzing workload:', namespace);
-            // TODO: Implement workload analysis
+        function analyzeNamespace(namespaceName) {
+            if (!currentData || !currentData.validations || !currentData.validations.namespaces) return;
+            
+            const namespace = currentData.validations.namespaces.find(ns => ns.namespace === namespaceName);
+            if (!namespace) return;
+            
+            // Show details in modal
+            showNamespaceDetails(namespaceName);
+        }
+        
+        function showNamespaceDetails(namespaceName) {
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('namespaceModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'namespaceModal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content" style="width: 90%; max-width: 1000px;">
+                        <div class="modal-header">
+                            <h2>📋 Namespace Analysis - ${namespaceName}</h2>
+                            <span class="close">&times;</span>
+                        </div>
+                        <div class="modal-body" id="modalBody"></div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Add close functionality
+                modal.querySelector('.close').onclick = () => modal.style.display = 'none';
+                modal.onclick = (e) => {
+                    if (e.target === modal) modal.style.display = 'none';
+                };
+            }
+            
+            // Create detailed content
+            const namespace = currentData.validations.namespaces.find(ns => ns.namespace === namespaceName);
+            if (!namespace) return;
+            
+            let content = `
+                <div class="namespace-details">
+                    <div class="namespace-summary" style="background-color: #1E1E1E; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="color: var(--pf-global--Color--100); margin-top: 0;">📊 Summary</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                            <div>
+                                <strong>Pods:</strong> ${Object.keys(namespace.pods || {}).length}
+                            </div>
+                            <div>
+                                <strong>Total Issues:</strong> ${namespace.total_validations || 0}
+                            </div>
+                            <div>
+                                <strong>Errors:</strong> <span style="color: var(--pf-global--danger-color--100);">${namespace.severity_breakdown?.error || 0}</span>
+                            </div>
+                            <div>
+                                <strong>Warnings:</strong> <span style="color: var(--pf-global--warning-color--100);">${namespace.severity_breakdown?.warning || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pods-details">
+                        <h3 style="color: var(--pf-global--Color--100);">🔍 Pod Analysis</h3>
+            `;
+            
+            // Add details for each pod
+            Object.values(namespace.pods || {}).forEach(pod => {
+                content += `
+                    <div class="pod-detail" style="background-color: #1E1E1E; padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #404040;">
+                        <h4 style="color: var(--pf-global--Color--100); margin-top: 0;">📦 ${pod.pod_name}</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                            <div><strong>Status:</strong> ${pod.phase}</div>
+                            <div><strong>Node:</strong> ${pod.node_name}</div>
+                        </div>
+                        <div class="containers-detail">
+                            <h5 style="color: var(--pf-global--Color--100);">Containers:</h5>
+                `;
+                
+                pod.containers.forEach(container => {
+                    const hasRequests = Object.keys(container.resources?.requests || {}).length > 0;
+                    const hasLimits = Object.keys(container.resources?.limits || {}).length > 0;
+                    
+                    content += `
+                        <div class="container-detail" style="background-color: #2B2B2B; padding: 16px; border-radius: 6px; margin-bottom: 12px;">
+                            <h6 style="color: var(--pf-global--Color--100); margin-top: 0;">${container.name}</h6>
+                            <p><strong>Image:</strong> ${container.image}</p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div>
+                                    <strong>Requests:</strong> 
+                                    ${hasRequests ? 
+                                        `<span style="color: var(--pf-global--success-color--100);">${JSON.stringify(container.resources.requests)}</span>` : 
+                                        '<span style="color: var(--pf-global--danger-color--100);">❌ Not defined</span>'
+                                    }
+                                </div>
+                                <div>
+                                    <strong>Limits:</strong> 
+                                    ${hasLimits ? 
+                                        `<span style="color: var(--pf-global--success-color--100);">${JSON.stringify(container.resources.limits)}</span>` : 
+                                        '<span style="color: var(--pf-global--warning-color--100);">❌ Not defined</span>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                content += `
+                        </div>
+                        <div class="validations-detail">
+                            <h5 style="color: var(--pf-global--Color--100);">Issues Found:</h5>
+                `;
+                
+                if (pod.validations && pod.validations.length > 0) {
+                    pod.validations.forEach(validation => {
+                        const severityClass = validation.severity === 'error' ? 'danger' : 
+                                            validation.severity === 'warning' ? 'warning' : 'info';
+                        const severityColor = validation.severity === 'error' ? 'var(--pf-global--danger-color--100)' : 
+                                            validation.severity === 'warning' ? 'var(--pf-global--warning-color--100)' : 'var(--pf-global--info-color--100)';
+                        
+                        content += `
+                            <div class="validation-item" style="background-color: #2B2B2B; padding: 16px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid ${severityColor};">
+                                <p style="margin: 0 0 8px 0;"><strong style="color: ${severityColor};">${validation.rule_name}:</strong> ${validation.message}</p>
+                                <p style="margin: 0; color: var(--pf-global--Color--300);"><em>Recommendation:</em> ${validation.recommendation}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    content += `<p style="color: var(--pf-global--success-color--100);">✅ No issues found for this pod.</p>`;
+                }
+                
+                content += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content += `
+                    </div>
+                </div>
+            `;
+            
+            // Populate and show modal
+            document.getElementById('modalBody').innerHTML = content;
+            modal.style.display = 'block';
         }
         
         function getSeverityClass(namespace) {
