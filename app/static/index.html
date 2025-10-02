@@ -1478,7 +1478,21 @@
             }
 
             const recommendations = data.recommendations;
-            const summary = data.summary;
+            const summary = {
+                total_recommendations: data.total || recommendations.length,
+                by_priority: {
+                    critical: recommendations.filter(r => r.priority === 'critical').length,
+                    high: recommendations.filter(r => r.priority === 'high').length,
+                    medium: recommendations.filter(r => r.priority === 'medium').length,
+                    low: recommendations.filter(r => r.priority === 'low').length
+                },
+                by_type: {
+                    resource_config: recommendations.filter(r => r.recommendation_type === 'resource_config').length,
+                    vpa_activation: recommendations.filter(r => r.recommendation_type === 'vpa_activation').length,
+                    ratio_adjustment: recommendations.filter(r => r.recommendation_type === 'ratio_adjustment').length
+                },
+                namespaces_affected: new Set(recommendations.map(r => r.namespace)).size
+            };
             
             let html = `
                 <!-- Summary Cards -->
