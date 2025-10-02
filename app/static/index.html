@@ -17,6 +17,10 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Chart.js for historical analysis graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
     <!-- Custom OpenShift-like styles -->
     <style>
         :root {
@@ -1185,6 +1189,10 @@
         function updateWorkloadDetailsAccordion(data, index) {
             const container = document.getElementById(`details-content-${index}`);
             
+            // Create chart containers with unique IDs
+            const cpuChartId = `cpu-chart-${index}`;
+            const memoryChartId = `memory-chart-${index}`;
+            
             // Parse CPU and Memory data
             const cpuData = data.cpu_data || {};
             const memoryData = data.memory_data || {};
@@ -1192,91 +1200,63 @@
             
             container.innerHTML = `
                 <div style="padding: 24px; background-color: #1E1E1E; border-radius: 8px; margin: 16px 0;">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
                         <div class="openshift-card">
                             <div class="card-header">
                                 <h3 class="card-title">
                                     <i class="fas fa-microchip" style="margin-right: 8px; color: var(--pf-global--info-color--100);"></i>
-                                    CPU Usage
+                                    CPU Usage (24h)
                                 </h3>
-                    </div>
+                            </div>
                             <div style="padding: 20px;">
-                                ${cpuData.current ? `
-                                    <div style="margin-bottom: 16px;">
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                            <span>Current Usage:</span>
-                                            <strong style="color: var(--pf-global--Color--100);">${cpuData.current} cores</strong>
-                    </div>
-                                        <div style="background-color: #404040; height: 8px; border-radius: 4px; overflow: hidden;">
-                                            <div style="background-color: var(--pf-global--info-color--100); height: 100%; width: ${Math.min((cpuData.current / (cpuData.limit || 1)) * 100, 100)}%;"></div>
-                </div>
-                        </div>
+                                <div style="height: 300px; position: relative;">
+                                    <canvas id="${cpuChartId}" width="400" height="200"></canvas>
+                                </div>
+                                ${cpuData.data && cpuData.data.length > 0 ? `
+                                    <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+                                        <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
+                                            <div style="font-size: 12px; color: var(--pf-global--Color--300);">Current</div>
+                                            <div style="font-weight: bold; color: var(--pf-global--Color--100);">${getCurrentValue(cpuData.data)} cores</div>
+                                        </div>
+                                        <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
+                                            <div style="font-size: 12px; color: var(--pf-global--Color--300);">Average</div>
+                                            <div style="font-weight: bold; color: var(--pf-global--Color--100);">${getAverageValue(cpuData.data)} cores</div>
+                                        </div>
+                                        <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
+                                            <div style="font-size: 12px; color: var(--pf-global--Color--300);">Peak</div>
+                                            <div style="font-weight: bold; color: var(--pf-global--warning-color--100);">${getPeakValue(cpuData.data)} cores</div>
+                                        </div>
+                                    </div>
                                 ` : ''}
-                                ${cpuData.average ? `
-                                    <div style="margin-bottom: 16px;">
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                            <span>Average (24h):</span>
-                                            <strong style="color: var(--pf-global--Color--100);">${cpuData.average} cores</strong>
+                            </div>
                         </div>
-                        </div>
-                                ` : ''}
-                                ${cpuData.peak ? `
-                                    <div style="margin-bottom: 16px;">
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                            <span>Peak (24h):</span>
-                                            <strong style="color: var(--pf-global--warning-color--100);">${cpuData.peak} cores</strong>
-                        </div>
-                    </div>
-                                ` : ''}
-                                ${!cpuData.current && !cpuData.average && !cpuData.peak ? `
-                                    <div style="text-align: center; color: var(--pf-global--Color--300);">
-                                        <i class="fas fa-chart-line" style="font-size: 32px; margin-bottom: 8px; color: var(--pf-global--Color--400);"></i>
-                                        <p>CPU usage data not available</p>
-                        </div>
-                                ` : ''}
-                    </div>
-                </div>
-                
+                        
                         <div class="openshift-card">
                             <div class="card-header">
                                 <h3 class="card-title">
                                     <i class="fas fa-memory" style="margin-right: 8px; color: var(--pf-global--warning-color--100);"></i>
-                                    Memory Usage
+                                    Memory Usage (24h)
                                 </h3>
                             </div>
                             <div style="padding: 20px;">
-                                ${memoryData.current ? `
-                                    <div style="margin-bottom: 16px;">
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                            <span>Current Usage:</span>
-                                            <strong style="color: var(--pf-global--Color--100);">${memoryData.current}</strong>
-                        </div>
-                                        <div style="background-color: #404040; height: 8px; border-radius: 4px; overflow: hidden;">
-                                            <div style="background-color: var(--pf-global--warning-color--100); height: 100%; width: ${Math.min((memoryData.current_bytes / (memoryData.limit_bytes || 1)) * 100, 100)}%;"></div>
-                            </div>
-                        </div>
-                                ` : ''}
-                                ${memoryData.average ? `
-                                    <div style="margin-bottom: 16px;">
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                            <span>Average (24h):</span>
-                                            <strong style="color: var(--pf-global--Color--100);">${memoryData.average}</strong>
-                    </div>
-                            </div>
-                                ` : ''}
-                                ${memoryData.peak ? `
-                                    <div style="margin-bottom: 16px;">
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                            <span>Peak (24h):</span>
-                                            <strong style="color: var(--pf-global--danger-color--100);">${memoryData.peak}</strong>
-                        </div>
-                            </div>
-                                ` : ''}
-                                ${!memoryData.current && !memoryData.average && !memoryData.peak ? `
-                                    <div style="text-align: center; color: var(--pf-global--Color--300);">
-                                        <i class="fas fa-chart-line" style="font-size: 32px; margin-bottom: 8px; color: var(--pf-global--Color--400);"></i>
-                                        <p>Memory usage data not available</p>
-                        </div>
+                                <div style="height: 300px; position: relative;">
+                                    <canvas id="${memoryChartId}" width="400" height="200"></canvas>
+                                </div>
+                                ${memoryData.data && memoryData.data.length > 0 ? `
+                                    <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+                                        <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
+                                            <div style="font-size: 12px; color: var(--pf-global--Color--300);">Current</div>
+                                            <div style="font-weight: bold; color: var(--pf-global--Color--100);">${getCurrentValue(memoryData.data)} MB</div>
+                                        </div>
+                                        <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
+                                            <div style="font-size: 12px; color: var(--pf-global--Color--300);">Average</div>
+                                            <div style="font-weight: bold; color: var(--pf-global--Color--100);">${getAverageValue(memoryData.data)} MB</div>
+                                        </div>
+                                        <div style="text-align: center; padding: 8px; background-color: #2B2B2B; border-radius: 4px;">
+                                            <div style="font-size: 12px; color: var(--pf-global--Color--300);">Peak</div>
+                                            <div style="font-weight: bold; color: var(--pf-global--warning-color--100);">${getPeakValue(memoryData.data)} MB</div>
+                                        </div>
+                                    </div>
                                 ` : ''}
                             </div>
                         </div>
@@ -1291,14 +1271,165 @@
                                 </h3>
                             </div>
                             <div style="padding: 20px;">
-                                <ul style="margin: 0; padding-left: 20px;">
-                                    ${recommendations.map(rec => `<li style="margin-bottom: 8px; color: var(--pf-global--Color--200);">${rec}</li>`).join('')}
-                                </ul>
-                    </div>
-                </div>
-                ` : ''}
+                                ${recommendations.map(rec => `
+                                    <div style="margin-bottom: 16px; padding: 16px; background-color: #2B2B2B; border-radius: 6px; border-left: 4px solid ${getSeverityColor(rec.severity)};">
+                                        <p style="margin: 0 0 8px 0; color: var(--pf-global--Color--100);"><strong>${rec.type}:</strong> ${rec.message}</p>
+                                        <p style="margin: 0; color: var(--pf-global--Color--300);"><em>Recommendation:</em> ${rec.recommendation}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             `;
+            
+            // Create charts after DOM is updated
+            setTimeout(() => {
+                createCPUChart(cpuChartId, cpuData);
+                createMemoryChart(memoryChartId, memoryData);
+            }, 100);
+        }
+        
+        function getCurrentValue(data) {
+            if (!data || data.length === 0) return '0.000';
+            const lastValue = data[data.length - 1];
+            return lastValue ? lastValue.y.toFixed(3) : '0.000';
+        }
+        
+        function getAverageValue(data) {
+            if (!data || data.length === 0) return '0.000';
+            const sum = data.reduce((acc, point) => acc + point.y, 0);
+            return (sum / data.length).toFixed(3);
+        }
+        
+        function getPeakValue(data) {
+            if (!data || data.length === 0) return '0.000';
+            const max = Math.max(...data.map(point => point.y));
+            return max.toFixed(3);
+        }
+        
+        function createCPUChart(canvasId, cpuData) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            
+            const chartData = cpuData?.data || [];
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'CPU Usage (cores)',
+                        data: chartData,
+                        borderColor: '#0066CC',
+                        backgroundColor: 'rgba(0, 102, 204, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#FFFFFF'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                displayFormats: {
+                                    hour: 'HH:mm',
+                                    day: 'MMM dd'
+                                }
+                            },
+                            ticks: {
+                                color: '#FFFFFF'
+                            },
+                            grid: {
+                                color: '#404040'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#FFFFFF',
+                                callback: function(value) {
+                                    return value.toFixed(3) + ' cores';
+                                }
+                            },
+                            grid: {
+                                color: '#404040'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createMemoryChart(canvasId, memoryData) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            
+            const chartData = memoryData?.data || [];
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Memory Usage (MB)',
+                        data: chartData,
+                        borderColor: '#CC0000',
+                        backgroundColor: 'rgba(204, 0, 0, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#FFFFFF'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                displayFormats: {
+                                    hour: 'HH:mm',
+                                    day: 'MMM dd'
+                                }
+                            },
+                            ticks: {
+                                color: '#FFFFFF'
+                            },
+                            grid: {
+                                color: '#404040'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#FFFFFF',
+                                callback: function(value) {
+                                    return value.toFixed(1) + ' MB';
+                                }
+                            },
+                            grid: {
+                                color: '#404040'
+                            }
+                        }
+                    }
+                }
+            });
         }
         
         function updateWorkloadDetails(data) {
