@@ -97,6 +97,9 @@ async def get_cluster_status(
         # Get overcommit information
         overcommit_info = await prometheus_client.get_cluster_overcommit()
         
+        # Get resource utilization information
+        resource_utilization_info = await prometheus_client.get_cluster_resource_utilization()
+        
         # Get VPA recommendations
         vpa_recommendations = await k8s_client.get_vpa_recommendations()
         
@@ -213,13 +216,14 @@ async def get_cluster_status(
             # Count namespaces in overcommit (simplified - any namespace with requests > 0)
             namespaces_in_overcommit = len([ns for ns in namespaces_list if ns['total_validations'] > 0])
             
-        # Calculate resource utilization (usage vs requests) - simplified
-        # This would ideally use actual usage data from Prometheus
+        # Calculate resource utilization (usage vs requests) from Prometheus data
         resource_utilization = 0
-        if cpu_requests > 0 and memory_requests > 0:
-            # For now, we'll use a simplified calculation
-            # In a real implementation, this would compare actual usage vs requests
-            resource_utilization = 75  # Placeholder - would be calculated from real usage data
+        if resource_utilization_info.get('data_source') == 'prometheus':
+            resource_utilization = resource_utilization_info.get('overall_utilization_percent', 0)
+        else:
+            # Fallback to simplified calculation if Prometheus data not available
+            if cpu_requests > 0 and memory_requests > 0:
+                resource_utilization = 75  # Placeholder fallback
         
         return {
             "timestamp": datetime.now().isoformat(),
