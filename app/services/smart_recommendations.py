@@ -306,7 +306,7 @@ class SmartRecommendationsService:
                 "Apply recommended values when confident"
             ],
             kubectl_commands=[
-                f"kubectl create -f vpa-{category.workload_name}.yaml"
+                f"oc create -f vpa-{category.workload_name}.yaml"
             ],
             vpa_yaml=self._generate_vpa_yaml(category)
         )
@@ -329,7 +329,7 @@ class SmartRecommendationsService:
                 "Update deployment with new resource requests"
             ],
             kubectl_commands=[
-                f"kubectl patch deployment {category.workload_name} -n {category.namespace} -p '{{\"spec\":{{\"template\":{{\"spec\":{{\"containers\":[{{\"name\":\"{category.workload_name}\",\"resources\":{{\"requests\":{{\"cpu\":\"200m\",\"memory\":\"512Mi\"}}}}}}]}}}}}}}}'"
+                f"oc patch deployment {category.workload_name} -n {category.namespace} -p '{{\"spec\":{{\"template\":{{\"spec\":{{\"containers\":[{{\"name\":\"{category.workload_name}\",\"resources\":{{\"requests\":{{\"cpu\":\"200m\",\"memory\":\"512Mi\"}}}}}}]}}}}}}}}'"
             ]
         )
     
@@ -351,7 +351,7 @@ class SmartRecommendationsService:
                 "Update deployment with new resource limits"
             ],
             kubectl_commands=[
-                f"kubectl patch deployment {category.workload_name} -n {category.namespace} -p '{{\"spec\":{{\"template\":{{\"spec\":{{\"containers\":[{{\"name\":\"{category.workload_name}\",\"resources\":{{\"limits\":{{\"cpu\":\"600m\",\"memory\":\"1536Mi\"}}}}}}]}}}}}}}}'"
+                f"oc patch deployment {category.workload_name} -n {category.namespace} -p '{{\"spec\":{{\"template\":{{\"spec\":{{\"containers\":[{{\"name\":\"{category.workload_name}\",\"resources\":{{\"limits\":{{\"cpu\":\"600m\",\"memory\":\"1536Mi\"}}}}}}]}}}}}}}}'"
             ]
         )
     
@@ -373,7 +373,7 @@ class SmartRecommendationsService:
                 "Apply changes to production"
             ],
             kubectl_commands=[
-                f"kubectl patch deployment {category.workload_name} -n {category.namespace} -p '{{\"spec\":{{\"template\":{{\"spec\":{{\"containers\":[{{\"name\":\"{category.workload_name}\",\"resources\":{{\"requests\":{{\"cpu\":\"200m\",\"memory\":\"512Mi\"}},\"limits\":{{\"cpu\":\"600m\",\"memory\":\"1536Mi\"}}}}}}]}}}}}}}}'"
+                f"oc patch deployment {category.workload_name} -n {category.namespace} -p '{{\"spec\":{{\"template\":{{\"spec\":{{\"containers\":[{{\"name\":\"{category.workload_name}\",\"resources\":{{\"requests\":{{\"cpu\":\"200m\",\"memory\":\"512Mi\"}},\"limits\":{{\"cpu\":\"600m\",\"memory\":\"1536Mi\"}}}}}}]}}}}}}}}'"
             ]
         )
     
