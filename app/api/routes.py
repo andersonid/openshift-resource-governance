@@ -1199,6 +1199,95 @@ async def get_smart_recommendations(
         logger.error(f"Error getting smart recommendations: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/historical-analysis")
+async def get_historical_analysis(
+    k8s_client=Depends(get_k8s_client),
+    prometheus_client=Depends(get_prometheus_client)
+):
+    """Get historical analysis for all workloads"""
+    try:
+        # Get all pods
+        pods = await k8s_client.get_all_pods()
+        
+        # Group pods by workload
+        workloads = {}
+        for pod in pods:
+            workload_name = pod.metadata.labels.get('app', pod.metadata.labels.get('name', 'unknown'))
+            namespace = pod.metadata.namespace
+            
+            if workload_name not in workloads:
+                workloads[workload_name] = {
+                    'name': workload_name,
+                    'namespace': namespace,
+                    'pods': []
+                }
+            workloads[workload_name]['pods'].append(pod)
+        
+        # Convert to list and add basic info
+        workload_list = []
+        for workload_name, workload_data in workloads.items():
+            workload_list.append({
+                'name': workload_name,
+                'namespace': workload_data['namespace'],
+                'pod_count': len(workload_data['pods']),
+                'cpu_usage': 'N/A',  # Will be populated by Prometheus queries
+                'memory_usage': 'N/A',  # Will be populated by Prometheus queries
+                'last_updated': datetime.now().isoformat()
+            })
+        
+        return {
+            "workloads": workload_list,
+            "total_workloads": len(workload_list),
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting historical analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting historical analysis: {str(e)}")
+
+@api_router.get("/historical-analysis/{namespace}/{workload}")
+async def get_workload_historical_details(
+    namespace: str,
+    workload: str,
+    k8s_client=Depends(get_k8s_client),
+    prometheus_client=Depends(get_prometheus_client)
+):
+    """Get detailed historical analysis for a specific workload"""
+    try:
+        # Get pods for this workload
+        pods = await k8s_client.get_pods_by_selector(
+            namespace=namespace,
+            selector={'app': workload}
+        )
+        
+        if not pods:
+            raise HTTPException(status_code=404, detail=f"Workload {workload} not found in namespace {namespace}")
+        
+        # Get historical data from Prometheus
+        historical_service = HistoricalAnalysisService()
+        
+        # Get CPU and memory usage over time
+        cpu_data = await historical_service.get_cpu_usage_history(namespace, workload)
+        memory_data = await historical_service.get_memory_usage_history(namespace, workload)
+        
+        # Generate recommendations
+        recommendations = await historical_service.generate_recommendations(namespace, workload)
+        
+        return {
+            "workload": workload,
+            "namespace": namespace,
+            "cpu_data": cpu_data,
+            "memory_data": memory_data,
+            "recommendations": recommendations,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting workload historical details: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting workload details: {str(e)}")
+
 @api_router.get("/health")
 async def health_check():
     """API health check"""
