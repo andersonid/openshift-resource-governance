@@ -1459,6 +1459,7 @@
                 showLoading();
                 const response = await fetch('/api/v1/smart-recommendations');
                 const data = await response.json();
+                console.log('Smart recommendations data:', data);
                 updateSmartRecommendations(data);
             } catch (error) {
                 console.error('Error loading recommendations:', error);
