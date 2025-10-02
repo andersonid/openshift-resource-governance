@@ -20,6 +20,11 @@ from app.core.config import settings
 from app.services.historical_analysis import HistoricalAnalysisService
 from app.services.smart_recommendations import SmartRecommendationsService
 
+try:
+    from kubernetes import client
+except ImportError:
+    client = None
+
 logger = logging.getLogger(__name__)
 
 class ValidationService:
@@ -691,7 +696,8 @@ class ValidationService:
     async def _get_cluster_capacity(self) -> tuple[float, float, int]:
         """Get real cluster capacity from nodes"""
         try:
-            from kubernetes import client
+            if client is None:
+                raise ImportError("kubernetes client not available")
             v1 = client.CoreV1Api()
             nodes = v1.list_node()
             
