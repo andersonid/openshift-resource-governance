@@ -1480,10 +1480,10 @@
             const container = document.getElementById('smart-recommendations-container');
             
             // Store recommendations globally for button functions
-            window.currentRecommendations = data.recommendations || [];
+            window.currentRecommendations = data.categories || [];
             window.selectedRecommendations = new Set();
             
-            if (!data || !data.recommendations || data.recommendations.length === 0) {
+            if (!data || !data.categories || data.categories.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: var(--pf-global--Color--300);">
                         <i class="fas fa-lightbulb" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--Color--400);"></i>
@@ -1496,67 +1496,106 @@
             }
 
             // Update bulk select counters
-            document.getElementById('total-recommendations').textContent = data.recommendations.length;
-            document.getElementById('page-recommendations').textContent = data.recommendations.length;
+            document.getElementById('total-recommendations').textContent = data.categories.length;
+            document.getElementById('page-recommendations').textContent = data.categories.length;
 
-            const recommendationsHtml = data.recommendations.map((rec, index) => `
-                <div class="service-card" id="recommendation-${index}" data-recommendation-id="${index}">
-                    <div class="service-card-header">
-                        <div class="service-card-icon">
-                            <i class="fas fa-${getRecommendationIcon(rec.recommendation_type)}"></i>
+            const recommendationsHtml = data.categories.map((workload, index) => {
+                // Determine priority based on priority_score
+                let priority = 'low';
+                if (workload.priority_score >= 6) priority = 'high';
+                else if (workload.priority_score >= 4) priority = 'medium';
+                
+                // Determine recommendation type based on resource config status
+                let recommendationType = 'vpa_activation';
+                let title = `Activate VPA for ${workload.workload_name}`;
+                let description = `Enable VPA for ${workload.workload_name} to get automatic resource recommendations based on usage patterns.`;
+                
+                if (workload.resource_config_status === 'missing_requests') {
+                    recommendationType = 'resource_config';
+                    title = `Configure Resources for ${workload.workload_name}`;
+                    description = `Add missing resource requests and limits for ${workload.workload_name} to improve resource management.`;
+                } else if (workload.resource_config_status === 'suboptimal_ratio') {
+                    recommendationType = 'ratio_adjustment';
+                    title = `Optimize Resource Ratios for ${workload.workload_name}`;
+                    description = `Adjust CPU to memory ratio for ${workload.workload_name} to optimize resource allocation.`;
+                }
+
+                return `
+                    <div class="service-card" id="recommendation-${index}" data-recommendation-id="${index}">
+                        <div class="service-card-header">
+                            <div class="service-card-icon">
+                                <i class="fas fa-${getRecommendationIcon(recommendationType)}"></i>
+                            </div>
+                            <h3 class="service-card-title">${title}</h3>
+                            <div class="service-card-checkbox">
+                                <input type="checkbox" 
+                                       id="checkbox-${index}" 
+                                       class="recommendation-checkbox" 
+                                       onchange="toggleRecommendationSelection(${index})"
+                                       style="transform: scale(1.2);">
+                            </div>
                         </div>
-                        <h3 class="service-card-title">${rec.title}</h3>
-                        <div class="service-card-checkbox">
-                            <input type="checkbox" 
-                                   id="checkbox-${index}" 
-                                   class="recommendation-checkbox" 
-                                   onchange="toggleRecommendationSelection(${index})"
-                                   style="transform: scale(1.2);">
-                        </div>
-                    </div>
-                    
-                    <div class="service-card-body">
-                        <p class="service-card-description">${rec.description}</p>
                         
-                        <div class="service-card-meta">
-                            <div class="service-card-meta-item">
-                                <i class="fas fa-cube"></i>
-                                <span>${rec.workload_name || 'N/A'}</span>
+                        <div class="service-card-body">
+                            <p class="service-card-description">${description}</p>
+                            
+                            <div class="service-card-meta">
+                                <div class="service-card-meta-item">
+                                    <i class="fas fa-cube"></i>
+                                    <span>${workload.workload_name}</span>
+                                </div>
+                                <div class="service-card-meta-item">
+                                    <i class="fas fa-layer-group"></i>
+                                    <span>${workload.namespace}</span>
+                                </div>
+                                <div class="service-card-meta-item">
+                                    <i class="fas fa-tag"></i>
+                                    <span>${recommendationType}</span>
+                                </div>
+                                <div class="service-card-priority priority-${priority}">
+                                    ${priority.toUpperCase()}
+                                </div>
                             </div>
-                            <div class="service-card-meta-item">
-                                <i class="fas fa-layer-group"></i>
-                                <span>${rec.namespace || 'N/A'}</span>
-                            </div>
-                            <div class="service-card-meta-item">
-                                <i class="fas fa-tag"></i>
-                                <span>${rec.recommendation_type}</span>
-                            </div>
-                            <div class="service-card-priority priority-${rec.priority}">
-                                ${rec.priority.toUpperCase()}
+                            
+                            <div class="service-card-meta">
+                                <div class="service-card-meta-item">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Score: ${workload.priority_score}/10</span>
+                                </div>
+                                <div class="service-card-meta-item">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Impact: ${workload.estimated_impact}</span>
+                                </div>
+                                <div class="service-card-meta-item">
+                                    <i class="fas fa-history"></i>
+                                    <span>Age: ${workload.age_days} days</span>
+                                </div>
+                                <div class="service-card-meta-item">
+                                    <i class="fas fa-check-circle" style="color: ${workload.vpa_candidate ? '#28a745' : '#dc3545'};"></i>
+                                    <span>VPA Ready</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="service-card-footer">
-                        ${rec.vpa_yaml ? `
-                            <button class="openshift-button openshift-button-primary" onclick="downloadVPAYAML('${rec.workload_name}', '${rec.namespace}')">
+                        
+                        <div class="service-card-footer">
+                            <button class="openshift-button openshift-button-primary" onclick="downloadVPAYAML('${workload.workload_name}', '${workload.namespace}')">
                                 <i class="fas fa-download"></i>
                                 VPA YAML
                             </button>
-                        ` : ''}
-                        
-                        <button class="openshift-button openshift-button-success" onclick="applySmartRecommendation('${rec.workload_name}', '${rec.namespace}', '${rec.recommendation_type}', '${rec.priority}')">
-                            <i class="fas fa-check"></i>
-                            Apply
-                        </button>
-                        
-                        <button class="openshift-button" onclick="previewSmartRecommendation('${rec.workload_name}', '${rec.namespace}', '${rec.recommendation_type}', '${rec.priority}')">
-                            <i class="fas fa-eye"></i>
-                            Preview
-                        </button>
+                            
+                            <button class="openshift-button openshift-button-success" onclick="applySmartRecommendation('${workload.workload_name}', '${workload.namespace}', '${recommendationType}', '${priority}')">
+                                <i class="fas fa-check"></i>
+                                Apply
+                            </button>
+                            
+                            <button class="openshift-button" onclick="previewSmartRecommendation('${workload.workload_name}', '${workload.namespace}', '${recommendationType}', '${priority}')">
+                                <i class="fas fa-eye"></i>
+                                Preview
+                            </button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             container.innerHTML = recommendationsHtml;
             updateBulkSelectUI();
