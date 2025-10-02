@@ -1405,7 +1405,7 @@
                                 <strong>Pods:</strong> ${Object.keys(namespace.pods || {}).length}
                             </div>
                             <div>
-                                <strong>Total Issues:</strong> ${namespace.total_validations || 0}
+                                <strong>Total Issues:</strong> ${namespace.validations?.length || 0}
                             </div>
                             <div>
                                 <strong>Errors:</strong> <span style="color: var(--pf-global--danger-color--100);">${namespace.severity_breakdown?.error || 0}</span>
