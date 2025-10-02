@@ -63,7 +63,10 @@ class SmartRecommendationsService:
         categories: List[WorkloadCategory]
     ) -> List[SmartRecommendation]:
         """Generate smart recommendations based on workload analysis"""
-        recommendations = []
+        # Group workloads by recommendation type
+        vpa_workloads = []
+        resource_config_workloads = []
+        ratio_adjustment_workloads = []
         
         for category in categories:
             workload_pods = [p for p in pods if self._extract_workload_name(p.name) == category.workload_name and p.namespace == category.namespace]
@@ -71,16 +74,172 @@ class SmartRecommendationsService:
             if not workload_pods:
                 continue
             
-            # Generate recommendations based on category
-            workload_recommendations = await self._generate_workload_recommendations(
-                category, workload_pods
-            )
-            recommendations.extend(workload_recommendations)
+            # Categorize workloads by recommendation type
+            if category.vpa_candidate:
+                vpa_workloads.append((category, workload_pods))
+            elif category.resource_config_status == "missing_requests":
+                resource_config_workloads.append((category, workload_pods))
+            elif category.resource_config_status == "missing_limits":
+                resource_config_workloads.append((category, workload_pods))
+            elif category.resource_config_status == "suboptimal_ratio":
+                ratio_adjustment_workloads.append((category, workload_pods))
+        
+        # Generate grouped recommendations
+        recommendations = []
+        
+        # VPA Activation group
+        if vpa_workloads:
+            recommendations.append(self._create_grouped_vpa_recommendation(vpa_workloads))
+        
+        # Resource Config group
+        if resource_config_workloads:
+            recommendations.append(self._create_grouped_resource_config_recommendation(resource_config_workloads))
+        
+        # Ratio Adjustment group
+        if ratio_adjustment_workloads:
+            recommendations.append(self._create_grouped_ratio_adjustment_recommendation(ratio_adjustment_workloads))
         
         # Sort by priority
         recommendations.sort(key=lambda x: self._get_priority_score(x.priority), reverse=True)
         
         return recommendations
+    
+    def _create_grouped_vpa_recommendation(self, vpa_workloads: List[tuple]) -> SmartRecommendation:
+        """Create grouped VPA activation recommendation"""
+        # Sort workloads by priority
+        vpa_workloads.sort(key=lambda x: self._get_priority_score(x[0].estimated_impact), reverse=True)
+        
+        # Get highest priority
+        highest_priority = vpa_workloads[0][0].estimated_impact
+        
+        # Create workload list
+        workload_list = []
+        for category, _ in vpa_workloads:
+            workload_list.append(f"{category.workload_name} ({category.namespace}) - {category.estimated_impact.upper()}")
+        
+        # Generate consolidated VPA YAML
+        vpa_yaml = self._generate_consolidated_vpa_yaml(vpa_workloads)
+        
+        return SmartRecommendation(
+            workload_name="Multiple Workloads",
+            namespace="Multiple",
+            recommendation_type="vpa_activation",
+            priority=highest_priority,
+            title="Activate VPA for Workloads",
+            description=f"Enable VPA for {len(vpa_workloads)} workloads to get automatic resource recommendations based on usage patterns.",
+            confidence_level=0.8,
+            estimated_impact=highest_priority,
+            implementation_steps=[
+                "Create VPA resources for all workloads",
+                "Set updateMode to 'Off' for recommendation-only mode",
+                "Monitor VPA recommendations for 24-48 hours",
+                "Apply recommended values when confident"
+            ],
+            kubectl_commands=[
+                "oc apply -f vpa-workloads-batch.yaml"
+            ],
+            vpa_yaml=vpa_yaml,
+            workload_list=workload_list
+        )
+    
+    def _create_grouped_resource_config_recommendation(self, resource_workloads: List[tuple]) -> SmartRecommendation:
+        """Create grouped resource configuration recommendation"""
+        # Sort workloads by priority
+        resource_workloads.sort(key=lambda x: self._get_priority_score(x[0].estimated_impact), reverse=True)
+        
+        # Get highest priority
+        highest_priority = resource_workloads[0][0].estimated_impact
+        
+        # Create workload list
+        workload_list = []
+        for category, _ in resource_workloads:
+            workload_list.append(f"{category.workload_name} ({category.namespace}) - {category.estimated_impact.upper()}")
+        
+        return SmartRecommendation(
+            workload_name="Multiple Workloads",
+            namespace="Multiple",
+            recommendation_type="resource_config",
+            priority=highest_priority,
+            title="Configure Resource Requests/Limits",
+            description=f"Define proper resource requests and limits for {len(resource_workloads)} workloads to ensure QoS and prevent resource conflicts.",
+            confidence_level=0.9,
+            estimated_impact=highest_priority,
+            implementation_steps=[
+                "Analyze current resource usage for all workloads",
+                "Set CPU requests based on P95 usage + 20% buffer",
+                "Set memory requests based on P95 usage + 20% buffer",
+                "Set limits with 3:1 ratio to requests",
+                "Update deployments with new resource configuration"
+            ],
+            kubectl_commands=[
+                "oc patch deployment <workload-name> -n <namespace> -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"<container-name>\",\"resources\":{\"requests\":{\"cpu\":\"200m\",\"memory\":\"512Mi\"},\"limits\":{\"cpu\":\"600m\",\"memory\":\"1536Mi\"}}}]}}}}'"
+            ],
+            workload_list=workload_list
+        )
+    
+    def _create_grouped_ratio_adjustment_recommendation(self, ratio_workloads: List[tuple]) -> SmartRecommendation:
+        """Create grouped ratio adjustment recommendation"""
+        # Sort workloads by priority
+        ratio_workloads.sort(key=lambda x: self._get_priority_score(x[0].estimated_impact), reverse=True)
+        
+        # Get highest priority
+        highest_priority = ratio_workloads[0][0].estimated_impact
+        
+        # Create workload list
+        workload_list = []
+        for category, _ in ratio_workloads:
+            workload_list.append(f"{category.workload_name} ({category.namespace}) - {category.estimated_impact.upper()}")
+        
+        return SmartRecommendation(
+            workload_name="Multiple Workloads",
+            namespace="Multiple",
+            recommendation_type="ratio_adjustment",
+            priority=highest_priority,
+            title="Optimize Resource Ratios",
+            description=f"Optimize CPU and memory limit:request ratios for {len(ratio_workloads)} workloads to follow best practices (3:1 ratio).",
+            confidence_level=0.8,
+            estimated_impact=highest_priority,
+            implementation_steps=[
+                "Analyze current resource ratios for all workloads",
+                "Adjust limits to maintain 3:1 ratio with requests",
+                "Test with updated ratios in staging environment",
+                "Apply changes to production"
+            ],
+            kubectl_commands=[
+                "oc patch deployment <workload-name> -n <namespace> -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"<container-name>\",\"resources\":{\"requests\":{\"cpu\":\"200m\",\"memory\":\"512Mi\"},\"limits\":{\"cpu\":\"600m\",\"memory\":\"1536Mi\"}}}]}}}}'"
+            ],
+            workload_list=workload_list
+        )
+    
+    def _generate_consolidated_vpa_yaml(self, vpa_workloads: List[tuple]) -> str:
+        """Generate consolidated VPA YAML for multiple workloads"""
+        yaml_parts = []
+        
+        for category, _ in vpa_workloads:
+            yaml_parts.append(f"""---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: {category.workload_name}-vpa
+  namespace: {category.namespace}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {category.workload_name}
+  updatePolicy:
+    updateMode: "Off"  # Recommendation only
+  resourcePolicy:
+    containerPolicies:
+    - containerName: {category.workload_name}
+      maxAllowed:
+        cpu: 2
+        memory: 4Gi
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi""")
+        
+        return "\n".join(yaml_parts)
     
     def _group_pods_by_workload(self, pods: List[PodResource]) -> Dict[str, List[PodResource]]:
         """Group pods by workload (deployment) name"""

@@ -115,6 +115,7 @@ class SmartRecommendation(BaseModel):
     implementation_steps: Optional[List[str]] = None
     kubectl_commands: Optional[List[str]] = None
     vpa_yaml: Optional[str] = None
+    workload_list: Optional[List[str]] = None  # List of workloads for grouped recommendations
 
 class QoSClassification(BaseModel):
     """QoS (Quality of Service) classification"""
