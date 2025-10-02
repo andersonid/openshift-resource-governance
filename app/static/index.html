@@ -2041,11 +2041,11 @@
             if (!rec) return;
             
             let modalContent = `
-                <div class="modal-header">
-                    <h2>📋 Recommendation Details</h2>
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; position: relative;">
+                    <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600;">📋 Recommendation Details</h2>
                     <span class="close" onclick="closeModal()">&times;</span>
                 </div>
-                <div class="modal-body" style="padding: 2rem;">
+                <div class="modal-body" style="padding: 2rem; max-height: 70vh; overflow-y: auto;">
                     <div style="margin-bottom: 2rem;">
                         <h3 style="color: #2c3e50; margin-bottom: 1rem;">${rec.title}</h3>
                         <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
@@ -2302,20 +2302,59 @@ ${rec.vpa_yaml}
                 top: 0;
                 width: 100%;
                 height: 100%;
-                background-color: rgba(0,0,0,0.5);
+                background-color: rgba(0,0,0,0.6);
+                overflow-y: auto;
             `;
             
-            modal.innerHTML = content;
+            // Create modal dialog container
+            const modalDialog = document.createElement('div');
+            modalDialog.style.cssText = `
+                position: relative;
+                width: 90%;
+                max-width: 800px;
+                margin: 2rem auto;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                overflow: hidden;
+            `;
+            
+            modalDialog.innerHTML = content;
+            modal.appendChild(modalDialog);
             document.body.appendChild(modal);
             
             // Add close functionality
             const closeBtn = modal.querySelector('.close');
             if (closeBtn) {
+                closeBtn.style.cssText = `
+                    position: absolute;
+                    top: 1rem;
+                    right: 1rem;
+                    font-size: 2rem;
+                    font-weight: bold;
+                    color: #aaa;
+                    cursor: pointer;
+                    z-index: 1001;
+                    background: white;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                `;
                 closeBtn.onclick = () => modal.remove();
             }
             
+            // Close on background click
             modal.onclick = (e) => {
                 if (e.target === modal) modal.remove();
+            };
+            
+            // Prevent modal dialog clicks from closing modal
+            modalDialog.onclick = (e) => {
+                e.stopPropagation();
             };
         }
 
