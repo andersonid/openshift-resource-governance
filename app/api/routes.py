@@ -1268,13 +1268,14 @@ async def get_workload_historical_details(
 ):
     """Get detailed historical analysis for a specific workload"""
     try:
-        # Get pods for this workload
-        pods = await k8s_client.get_pods_by_selector(
-            namespace=namespace,
-            selector={'app': workload}
-        )
+        # Get all pods and filter by namespace and workload
+        all_pods = await k8s_client.get_all_pods()
+        workload_pods = [
+            pod for pod in all_pods 
+            if pod.namespace == namespace and _extract_workload_name(pod.name) == workload
+        ]
         
-        if not pods:
+        if not workload_pods:
             raise HTTPException(status_code=404, detail=f"Workload {workload} not found in namespace {namespace}")
         
         # Get historical data from Prometheus
