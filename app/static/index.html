@@ -2287,6 +2287,38 @@ ${rec.vpa_yaml}
             };
         }
 
+        function showModal(content) {
+            // Remove existing modals
+            closeModal();
+            
+            // Create modal element
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.cssText = `
+                display: block;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.5);
+            `;
+            
+            modal.innerHTML = content;
+            document.body.appendChild(modal);
+            
+            // Add close functionality
+            const closeBtn = modal.querySelector('.close');
+            if (closeBtn) {
+                closeBtn.onclick = () => modal.remove();
+            }
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+
         function closeModal() {
             const modals = document.querySelectorAll('.modal');
             modals.forEach(modal => modal.remove());
