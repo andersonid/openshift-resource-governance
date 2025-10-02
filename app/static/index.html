@@ -2535,8 +2535,8 @@
                         
                         content += `
                             <div class="validation-item" style="background-color: #2B2B2B; padding: 16px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid ${severityColor};">
-                                <p style="margin: 0 0 8px 0;"><strong style="color: ${severityColor};">${validation.rule_name}:</strong> ${validation.message}</p>
-                                <p style="margin: 0; color: var(--pf-global--Color--300);"><em>Recommendation:</em> ${validation.recommendation}</p>
+                                <p style="margin: 0 0 8px 0;"><strong style="color: ${severityColor};">${validation.validation_type || validation.title || 'Issue'}:</strong> ${validation.message || validation.description}</p>
+                                <p style="margin: 0; color: var(--pf-global--Color--300);"><em>Recommendation:</em> ${validation.recommendation || validation.action_required || 'No specific recommendation available'}</p>
                             </div>
                         `;
                     });
