@@ -1435,12 +1435,12 @@ class HistoricalAnalysisService:
                 "error": str(e)
             }
 
-    async def generate_recommendations(self, namespace: str, workload: str) -> List[Dict[str, Any]]:
+    async def generate_recommendations(self, namespace: str, workload: str, time_range: str = "24h") -> List[Dict[str, Any]]:
         """Generate recommendations based on historical data"""
         try:
             # Get current usage data
-            cpu_data = await self.get_cpu_usage_history(namespace, workload, "24h")
-            memory_data = await self.get_memory_usage_history(namespace, workload, "24h")
+            cpu_data = await self.get_cpu_usage_history(namespace, workload, time_range)
+            memory_data = await self.get_memory_usage_history(namespace, workload, time_range)
             
             recommendations = []
             

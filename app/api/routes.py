@@ -1469,7 +1469,7 @@ async def get_workload_historical_details(
         memory_data = await historical_service.get_memory_usage_history(namespace, workload, time_range)
         
         # Generate recommendations
-        recommendations = await historical_service.generate_recommendations(namespace, workload)
+        recommendations = await historical_service.generate_recommendations(namespace, workload, time_range)
         
         return {
             "workload": workload,
