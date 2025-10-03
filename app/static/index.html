@@ -2519,10 +2519,9 @@
                                 <td>${workload.memory_usage || 'N/A'}</td>
                                 <td>${workload.last_updated ? new Date(workload.last_updated).toLocaleString() : 'N/A'}</td>
                                 <td>
-                                    <button class="openshift-button" onclick="loadWorkloadDetails('${workload.name}', '${workload.namespace}', ${index})">
-                                        <i class="fas fa-chart-line"></i>
-                                        Load Details
-                                    </button>
+                                    <span style="color: var(--pf-global--Color--300); font-size: 12px;">
+                                        Click to expand
+                                    </span>
                                 </td>
                             </tr>
                             <tr class="workload-details-row" id="details-${index}" style="display: none;">
@@ -2561,10 +2560,21 @@
             const icon = expandBtn.querySelector('i');
             
             if (detailsRow.style.display === 'none') {
+                // Expand the accordion
                 detailsRow.style.display = 'table-row';
                 icon.classList.remove('fa-chevron-right');
                 icon.classList.add('fa-chevron-down');
+                
+                // Load data automatically when expanding
+                const workloadRow = expandBtn.closest('.workload-row');
+                const workloadName = workloadRow.dataset.workload;
+                const namespace = workloadRow.dataset.namespace;
+                
+                if (workloadName && namespace) {
+                    loadWorkloadDetails(workloadName, namespace, index);
+                }
             } else {
+                // Collapse the accordion
                 detailsRow.style.display = 'none';
                 icon.classList.remove('fa-chevron-down');
                 icon.classList.add('fa-chevron-right');
@@ -2598,9 +2608,6 @@
                 const data = await response.json();
                 
                 updateWorkloadDetailsAccordion(data, index);
-                
-                // Expand the accordion after loading
-                toggleWorkloadDetails(index);
                 
             } catch (error) {
                 console.error('Error loading workload details:', error);
