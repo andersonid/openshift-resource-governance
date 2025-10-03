@@ -2554,19 +2554,6 @@
             document.getElementById('workload-details-container').classList.remove('section-hidden');
         }
         
-        async function loadWorkloadDetails(workloadName, namespace) {
-            try {
-                const response = await fetch(`/api/v1/historical-analysis/${namespace}/${workloadName}`);
-                const data = await response.json();
-                
-                updateWorkloadDetails(data);
-                
-            } catch (error) {
-                console.error('Error loading workload details:', error);
-                document.getElementById('workload-details-content').innerHTML = 
-                    '<div style="text-align: center; padding: 40px; color: var(--pf-global--danger-color--100);">Failed to load workload details</div>';
-            }
-        }
         
         function toggleWorkloadDetails(index) {
             const detailsRow = document.getElementById(`details-${index}`);
