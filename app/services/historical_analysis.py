@@ -295,7 +295,7 @@ class HistoricalAnalysisService:
         if time_range not in self.time_ranges:
             time_range = '24h'
         
-        end_time = datetime.now()
+        end_time = datetime.utcnow()
         start_time = end_time - timedelta(seconds=self.time_ranges[time_range])
         
         try:
@@ -1353,7 +1353,7 @@ class HistoricalAnalysisService:
             cpu_usage_query = f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}", pod=~"{workload}.*"}}[5m])'
             
             # Calculate time range
-            end_time = datetime.now()
+            end_time = datetime.utcnow()
             start_time = end_time - timedelta(seconds=self.time_ranges.get(time_range, 86400))
             
             # Query Prometheus
@@ -1404,7 +1404,7 @@ class HistoricalAnalysisService:
             memory_usage_query = f'container_memory_working_set_bytes{{namespace="{namespace}", pod=~"{workload}.*", container!="", image!=""}}'
             
             # Calculate time range
-            end_time = datetime.now()
+            end_time = datetime.utcnow()
             start_time = end_time - timedelta(seconds=self.time_ranges.get(time_range, 86400))
             
             # Query Prometheus
