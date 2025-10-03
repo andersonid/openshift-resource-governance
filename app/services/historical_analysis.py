@@ -369,9 +369,9 @@ class HistoricalAnalysisService:
                 '''
                 
                 # Execute queries
-                cpu_usage = await self._query_prometheus(cpu_query, start_time, end_time)
-                cpu_requests = await self._query_prometheus(cpu_requests_query, start_time, end_time)
-                cpu_limits = await self._query_prometheus(cpu_limits_query, start_time, end_time)
+                cpu_usage = await self._query_prometheus(cpu_query, start_time, end_time, time_range)
+                cpu_requests = await self._query_prometheus(cpu_requests_query, start_time, end_time, time_range)
+                cpu_limits = await self._query_prometheus(cpu_limits_query, start_time, end_time, time_range)
                 
                 if cpu_usage and cpu_requests:
                     analysis = self._analyze_cpu_metrics(
@@ -429,9 +429,9 @@ class HistoricalAnalysisService:
                 '''
                 
                 # Execute queries
-                memory_usage = await self._query_prometheus(memory_query, start_time, end_time)
-                memory_requests = await self._query_prometheus(memory_requests_query, start_time, end_time)
-                memory_limits = await self._query_prometheus(memory_limits_query, start_time, end_time)
+                memory_usage = await self._query_prometheus(memory_query, start_time, end_time, time_range)
+                memory_requests = await self._query_prometheus(memory_requests_query, start_time, end_time, time_range)
+                memory_limits = await self._query_prometheus(memory_limits_query, start_time, end_time, time_range)
                 
                 if memory_usage and memory_requests:
                     analysis = self._analyze_memory_metrics(
@@ -767,7 +767,7 @@ class HistoricalAnalysisService:
         
         return validations
     
-    async def _query_prometheus(self, query: str, start_time: datetime, end_time: datetime) -> List[Dict]:
+    async def _query_prometheus(self, query: str, start_time: datetime, end_time: datetime, time_range: str = "24h") -> List[Dict]:
         """Execute query in Prometheus"""
         try:
             # Get service account token for authentication
@@ -783,6 +783,19 @@ class HistoricalAnalysisService:
             if token:
                 headers['Authorization'] = f'Bearer {token}'
             
+            # Calculate appropriate step based on time range
+            time_diff = (end_time - start_time).total_seconds()
+            if time_diff <= 3600:  # 1 hour or less
+                step = "1m"
+            elif time_diff <= 21600:  # 6 hours or less
+                step = "5m"
+            elif time_diff <= 86400:  # 24 hours or less
+                step = "15m"
+            elif time_diff <= 604800:  # 7 days or less
+                step = "1h"
+            else:  # 30 days or more
+                step = "6h"
+            
             # Create session with SSL verification disabled for self-signed certificates
             connector = aiohttp.TCPConnector(ssl=False)
             
@@ -791,7 +804,7 @@ class HistoricalAnalysisService:
                     'query': query,
                     'start': start_time.timestamp(),
                     'end': end_time.timestamp(),
-                    'step': '60s'  # 1 minute resolution
+                    'step': step
                 }
                 
                 async with session.get(
@@ -1344,7 +1357,7 @@ class HistoricalAnalysisService:
             start_time = end_time - timedelta(seconds=self.time_ranges.get(time_range, 86400))
             
             # Query Prometheus
-            data = await self._query_prometheus(cpu_usage_query, start_time, end_time)
+            data = await self._query_prometheus(cpu_usage_query, start_time, end_time, time_range, time_range)
             
             if not data:
                 return {
@@ -1395,7 +1408,7 @@ class HistoricalAnalysisService:
             start_time = end_time - timedelta(seconds=self.time_ranges.get(time_range, 86400))
             
             # Query Prometheus
-            data = await self._query_prometheus(memory_usage_query, start_time, end_time)
+            data = await self._query_prometheus(memory_usage_query, start_time, end_time, time_range, time_range)
             
             if not data:
                 return {
