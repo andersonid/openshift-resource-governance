@@ -195,6 +195,62 @@ class PrometheusClient:
         result = await self.query(query)
         return result
     
+    async def get_cluster_resource_utilization(self) -> Dict[str, Any]:
+        """Get cluster resource utilization (usage vs requests)"""
+        # CPU utilization queries
+        cpu_usage_query = 'sum(rate(container_cpu_usage_seconds_total[5m]))'
+        cpu_requests_query = 'sum(kube_pod_container_resource_requests{resource="cpu"})'
+        
+        # Memory utilization queries
+        memory_usage_query = 'sum(container_memory_working_set_bytes)'
+        memory_requests_query = 'sum(kube_pod_container_resource_requests{resource="memory"})'
+        
+        # Execute queries
+        cpu_usage_result = await self.query(cpu_usage_query)
+        cpu_requests_result = await self.query(cpu_requests_query)
+        memory_usage_result = await self.query(memory_usage_query)
+        memory_requests_result = await self.query(memory_requests_query)
+        
+        # Extract values
+        cpu_usage = 0
+        cpu_requests = 0
+        memory_usage = 0
+        memory_requests = 0
+        
+        if cpu_usage_result.get('status') == 'success' and cpu_usage_result.get('data', {}).get('result'):
+            cpu_usage = float(cpu_usage_result['data']['result'][0]['value'][1])
+        
+        if cpu_requests_result.get('status') == 'success' and cpu_requests_result.get('data', {}).get('result'):
+            cpu_requests = float(cpu_requests_result['data']['result'][0]['value'][1])
+        
+        if memory_usage_result.get('status') == 'success' and memory_usage_result.get('data', {}).get('result'):
+            memory_usage = float(memory_usage_result['data']['result'][0]['value'][1])
+        
+        if memory_requests_result.get('status') == 'success' and memory_requests_result.get('data', {}).get('result'):
+            memory_requests = float(memory_requests_result['data']['result'][0]['value'][1])
+        
+        # Calculate utilization percentages
+        cpu_utilization = (cpu_usage / cpu_requests * 100) if cpu_requests > 0 else 0
+        memory_utilization = (memory_usage / memory_requests * 100) if memory_requests > 0 else 0
+        
+        # Overall resource utilization (average of CPU and memory)
+        overall_utilization = (cpu_utilization + memory_utilization) / 2 if (cpu_utilization > 0 or memory_utilization > 0) else 0
+        
+        return {
+            "cpu": {
+                "usage": cpu_usage,
+                "requests": cpu_requests,
+                "utilization_percent": cpu_utilization
+            },
+            "memory": {
+                "usage": memory_usage,
+                "requests": memory_requests,
+                "utilization_percent": memory_utilization
+            },
+            "overall_utilization_percent": overall_utilization,
+            "data_source": "prometheus"
+        }
+    
     async def close(self):
         """Close HTTP session"""
         if self.session:

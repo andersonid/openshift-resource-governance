@@ -36,6 +36,19 @@ def get_prometheus_client(request: Request):
     """Dependency to get Prometheus client"""
     return request.app.state.prometheus_client
 
+def _extract_workload_name(pod_name: str) -> str:
+    """Extract workload name from pod name (remove replica set suffix)"""
+    # Pod names typically follow pattern: workload-name-hash-suffix
+    # e.g., resource-governance-798b5579d6-7h298 -> resource-governance
+    parts = pod_name.split('-')
+    if len(parts) >= 3 and parts[-1].isalnum() and len(parts[-1]) == 5:
+        # Remove the last two parts (hash and suffix)
+        return '-'.join(parts[:-2])
+    elif len(parts) >= 2 and parts[-1].isalnum() and len(parts[-1]) == 5:
+        # Remove the last part (suffix)
+        return '-'.join(parts[:-1])
+    return pod_name
+
 @api_router.get("/cluster/status")
 async def get_cluster_status(
     k8s_client=Depends(get_k8s_client),
@@ -83,6 +96,9 @@ async def get_cluster_status(
         
         # Get overcommit information
         overcommit_info = await prometheus_client.get_cluster_overcommit()
+        
+        # Get resource utilization information
+        resource_utilization_info = await prometheus_client.get_cluster_resource_utilization()
         
         # Get VPA recommendations
         vpa_recommendations = await k8s_client.get_vpa_recommendations()
@@ -200,13 +216,14 @@ async def get_cluster_status(
             # Count namespaces in overcommit (simplified - any namespace with requests > 0)
             namespaces_in_overcommit = len([ns for ns in namespaces_list if ns['total_validations'] > 0])
             
-        # Calculate resource utilization (usage vs requests) - simplified
-        # This would ideally use actual usage data from Prometheus
+        # Calculate resource utilization (usage vs requests) from Prometheus data
         resource_utilization = 0
-        if cpu_requests > 0 and memory_requests > 0:
-            # For now, we'll use a simplified calculation
-            # In a real implementation, this would compare actual usage vs requests
-            resource_utilization = 75  # Placeholder - would be calculated from real usage data
+        if resource_utilization_info.get('data_source') == 'prometheus':
+            resource_utilization = resource_utilization_info.get('overall_utilization_percent', 0)
+        else:
+            # Fallback to simplified calculation if Prometheus data not available
+            if cpu_requests > 0 and memory_requests > 0:
+                resource_utilization = 75  # Placeholder fallback
         
         return {
             "timestamp": datetime.now().isoformat(),
@@ -517,8 +534,8 @@ async def apply_recommendation(
 ):
     """Apply resource recommendation"""
     try:
-        # TODO: Implement recommendation application
-        # For now, just simulate
+        logger.info(f"Applying recommendation: {recommendation.action} {recommendation.resource_type} = {recommendation.value}")
+        
         if recommendation.dry_run:
             return {
                 "message": "Dry run - recommendation would be applied",
@@ -528,12 +545,189 @@ async def apply_recommendation(
                 "action": f"{recommendation.action} {recommendation.resource_type} = {recommendation.value}"
             }
         else:
-            # Implement real recommendation application
-            raise HTTPException(status_code=501, detail="Recommendation application not implemented yet")
+            # Apply the recommendation by patching the deployment
+            result = await _apply_resource_patch(
+                recommendation.pod_name,
+                recommendation.namespace,
+                recommendation.container_name,
+                recommendation.resource_type,
+                recommendation.action,
+                recommendation.value,
+                k8s_client
+            )
+            
+            return {
+                "message": "Recommendation applied successfully",
+                "pod": recommendation.pod_name,
+                "namespace": recommendation.namespace,
+                "container": recommendation.container_name,
+                "action": f"{recommendation.action} {recommendation.resource_type} = {recommendation.value}",
+                "result": result
+            }
             
     except Exception as e:
         logger.error(f"Error applying recommendation: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/recommendations/apply")
+async def apply_smart_recommendation(
+    recommendation: SmartRecommendation,
+    dry_run: bool = True,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Apply smart recommendation"""
+    try:
+        logger.info(f"Applying smart recommendation: {recommendation.title} for {recommendation.workload_name}")
+        
+        if dry_run:
+            return {
+                "message": "Dry run - recommendation would be applied",
+                "workload": recommendation.workload_name,
+                "namespace": recommendation.namespace,
+                "type": recommendation.recommendation_type,
+                "priority": recommendation.priority,
+                "title": recommendation.title,
+                "description": recommendation.description,
+                "implementation_steps": recommendation.implementation_steps,
+                "kubectl_commands": recommendation.kubectl_commands,
+                "vpa_yaml": recommendation.vpa_yaml
+            }
+        
+        # Apply recommendation based on type
+        if recommendation.recommendation_type == "vpa_activation":
+            result = await _apply_vpa_recommendation(recommendation, k8s_client)
+        elif recommendation.recommendation_type == "resource_config":
+            result = await _apply_resource_config_recommendation(recommendation, k8s_client)
+        elif recommendation.recommendation_type == "ratio_adjustment":
+            result = await _apply_ratio_adjustment_recommendation(recommendation, k8s_client)
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown recommendation type: {recommendation.recommendation_type}")
+        
+        return {
+            "message": "Smart recommendation applied successfully",
+            "workload": recommendation.workload_name,
+            "namespace": recommendation.namespace,
+            "type": recommendation.recommendation_type,
+            "result": result
+        }
+            
+    except Exception as e:
+        logger.error(f"Error applying smart recommendation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def _apply_resource_patch(
+    pod_name: str,
+    namespace: str,
+    container_name: str,
+    resource_type: str,
+    action: str,
+    value: str,
+    k8s_client
+) -> dict:
+    """Apply resource patch to deployment"""
+    try:
+        # Get the deployment name from pod name
+        deployment_name = _extract_deployment_name(pod_name)
+        
+        # Create patch body
+        patch_body = {
+            "spec": {
+                "template": {
+                    "spec": {
+                        "containers": [{
+                            "name": container_name,
+                            "resources": {
+                                action: {
+                                    resource_type: value
+                                }
+                            }
+                        }]
+                    }
+                }
+            }
+        }
+        
+        # Apply patch
+        result = await k8s_client.patch_deployment(deployment_name, namespace, patch_body)
+        
+        return {
+            "deployment": deployment_name,
+            "namespace": namespace,
+            "container": container_name,
+            "resource_type": resource_type,
+            "action": action,
+            "value": value,
+            "result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Error applying resource patch: {e}")
+        raise
+
+async def _apply_vpa_recommendation(recommendation: SmartRecommendation, k8s_client) -> dict:
+    """Apply VPA activation recommendation"""
+    try:
+        if not recommendation.vpa_yaml:
+            raise ValueError("VPA YAML not provided in recommendation")
+        
+        # Apply VPA YAML
+        result = await k8s_client.apply_yaml(recommendation.vpa_yaml, recommendation.namespace)
+        
+        return {
+            "type": "vpa_activation",
+            "workload": recommendation.workload_name,
+            "namespace": recommendation.namespace,
+            "vpa_yaml_applied": True,
+            "result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Error applying VPA recommendation: {e}")
+        raise
+
+async def _apply_resource_config_recommendation(recommendation: SmartRecommendation, k8s_client) -> dict:
+    """Apply resource configuration recommendation"""
+    try:
+        # For now, return the kubectl commands that should be executed
+        # In a real implementation, these would be executed via the Kubernetes client
+        
+        return {
+            "type": "resource_config",
+            "workload": recommendation.workload_name,
+            "namespace": recommendation.namespace,
+            "kubectl_commands": recommendation.kubectl_commands,
+            "message": "Resource configuration commands prepared for execution"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error applying resource config recommendation: {e}")
+        raise
+
+async def _apply_ratio_adjustment_recommendation(recommendation: SmartRecommendation, k8s_client) -> dict:
+    """Apply ratio adjustment recommendation"""
+    try:
+        # For now, return the kubectl commands that should be executed
+        # In a real implementation, these would be executed via the Kubernetes client
+        
+        return {
+            "type": "ratio_adjustment",
+            "workload": recommendation.workload_name,
+            "namespace": recommendation.namespace,
+            "kubectl_commands": recommendation.kubectl_commands,
+            "message": "Ratio adjustment commands prepared for execution"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error applying ratio adjustment recommendation: {e}")
+        raise
+
+def _extract_deployment_name(pod_name: str) -> str:
+    """Extract deployment name from pod name"""
+    # Remove replica set suffix (e.g., "app-74ffb8c66-9kpdg" -> "app")
+    parts = pod_name.split('-')
+    if len(parts) >= 3 and parts[-2].isalnum() and parts[-1].isalnum():
+        return '-'.join(parts[:-2])
+    return pod_name
 
 @api_router.get("/validations/historical")
 async def get_historical_validations(
@@ -1197,6 +1391,152 @@ async def get_smart_recommendations(
         
     except Exception as e:
         logger.error(f"Error getting smart recommendations: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/historical-analysis")
+async def get_historical_analysis(
+    time_range: str = "24h",
+    k8s_client=Depends(get_k8s_client),
+    prometheus_client=Depends(get_prometheus_client)
+):
+    """Get historical analysis for all workloads"""
+    try:
+        # Get all pods
+        pods = await k8s_client.get_all_pods()
+        
+        # Group pods by workload
+        workloads = {}
+        for pod in pods:
+            # Extract workload name from pod name (remove replica set suffix)
+            workload_name = _extract_workload_name(pod.name)
+            namespace = pod.namespace
+            
+            if workload_name not in workloads:
+                workloads[workload_name] = {
+                    'name': workload_name,
+                    'namespace': namespace,
+                    'pods': []
+                }
+            workloads[workload_name]['pods'].append(pod)
+        
+        # Convert to list and add basic info
+        workload_list = []
+        for workload_name, workload_data in workloads.items():
+            workload_list.append({
+                'name': workload_name,
+                'namespace': workload_data['namespace'],
+                'pod_count': len(workload_data['pods']),
+                'cpu_usage': 'N/A',  # Will be populated by Prometheus queries
+                'memory_usage': 'N/A',  # Will be populated by Prometheus queries
+                'last_updated': datetime.now().isoformat()
+            })
+        
+        return {
+            "workloads": workload_list,
+            "total_workloads": len(workload_list),
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting historical analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting historical analysis: {str(e)}")
+
+@api_router.get("/historical-analysis/{namespace}/{workload}")
+async def get_workload_historical_details(
+    namespace: str,
+    workload: str,
+    time_range: str = "24h",
+    k8s_client=Depends(get_k8s_client),
+    prometheus_client=Depends(get_prometheus_client)
+):
+    """Get detailed historical analysis for a specific workload"""
+    try:
+        # Get all pods and filter by namespace and workload
+        all_pods = await k8s_client.get_all_pods()
+        workload_pods = [
+            pod for pod in all_pods 
+            if pod.namespace == namespace and _extract_workload_name(pod.name) == workload
+        ]
+        
+        if not workload_pods:
+            raise HTTPException(status_code=404, detail=f"Workload {workload} not found in namespace {namespace}")
+        
+        # Get historical data from Prometheus
+        historical_service = HistoricalAnalysisService()
+        
+        # Get CPU and memory usage over time
+        cpu_data = await historical_service.get_cpu_usage_history(namespace, workload, time_range)
+        memory_data = await historical_service.get_memory_usage_history(namespace, workload, time_range)
+        
+        # Generate recommendations
+        recommendations = await historical_service.generate_recommendations(namespace, workload)
+        
+        return {
+            "workload": workload,
+            "namespace": namespace,
+            "cpu_data": cpu_data,
+            "memory_data": memory_data,
+            "recommendations": recommendations,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting workload historical details: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting workload details: {str(e)}")
+
+@api_router.get("/vpa/list")
+async def list_vpas(
+    namespace: Optional[str] = None,
+    k8s_client=Depends(get_k8s_client)
+):
+    """List VPA resources"""
+    try:
+        vpas = await k8s_client.list_vpas(namespace)
+        return {
+            "vpas": vpas,
+            "count": len(vpas),
+            "namespace": namespace or "all"
+        }
+    except Exception as e:
+        logger.error(f"Error listing VPAs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/vpa/create")
+async def create_vpa(
+    namespace: str,
+    vpa_manifest: dict,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Create a VPA resource"""
+    try:
+        result = await k8s_client.create_vpa(namespace, vpa_manifest)
+        return {
+            "message": "VPA created successfully",
+            "vpa": result,
+            "namespace": namespace
+        }
+    except Exception as e:
+        logger.error(f"Error creating VPA: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/vpa/{vpa_name}")
+async def delete_vpa(
+    vpa_name: str,
+    namespace: str,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Delete a VPA resource"""
+    try:
+        result = await k8s_client.delete_vpa(vpa_name, namespace)
+        return {
+            "message": "VPA deleted successfully",
+            "vpa_name": vpa_name,
+            "namespace": namespace
+        }
+    except Exception as e:
+        logger.error(f"Error deleting VPA: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/health")

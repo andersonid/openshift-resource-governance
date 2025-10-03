@@ -1,6 +1,6 @@
-# OpenShift Resource Governance Tool
+# UWRU Scanner - User Workloads and Resource Usage Scanner
 
-A resource governance tool for OpenShift clusters that goes beyond what Metrics Server and VPA offer, providing validations, reports and consolidated recommendations.
+A comprehensive tool for analyzing user workloads and resource usage in OpenShift clusters that goes beyond what Metrics Server and VPA offer, providing validations, reports and consolidated recommendations.
 
 ## 🚀 Features
 
@@ -22,7 +22,7 @@ A resource governance tool for OpenShift clusters that goes beyond what Metrics 
 - Prometheus (native in OCP)
 - VPA (optional, for recommendations)
 - Python 3.11+
-- Podman (preferred) or Docker
+- Podman (preferred)
 - OpenShift CLI (oc)
 
 ## 🛠️ Installation
@@ -290,13 +290,13 @@ podman build -t resource-governance .
 podman run -p 8080:8080 resource-governance
 ```
 
-### Run with Docker
+### Run with Podman (Alternative)
 ```bash
 # Build
-docker build -t resource-governance .
+podman build -t resource-governance .
 
 # Run
-docker run -p 8080:8080 resource-governance
+podman run -p 8080:8080 resource-governance
 ```
 
 ### Tests

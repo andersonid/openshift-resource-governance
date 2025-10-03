@@ -1332,3 +1332,173 @@ class HistoricalAnalysisService:
                 'error': str(e),
                 'recommendations': []
             }
+
+    async def get_cpu_usage_history(self, namespace: str, workload: str, time_range: str = "24h") -> Dict[str, Any]:
+        """Get CPU usage history for a workload using working Prometheus queries"""
+        try:
+            # Use the working query from the metrics endpoint
+            cpu_usage_query = f'rate(container_cpu_usage_seconds_total{{namespace="{namespace}", pod=~"{workload}.*"}}[5m])'
+            
+            # Calculate time range
+            end_time = datetime.now()
+            start_time = end_time - timedelta(seconds=self.time_ranges.get(time_range, 86400))
+            
+            # Query Prometheus
+            data = await self._query_prometheus(cpu_usage_query, start_time, end_time)
+            
+            if not data:
+                return {
+                    "workload": workload,
+                    "namespace": namespace,
+                    "time_range": time_range,
+                    "data": [],
+                    "message": "No CPU usage data available"
+                }
+            
+            # Format data for Chart.js
+            chart_data = []
+            for point in data:
+                if len(point) >= 2 and point[1] != 'NaN':
+                    timestamp = int(point[0] * 1000)  # Convert to milliseconds
+                    value = self._safe_float(point[1])
+                    chart_data.append({
+                        "x": timestamp,
+                        "y": value
+                    })
+            
+            return {
+                "workload": workload,
+                "namespace": namespace,
+                "time_range": time_range,
+                "data": chart_data,
+                "query": cpu_usage_query
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting CPU usage history: {str(e)}")
+            return {
+                "workload": workload,
+                "namespace": namespace,
+                "time_range": time_range,
+                "data": [],
+                "error": str(e)
+            }
+
+    async def get_memory_usage_history(self, namespace: str, workload: str, time_range: str = "24h") -> Dict[str, Any]:
+        """Get memory usage history for a workload using working Prometheus queries"""
+        try:
+            # Use the working query from the metrics endpoint
+            memory_usage_query = f'container_memory_working_set_bytes{{namespace="{namespace}", pod=~"{workload}.*", container!="", image!=""}}'
+            
+            # Calculate time range
+            end_time = datetime.now()
+            start_time = end_time - timedelta(seconds=self.time_ranges.get(time_range, 86400))
+            
+            # Query Prometheus
+            data = await self._query_prometheus(memory_usage_query, start_time, end_time)
+            
+            if not data:
+                return {
+                    "workload": workload,
+                    "namespace": namespace,
+                    "time_range": time_range,
+                    "data": [],
+                    "message": "No memory usage data available"
+                }
+            
+            # Format data for Chart.js (convert bytes to MB)
+            chart_data = []
+            for point in data:
+                if len(point) >= 2 and point[1] != 'NaN':
+                    timestamp = int(point[0] * 1000)  # Convert to milliseconds
+                    value = self._safe_float(point[1]) / (1024 * 1024)  # Convert to MB
+                    chart_data.append({
+                        "x": timestamp,
+                        "y": value
+                    })
+            
+            return {
+                "workload": workload,
+                "namespace": namespace,
+                "time_range": time_range,
+                "data": chart_data,
+                "query": memory_usage_query
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting memory usage history: {str(e)}")
+            return {
+                "workload": workload,
+                "namespace": namespace,
+                "time_range": time_range,
+                "data": [],
+                "error": str(e)
+            }
+
+    async def generate_recommendations(self, namespace: str, workload: str) -> List[Dict[str, Any]]:
+        """Generate recommendations based on historical data"""
+        try:
+            # Get current usage data
+            cpu_data = await self.get_cpu_usage_history(namespace, workload, "24h")
+            memory_data = await self.get_memory_usage_history(namespace, workload, "24h")
+            
+            recommendations = []
+            
+            # Analyze CPU data
+            if cpu_data.get("data"):
+                cpu_values = [point["y"] for point in cpu_data["data"]]
+                if cpu_values:
+                    avg_cpu = sum(cpu_values) / len(cpu_values)
+                    max_cpu = max(cpu_values)
+                    
+                    if avg_cpu < 0.1:  # Less than 100m
+                        recommendations.append({
+                            "type": "cpu_optimization",
+                            "severity": "info",
+                            "message": f"CPU usage is very low (avg: {avg_cpu:.3f} cores). Consider reducing CPU requests.",
+                            "current_usage": f"{avg_cpu:.3f} cores",
+                            "recommendation": "Reduce CPU requests to match actual usage"
+                        })
+                    elif max_cpu > 0.8:  # More than 800m
+                        recommendations.append({
+                            "type": "cpu_scaling",
+                            "severity": "warning",
+                            "message": f"CPU usage peaks at {max_cpu:.3f} cores. Consider increasing CPU limits.",
+                            "current_usage": f"{max_cpu:.3f} cores",
+                            "recommendation": "Increase CPU limits to handle peak usage"
+                        })
+            
+            # Analyze memory data
+            if memory_data.get("data"):
+                memory_values = [point["y"] for point in memory_data["data"]]
+                if memory_values:
+                    avg_memory = sum(memory_values) / len(memory_values)
+                    max_memory = max(memory_values)
+                    
+                    if avg_memory < 100:  # Less than 100MB
+                        recommendations.append({
+                            "type": "memory_optimization",
+                            "severity": "info",
+                            "message": f"Memory usage is very low (avg: {avg_memory:.1f} MB). Consider reducing memory requests.",
+                            "current_usage": f"{avg_memory:.1f} MB",
+                            "recommendation": "Reduce memory requests to match actual usage"
+                        })
+                    elif max_memory > 1000:  # More than 1GB
+                        recommendations.append({
+                            "type": "memory_scaling",
+                            "severity": "warning",
+                            "message": f"Memory usage peaks at {max_memory:.1f} MB. Consider increasing memory limits.",
+                            "current_usage": f"{max_memory:.1f} MB",
+                            "recommendation": "Increase memory limits to handle peak usage"
+                        })
+            
+            return recommendations
+            
+        except Exception as e:
+            logger.error(f"Error generating recommendations: {str(e)}")
+            return [{
+                "type": "error",
+                "severity": "error",
+                "message": f"Error generating recommendations: {str(e)}",
+                "recommendation": "Check Prometheus connectivity and workload configuration"
+            }]

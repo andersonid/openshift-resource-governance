@@ -25,12 +25,12 @@ spec:
     spec:
       serviceAccountName: resource-governance-sa
       # imagePullSecrets:
-      # - name: docker-hub-secret
+      # - name: quay-secret  # Only needed for private repositories
       securityContext:
         runAsNonRoot: true
       containers:
       - name: resource-governance
-        image: andersonid/resource-governance:latest
+        image: quay.io/rh_ee_anobre/resource-governance:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
@@ -38,7 +38,7 @@ spec:
           protocol: TCP
         livenessProbe:
           httpGet:
-            path: /api/v1/health
+            path: /health
             port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
@@ -46,7 +46,7 @@ spec:
           failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /api/v1/health
+            path: /health
             port: 8080
           initialDelaySeconds: 15  # Aguarda mais tempo para inicializar
           periodSeconds: 5

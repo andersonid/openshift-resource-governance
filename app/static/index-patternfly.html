@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenShift Resource Governance Tool</title>
+    
+    <!-- PatternFly 6.3.1 CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@6.3.1/patternfly.css">
+    <link rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@6.3.1/patternfly-addons.css">
+    
+    <!-- PatternFly 6.3.1 Icons -->
+    <link rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@6.3.1/patternfly-icons.css">
+    
+    <!-- Custom styles -->
+    <style>
+        .pf-c-page__main {
+            --pf-c-page__main--BackgroundColor: var(--pf-global--BackgroundColor--100);
+        }
+        
+        .workload-card {
+            margin-bottom: var(--pf-global--spacer--md);
+        }
+        
+        .metric-card {
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: var(--pf-global--FontSize--2xl);
+            font-weight: var(--pf-global--FontWeight--bold);
+            color: var(--pf-global--primary-color--100);
+        }
+        
+        .metric-label {
+            font-size: var(--pf-global--FontSize--sm);
+            color: var(--pf-global--Color--200);
+        }
+        
+        .severity-critical {
+            --pf-c-badge--m-read--BackgroundColor: var(--pf-global--danger-color--100);
+        }
+        
+        .severity-warning {
+            --pf-c-badge--m-read--BackgroundColor: var(--pf-global--warning-color--100);
+        }
+        
+        .severity-error {
+            --pf-c-badge--m-read--BackgroundColor: var(--pf-global--danger-color--200);
+        }
+        
+        .severity-info {
+            --pf-c-badge--m-read--BackgroundColor: var(--pf-global--info-color--100);
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: var(--pf-global--spacer--xl);
+        }
+        
+        .error-message {
+            color: var(--pf-global--danger-color--100);
+            text-align: center;
+            padding: var(--pf-global--spacer--lg);
+        }
+        
+        .breadcrumb-container {
+            margin-bottom: var(--pf-global--spacer--md);
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-bottom: var(--pf-global--spacer--lg);
+        }
+        
+        .workload-details {
+            margin-top: var(--pf-global--spacer--lg);
+        }
+        
+        .yaml-content {
+            font-family: 'Courier New', monospace;
+            font-size: var(--pf-global--FontSize--sm);
+            background-color: var(--pf-global--BackgroundColor--200);
+            padding: var(--pf-global--spacer--md);
+            border-radius: var(--pf-global--BorderRadius--sm);
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Page Structure -->
+        <div class="pf-c-page" id="page-layout-default-nav">
+            <!-- Header -->
+            <header class="pf-c-page__header">
+                <div class="pf-c-page__header-brand">
+                    <div class="pf-c-page__header-brand-toggle">
+                        <button class="pf-c-button pf-m-plain" type="button" id="nav-toggle" aria-label="Global navigation" aria-expanded="true" aria-controls="primary-nav">
+                            <i class="fas fa-bars" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="pf-c-page__header-brand-link">
+                        <img class="pf-c-brand" src="https://www.patternfly.org/assets/images/logo__pf--reverse-on-md.svg" alt="PatternFly" />
+                    </div>
+                </div>
+                <div class="pf-c-page__header-tools">
+                    <div class="pf-c-page__header-tools-group">
+                        <div class="pf-c-page__header-tools-item">
+                            <button class="pf-c-button pf-m-plain" type="button" aria-label="Settings">
+                                <i class="fas fa-cog" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="pf-c-page__header-tools-item">
+                            <button class="pf-c-button pf-m-plain" type="button" aria-label="Help">
+                                <i class="fas fa-question-circle" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Sidebar -->
+            <div class="pf-c-page__sidebar" id="primary-nav">
+                <div class="pf-c-page__sidebar-body">
+                    <nav class="pf-c-nav" id="primary-nav" aria-label="Global">
+                        <ul class="pf-c-nav__list">
+                            <li class="pf-c-nav__item">
+                                <a href="#" class="pf-c-nav__link" data-section="workload-scanner">
+                                    <i class="fas fa-search" aria-hidden="true"></i>
+                                    Workload Scanner
+                                </a>
+                            </li>
+                            <li class="pf-c-nav__item">
+                                <a href="#" class="pf-c-nav__link" data-section="historical-analysis">
+                                    <i class="fas fa-chart-line" aria-hidden="true"></i>
+                                    Historical Analysis
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <main class="pf-c-page__main" tabindex="-1">
+                <!-- Workload Scanner Section -->
+                <section class="pf-c-page__main-section" id="workload-scanner-section" style="display: block;">
+                    <div class="pf-c-page__main-breadcrumb">
+                        <nav class="pf-c-breadcrumb" aria-label="breadcrumb">
+                            <ol class="pf-c-breadcrumb__list">
+                                <li class="pf-c-breadcrumb__item">
+                                    <span class="pf-c-breadcrumb__item-divider">
+                                        <i class="fas fa-angle-right" aria-hidden="true"></i>
+                                    </span>
+                                    <a href="#" class="pf-c-breadcrumb__link">Workload Scanner</a>
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
+                    
+                    <div class="pf-c-page__main-section">
+                        <div class="pf-l-grid pf-m-gutter">
+                            <!-- Page Title -->
+                            <div class="pf-l-grid__item pf-m-12-col">
+                                <div class="pf-c-content">
+                                    <h1>Workload Scanner</h1>
+                                    <p>Identify and analyze workloads with resource configuration issues</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Summary Cards -->
+                            <div class="pf-l-grid__item pf-m-12-col">
+                                <div class="pf-l-grid pf-m-gutter" id="summary-cards">
+                                    <!-- Cards will be populated by JavaScript -->
+                                </div>
+                            </div>
+                            
+                            <!-- Workloads Table -->
+                            <div class="pf-l-grid__item pf-m-12-col">
+                                <div class="pf-c-card">
+                                    <div class="pf-c-card__header">
+                                        <div class="pf-c-card__title">
+                                            <h2>Workloads with Issues</h2>
+                                        </div>
+                                        <div class="pf-c-card__actions">
+                                            <button class="pf-c-button pf-m-primary" id="refresh-workloads">
+                                                <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                                                Refresh
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="pf-c-card__body">
+                                        <div id="workloads-table-container">
+                                            <div class="loading-spinner">
+                                                <div class="pf-c-spinner" role="progressbar" aria-label="Loading workloads">
+                                                    <span class="pf-c-spinner__clipper"></span>
+                                                    <span class="pf-c-spinner__lead-ball"></span>
+                                                    <span class="pf-c-spinner__tail-ball"></span>
+                                                </div>
+                                                <div>Loading workloads...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Historical Analysis Section -->
+                <section class="pf-c-page__main-section" id="historical-analysis-section" style="display: none;">
+                    <div class="pf-c-page__main-breadcrumb">
+                        <nav class="pf-c-breadcrumb" aria-label="breadcrumb">
+                            <ol class="pf-c-breadcrumb__list">
+                                <li class="pf-c-breadcrumb__item">
+                                    <span class="pf-c-breadcrumb__item-divider">
+                                        <i class="fas fa-angle-right" aria-hidden="true"></i>
+                                    </span>
+                                    <a href="#" class="pf-c-breadcrumb__link" data-section="workload-scanner">Workload Scanner</a>
+                                </li>
+                                <li class="pf-c-breadcrumb__item">
+                                    <span class="pf-c-breadcrumb__item-divider">
+                                        <i class="fas fa-angle-right" aria-hidden="true"></i>
+                                    </span>
+                                    <span class="pf-c-breadcrumb__item-text">Historical Analysis</span>
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
+                    
+                    <div class="pf-c-page__main-section">
+                        <div class="pf-l-grid pf-m-gutter">
+                            <!-- Page Title -->
+                            <div class="pf-l-grid__item pf-m-12-col">
+                                <div class="pf-c-content">
+                                    <h1>Historical Analysis</h1>
+                                    <p>Resource consumption analysis and historical data</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Workloads List -->
+                            <div class="pf-l-grid__item pf-m-12-col">
+                                <div class="pf-c-card">
+                                    <div class="pf-c-card__header">
+                                        <div class="pf-c-card__title">
+                                            <h2>Available Workloads</h2>
+                                        </div>
+                                        <div class="pf-c-card__actions">
+                                            <button class="pf-c-button pf-m-primary" id="refresh-historical">
+                                                <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                                                Refresh
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="pf-c-card__body">
+                                        <div id="historical-workloads-container">
+                                            <div class="loading-spinner">
+                                                <div class="pf-c-spinner" role="progressbar" aria-label="Loading historical data">
+                                                    <span class="pf-c-spinner__clipper"></span>
+                                                    <span class="pf-c-spinner__lead-ball"></span>
+                                                    <span class="pf-c-spinner__tail-ball"></span>
+                                                </div>
+                                                <div>Loading historical data...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Workload Details (hidden initially) -->
+                            <div class="pf-l-grid__item pf-m-12-col" id="workload-details-container" style="display: none;">
+                                <div class="pf-c-card">
+                                    <div class="pf-c-card__header">
+                                        <div class="pf-c-card__title">
+                                            <h2 id="workload-details-title">Workload Details</h2>
+                                        </div>
+                                        <div class="pf-c-card__actions">
+                                            <button class="pf-c-button pf-m-plain" id="close-workload-details">
+                                                <i class="fas fa-times" aria-hidden="true"></i>
+                                                Close
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="pf-c-card__body">
+                                        <div id="workload-details-content">
+                                            <!-- Workload details will be populated here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- PatternFly 6.3.1 JavaScript -->
+    <script src="https://unpkg.com/@patternfly/patternfly@6.3.1/patternfly.js"></script>
+    
+    <!-- Font Awesome for icons -->
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Global variables
+        let currentData = null;
+        let currentSection = 'workload-scanner';
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+        
+        function initializeApp() {
+            // Setup navigation
+            setupNavigation();
+            
+            // Load initial data
+            loadWorkloadScanner();
+        }
+        
+        function setupNavigation() {
+            // Sidebar navigation
+            const navLinks = document.querySelectorAll('.pf-c-nav__link[data-section]');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    showSection(section);
+                });
+            });
+            
+            // Breadcrumb navigation
+            const breadcrumbLinks = document.querySelectorAll('.pf-c-breadcrumb__link[data-section]');
+            breadcrumbLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    showSection(section);
+                });
+            });
+            
+            // Close workload details
+            document.getElementById('close-workload-details').addEventListener('click', function() {
+                document.getElementById('workload-details-container').style.display = 'none';
+            });
+            
+            // Refresh buttons
+            document.getElementById('refresh-workloads').addEventListener('click', loadWorkloadScanner);
+            document.getElementById('refresh-historical').addEventListener('click', loadHistoricalAnalysis);
+        }
+        
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.pf-c-page__main-section').forEach(sec => {
+                sec.style.display = 'none';
+            });
+            
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+            
+            // Update active nav item
+            document.querySelectorAll('.pf-c-nav__link').forEach(link => {
+                link.classList.remove('pf-m-current');
+            });
+            document.querySelector(`.pf-c-nav__link[data-section="${section}"]`).classList.add('pf-m-current');
+            
+            currentSection = section;
+            
+            // Load section data
+            if (section === 'workload-scanner') {
+                loadWorkloadScanner();
+            } else if (section === 'historical-analysis') {
+                loadHistoricalAnalysis();
+            }
+        }
+        
+        async function loadWorkloadScanner() {
+            try {
+                showLoading('workloads-table-container');
+                
+                // Load cluster status
+                const clusterResponse = await fetch('/api/v1/cluster/status');
+                const clusterData = await clusterResponse.json();
+                
+                // Load validations
+                const validationsResponse = await fetch('/api/v1/validations');
+                const validationsData = await validationsResponse.json();
+                
+                currentData = { cluster: clusterData, validations: validationsData };
+                
+                // Update summary cards
+                updateSummaryCards(clusterData);
+                
+                // Update workloads table
+                updateWorkloadsTable(validationsData);
+                
+            } catch (error) {
+                console.error('Error loading workload scanner data:', error);
+                showError('workloads-table-container', 'Failed to load workload data');
+            }
+        }
+        
+        async function loadHistoricalAnalysis() {
+            try {
+                showLoading('historical-workloads-container');
+                
+                // Load historical data
+                const response = await fetch('/api/v1/historical-analysis');
+                const data = await response.json();
+                
+                updateHistoricalWorkloads(data);
+                
+            } catch (error) {
+                console.error('Error loading historical analysis data:', error);
+                showError('historical-workloads-container', 'Failed to load historical data');
+            }
+        }
+        
+        function updateSummaryCards(data) {
+            const container = document.getElementById('summary-cards');
+            
+            const cards = [
+                {
+                    title: 'Total Workloads',
+                    value: data.total_pods || 0,
+                    icon: 'fas fa-cube',
+                    color: 'blue'
+                },
+                {
+                    title: 'Namespaces',
+                    value: data.total_namespaces || 0,
+                    icon: 'fas fa-layer-group',
+                    color: 'green'
+                },
+                {
+                    title: 'Critical Issues',
+                    value: data.critical_issues || 0,
+                    icon: 'fas fa-exclamation-triangle',
+                    color: 'red'
+                },
+                {
+                    title: 'Warnings',
+                    value: data.total_warnings || 0,
+                    icon: 'fas fa-exclamation-circle',
+                    color: 'orange'
+                }
+            ];
+            
+            container.innerHTML = cards.map(card => `
+                <div class="pf-l-grid__item pf-m-3-col">
+                    <div class="pf-c-card metric-card">
+                        <div class="pf-c-card__body">
+                            <div class="metric-value">${card.value}</div>
+                            <div class="metric-label">
+                                <i class="${card.icon}" aria-hidden="true"></i>
+                                ${card.title}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateWorkloadsTable(data) {
+            const container = document.getElementById('workloads-table-container');
+            
+            if (!data.namespaces || data.namespaces.length === 0) {
+                container.innerHTML = '<div class="error-message">No workload data available</div>';
+                return;
+            }
+            
+            const tableHTML = `
+                <div class="pf-c-table">
+                    <table class="pf-c-table__table" role="grid" aria-label="Workloads table">
+                        <thead>
+                            <tr class="pf-c-table__row">
+                                <th class="pf-c-table__th">Namespace</th>
+                                <th class="pf-c-table__th">Pods</th>
+                                <th class="pf-c-table__th">Issues</th>
+                                <th class="pf-c-table__th">Severity</th>
+                                <th class="pf-c-table__th">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.namespaces.map(namespace => `
+                                <tr class="pf-c-table__row">
+                                    <td class="pf-c-table__td">
+                                        <strong>${namespace.namespace}</strong>
+                                    </td>
+                                    <td class="pf-c-table__td">${Object.keys(namespace.pods || {}).length}</td>
+                                    <td class="pf-c-table__td">${namespace.total_validations || 0}</td>
+                                    <td class="pf-c-table__td">
+                                        <span class="pf-c-badge severity-${getHighestSeverity(namespace)}">
+                                            ${getHighestSeverity(namespace)}
+                                        </span>
+                                    </td>
+                                    <td class="pf-c-table__td">
+                                        <div class="pf-c-button-group">
+                                            <button class="pf-c-button pf-m-primary pf-m-small" onclick="analyzeWorkload('${namespace.namespace}')">
+                                                Analyze
+                                            </button>
+                                            <button class="pf-c-button pf-m-secondary pf-m-small" onclick="fixWorkload('${namespace.namespace}')">
+                                                Fix
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            container.innerHTML = tableHTML;
+        }
+        
+        function updateHistoricalWorkloads(data) {
+            const container = document.getElementById('historical-workloads-container');
+            
+            if (!data.workloads || data.workloads.length === 0) {
+                container.innerHTML = '<div class="error-message">No historical data available</div>';
+                return;
+            }
+            
+            const tableHTML = `
+                <div class="pf-c-table">
+                    <table class="pf-c-table__table" role="grid" aria-label="Historical workloads table">
+                        <thead>
+                            <tr class="pf-c-table__row">
+                                <th class="pf-c-table__th">Workload</th>
+                                <th class="pf-c-table__th">Namespace</th>
+                                <th class="pf-c-table__th">CPU Usage</th>
+                                <th class="pf-c-table__th">Memory Usage</th>
+                                <th class="pf-c-table__th">Last Updated</th>
+                                <th class="pf-c-table__th">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.workloads.map(workload => `
+                                <tr class="pf-c-table__row">
+                                    <td class="pf-c-table__td">
+                                        <strong>${workload.name}</strong>
+                                    </td>
+                                    <td class="pf-c-table__td">${workload.namespace}</td>
+                                    <td class="pf-c-table__td">${workload.cpu_usage || 'N/A'}</td>
+                                    <td class="pf-c-table__td">${workload.memory_usage || 'N/A'}</td>
+                                    <td class="pf-c-table__td">${workload.last_updated || 'N/A'}</td>
+                                    <td class="pf-c-table__td">
+                                        <button class="pf-c-button pf-m-primary pf-m-small" onclick="showWorkloadDetails('${workload.name}', '${workload.namespace}')">
+                                            View Details
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            container.innerHTML = tableHTML;
+        }
+        
+        function showWorkloadDetails(workloadName, namespace) {
+            // Update breadcrumb
+            const breadcrumb = document.querySelector('#historical-analysis-section .pf-c-breadcrumb__list');
+            breadcrumb.innerHTML = `
+                <li class="pf-c-breadcrumb__item">
+                    <span class="pf-c-breadcrumb__item-divider">
+                        <i class="fas fa-angle-right" aria-hidden="true"></i>
+                    </span>
+                    <a href="#" class="pf-c-breadcrumb__link" data-section="workload-scanner">Workload Scanner</a>
+                </li>
+                <li class="pf-c-breadcrumb__item">
+                    <span class="pf-c-breadcrumb__item-divider">
+                        <i class="fas fa-angle-right" aria-hidden="true"></i>
+                    </span>
+                    <a href="#" class="pf-c-breadcrumb__link" data-section="historical-analysis">Historical Analysis</a>
+                </li>
+                <li class="pf-c-breadcrumb__item">
+                    <span class="pf-c-breadcrumb__item-divider">
+                        <i class="fas fa-angle-right" aria-hidden="true"></i>
+                    </span>
+                    <span class="pf-c-breadcrumb__item-text">${workloadName}</span>
+                </li>
+            `;
+            
+            // Update title
+            document.getElementById('workload-details-title').textContent = `${workloadName} - ${namespace}`;
+            
+            // Load workload details
+            loadWorkloadDetails(workloadName, namespace);
+            
+            // Show details container
+            document.getElementById('workload-details-container').style.display = 'block';
+        }
+        
+        async function loadWorkloadDetails(workloadName, namespace) {
+            try {
+                const response = await fetch(`/api/v1/historical-analysis/${namespace}/${workloadName}`);
+                const data = await response.json();
+                
+                updateWorkloadDetails(data);
+                
+            } catch (error) {
+                console.error('Error loading workload details:', error);
+                document.getElementById('workload-details-content').innerHTML = 
+                    '<div class="error-message">Failed to load workload details</div>';
+            }
+        }
+        
+        function updateWorkloadDetails(data) {
+            const container = document.getElementById('workload-details-content');
+            
+            container.innerHTML = `
+                <div class="pf-l-grid pf-m-gutter">
+                    <div class="pf-l-grid__item pf-m-6-col">
+                        <div class="pf-c-card">
+                            <div class="pf-c-card__header">
+                                <div class="pf-c-card__title">
+                                    <h3>CPU Usage</h3>
+                                </div>
+                            </div>
+                            <div class="pf-c-card__body">
+                                <div class="chart-container" id="cpu-chart">
+                                    <!-- CPU chart will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pf-l-grid__item pf-m-6-col">
+                        <div class="pf-c-card">
+                            <div class="pf-c-card__header">
+                                <div class="pf-c-card__title">
+                                    <h3>Memory Usage</h3>
+                                </div>
+                            </div>
+                            <div class="pf-c-card__body">
+                                <div class="chart-container" id="memory-chart">
+                                    <!-- Memory chart will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pf-l-grid__item pf-m-12-col">
+                        <div class="pf-c-card">
+                            <div class="pf-c-card__header">
+                                <div class="pf-c-card__title">
+                                    <h3>Resource Recommendations</h3>
+                                </div>
+                            </div>
+                            <div class="pf-c-card__body">
+                                <div class="yaml-content">${data.recommendations || 'No recommendations available'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function analyzeWorkload(namespace) {
+            console.log('Analyzing workload:', namespace);
+            // TODO: Implement workload analysis
+        }
+        
+        function fixWorkload(namespace) {
+            console.log('Fixing workload:', namespace);
+            // TODO: Implement workload fixing
+        }
+        
+        function getHighestSeverity(namespace) {
+            const breakdown = namespace.severity_breakdown || {};
+            if (breakdown.error > 0) return 'error';
+            if (breakdown.warning > 0) return 'warning';
+            if (breakdown.info > 0) return 'info';
+            return 'info';
+        }
+        
+        function showLoading(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="pf-c-spinner" role="progressbar" aria-label="Loading">
+                        <span class="pf-c-spinner__clipper"></span>
+                        <span class="pf-c-spinner__lead-ball"></span>
+                        <span class="pf-c-spinner__tail-ball"></span>
+                    </div>
+                    <div>Loading...</div>
+                </div>
+            `;
+        }
+        
+        function showError(containerId, message) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

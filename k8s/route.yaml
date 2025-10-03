@@ -10,6 +10,7 @@ metadata:
     haproxy.router.openshift.io/timeout: "300s"
     haproxy.router.openshift.io/rate-limit: "100"
 spec:
+  host: oru.apps.shrocp4upi419ovn.lab.upshift.rdu2.redhat.com
   to:
     kind: Service
     name: resource-governance-service

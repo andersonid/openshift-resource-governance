@@ -1,6 +1,6 @@
 """
-OpenShift Resource Governance Tool
-Application for resource governance in OpenShift cluster
+UWRU Scanner - User Workloads and Resource Usage Scanner
+Application for analyzing user workloads and resource usage in OpenShift clusters
 """
 import os
 import logging
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application initialization and cleanup"""
-    logger.info("Starting OpenShift Resource Governance Tool")
+    logger.info("Starting UWRU Scanner - User Workloads and Resource Usage Scanner")
     
     # Initialize clients
     app.state.k8s_client = K8sClient()
@@ -45,8 +45,8 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="OpenShift Resource Governance Tool",
-    description="Resource governance tool for OpenShift clusters",
+    title="UWRU Scanner - User Workloads and Resource Usage Scanner",
+    description="User Workloads and Resource Usage Scanner for OpenShift clusters",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -77,7 +77,7 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "service": "openshift-resource-governance",
+        "service": "uwru-scanner",
         "version": "1.0.0"
     }
 
