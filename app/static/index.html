@@ -294,6 +294,57 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
+
+        /* Chart Cards */
+        .chart-card {
+            background: linear-gradient(135deg, #2B2B2B 0%, #1E1E1E 100%);
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .chart-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--pf-global--Color--300);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            display: inline-block;
+        }
+
+        .chart-container {
+            background: #1A1A1A;
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
         
         .metric-value {
             font-family: var(--pf-global--FontFamily--heading);
@@ -1350,6 +1401,93 @@
                     </div>
                 </div>
 
+            <!-- Dashboard Charts Section -->
+            <div class="dashboard-charts-section" style="margin-top: 32px;">
+                <h2 style="color: var(--pf-global--Color--100); margin-bottom: 24px; font-size: 24px; font-weight: 600;">Resource Analytics</h2>
+                
+                <!-- Charts Grid -->
+                <div class="charts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                    
+                    <!-- 1. Resource Utilization Trend (24h) -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 style="margin: 0; color: var(--pf-global--Color--100); font-size: 18px; font-weight: 600;">
+                                <i class="fas fa-chart-line" style="margin-right: 8px; color: var(--pf-global--primary-color--100);"></i>
+                                Resource Utilization Trend (24h)
+                            </h3>
+                            <div class="chart-legend">
+                                <span class="legend-item"><span class="legend-color" style="background: #0066CC;"></span>CPU</span>
+                                <span class="legend-item"><span class="legend-color" style="background: #CC0000;"></span>Memory</span>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 300px; position: relative;">
+                            <div id="resource-utilization-trend-chart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Namespace Resource Distribution -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 style="margin: 0; color: var(--pf-global--Color--100); font-size: 18px; font-weight: 600;">
+                                <i class="fas fa-chart-pie" style="margin-right: 8px; color: var(--pf-global--primary-color--100);"></i>
+                                Namespace Resource Distribution
+                            </h3>
+                        </div>
+                        <div class="chart-container" style="height: 300px; position: relative;">
+                            <div id="namespace-distribution-chart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Issues by Severity Timeline -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 style="margin: 0; color: var(--pf-global--Color--100); font-size: 18px; font-weight: 600;">
+                                <i class="fas fa-exclamation-triangle" style="margin-right: 8px; color: var(--pf-global--warning-color--100);"></i>
+                                Issues by Severity Timeline
+                            </h3>
+                            <div class="chart-legend">
+                                <span class="legend-item"><span class="legend-color" style="background: #CC0000;"></span>Critical</span>
+                                <span class="legend-item"><span class="legend-color" style="background: #FF8800;"></span>Warnings</span>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 300px; position: relative;">
+                            <div id="issues-timeline-chart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Top 5 Workloads by Resource Usage -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 style="margin: 0; color: var(--pf-global--Color--100); font-size: 18px; font-weight: 600;">
+                                <i class="fas fa-trophy" style="margin-right: 8px; color: var(--pf-global--success-color--100);"></i>
+                                Top 5 Workloads by Resource Usage
+                            </h3>
+                        </div>
+                        <div class="chart-container" style="height: 300px; position: relative;">
+                            <div id="top-workloads-chart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Overcommit Status by Namespace -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 style="margin: 0; color: var(--pf-global--Color--100); font-size: 18px; font-weight: 600;">
+                                <i class="fas fa-balance-scale" style="margin-right: 8px; color: var(--pf-global--danger-color--100);"></i>
+                                Overcommit Status by Namespace
+                            </h3>
+                            <div class="chart-legend">
+                                <span class="legend-item"><span class="legend-color" style="background: #0066CC;"></span>CPU</span>
+                                <span class="legend-item"><span class="legend-color" style="background: #CC0000;"></span>Memory</span>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 300px; position: relative;">
+                            <div id="overcommit-namespace-chart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </section>
 
         <!-- Requests & Limits Section -->
@@ -1668,6 +1806,9 @@
                 const clusterResponse = await fetch('/api/v1/cluster/status');
                 const clusterData = await clusterResponse.json();
                 
+                // Load dashboard charts
+                await loadDashboardCharts();
+                
                 currentData = { cluster: clusterData };
                 
                 // Update metrics cards
@@ -1815,6 +1956,454 @@
             `;
             
             container.innerHTML = issuesHTML;
+        }
+
+        // Dashboard Charts Functions
+        async function loadDashboardCharts() {
+            try {
+                // Load all charts in parallel
+                await Promise.all([
+                    loadResourceUtilizationTrend(),
+                    loadNamespaceDistribution(),
+                    loadIssuesTimeline(),
+                    loadTopWorkloads(),
+                    loadOvercommitByNamespace()
+                ]);
+            } catch (error) {
+                console.error('Error loading dashboard charts:', error);
+            }
+        }
+
+        // 1. Resource Utilization Trend (24h)
+        async function loadResourceUtilizationTrend() {
+            try {
+                const response = await fetch('/api/v1/cluster/status');
+                const data = await response.json();
+                
+                // Generate sample data for 24h trend (in real implementation, this would come from Prometheus)
+                const now = new Date();
+                const trendData = [];
+                
+                for (let i = 23; i >= 0; i--) {
+                    const time = new Date(now.getTime() - (i * 60 * 60 * 1000));
+                    const cpuUtil = Math.random() * 100; // Simulated CPU utilization
+                    const memoryUtil = Math.random() * 100; // Simulated Memory utilization
+                    
+                    trendData.push({
+                        x: time.getTime(),
+                        y: cpuUtil,
+                        type: 'CPU'
+                    });
+                    trendData.push({
+                        x: time.getTime(),
+                        y: memoryUtil,
+                        type: 'Memory'
+                    });
+                }
+
+                createResourceTrendChart(trendData);
+            } catch (error) {
+                console.error('Error loading resource utilization trend:', error);
+            }
+        }
+
+        function createResourceTrendChart(data) {
+            const container = document.getElementById('resource-utilization-trend-chart');
+            if (!container) return;
+
+            // Group data by type
+            const cpuData = data.filter(d => d.type === 'CPU');
+            const memoryData = data.filter(d => d.type === 'Memory');
+
+            const chart = React.createElement(Victory.VictoryChart, {
+                width: container.offsetWidth || 500,
+                height: 300,
+                theme: Victory.VictoryTheme.material,
+                scale: { x: 'time' },
+                padding: { top: 20, bottom: 60, left: 80, right: 40 },
+                domainPadding: { x: 0, y: 0 },
+                style: {
+                    parent: { 
+                        background: '#1A1A1A',
+                        width: '100%',
+                        height: '100%'
+                    }
+                }
+            }, [
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'y-axis',
+                    dependentAxis: true,
+                    style: {
+                        axis: { stroke: '#666' },
+                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                    },
+                    tickFormat: (t) => `${t}%`
+                }),
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'x-axis',
+                    scale: 'time',
+                    tickCount: 8,
+                    style: {
+                        axis: { stroke: '#666' },
+                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                    },
+                    tickFormat: (t) => new Date(t).toLocaleTimeString('pt-BR', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        timeZone: 'UTC'
+                    })
+                }),
+                React.createElement(Victory.VictoryLine, {
+                    key: 'cpu-line',
+                    data: cpuData,
+                    style: {
+                        data: { 
+                            stroke: '#0066CC', 
+                            strokeWidth: 2
+                        }
+                    }
+                }),
+                React.createElement(Victory.VictoryLine, {
+                    key: 'memory-line',
+                    data: memoryData,
+                    style: {
+                        data: { 
+                            stroke: '#CC0000', 
+                            strokeWidth: 2
+                        }
+                    }
+                })
+            ]);
+
+            ReactDOM.render(chart, container);
+        }
+
+        // 2. Namespace Resource Distribution
+        async function loadNamespaceDistribution() {
+            try {
+                const response = await fetch('/api/v1/cluster/status');
+                const data = await response.json();
+                
+                // Generate sample data for namespace distribution
+                const distributionData = [
+                    { x: 'resource-governance', y: 25 },
+                    { x: 'redhat-ods-operator', y: 20 },
+                    { x: 'node-gather', y: 15 },
+                    { x: 'shishika01', y: 10 },
+                    { x: 'builds-test', y: 5 },
+                    { x: 'Others', y: 25 }
+                ];
+
+                createNamespaceDistributionChart(distributionData);
+            } catch (error) {
+                console.error('Error loading namespace distribution:', error);
+            }
+        }
+
+        function createNamespaceDistributionChart(data) {
+            const container = document.getElementById('namespace-distribution-chart');
+            if (!container) return;
+
+            const chart = React.createElement(Victory.VictoryPie, {
+                width: container.offsetWidth || 500,
+                height: 300,
+                data: data,
+                colorScale: ['#0066CC', '#CC0000', '#00CC66', '#FF8800', '#CC00CC', '#666666'],
+                padding: { top: 20, bottom: 20, left: 20, right: 20 },
+                style: {
+                    parent: { 
+                        background: '#1A1A1A',
+                        width: '100%',
+                        height: '100%'
+                    },
+                    labels: { 
+                        fill: '#ccc', 
+                        fontSize: 12,
+                        fontFamily: 'Red Hat Text, sans-serif'
+                    }
+                },
+                labelComponent: React.createElement(Victory.VictoryLabel, {
+                    style: { fill: '#ccc', fontSize: 12 }
+                })
+            });
+
+            ReactDOM.render(chart, container);
+        }
+
+        // 3. Issues by Severity Timeline
+        async function loadIssuesTimeline() {
+            try {
+                // Generate sample data for issues timeline
+                const now = new Date();
+                const timelineData = [];
+                
+                for (let i = 6; i >= 0; i--) {
+                    const time = new Date(now.getTime() - (i * 24 * 60 * 60 * 1000));
+                    const critical = Math.floor(Math.random() * 10) + 1;
+                    const warnings = Math.floor(Math.random() * 50) + 10;
+                    
+                    timelineData.push({
+                        x: time.getTime(),
+                        y: critical,
+                        type: 'Critical'
+                    });
+                    timelineData.push({
+                        x: time.getTime(),
+                        y: warnings,
+                        type: 'Warnings'
+                    });
+                }
+
+                createIssuesTimelineChart(timelineData);
+            } catch (error) {
+                console.error('Error loading issues timeline:', error);
+            }
+        }
+
+        function createIssuesTimelineChart(data) {
+            const container = document.getElementById('issues-timeline-chart');
+            if (!container) return;
+
+            // Group data by type
+            const criticalData = data.filter(d => d.type === 'Critical');
+            const warningsData = data.filter(d => d.type === 'Warnings');
+
+            const chart = React.createElement(Victory.VictoryChart, {
+                width: container.offsetWidth || 500,
+                height: 300,
+                theme: Victory.VictoryTheme.material,
+                scale: { x: 'time' },
+                padding: { top: 20, bottom: 60, left: 80, right: 40 },
+                domainPadding: { x: 0, y: 0 },
+                style: {
+                    parent: { 
+                        background: '#1A1A1A',
+                        width: '100%',
+                        height: '100%'
+                    }
+                }
+            }, [
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'y-axis',
+                    dependentAxis: true,
+                    style: {
+                        axis: { stroke: '#666' },
+                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                    }
+                }),
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'x-axis',
+                    scale: 'time',
+                    tickCount: 7,
+                    style: {
+                        axis: { stroke: '#666' },
+                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                    },
+                    tickFormat: (t) => new Date(t).toLocaleDateString('pt-BR', { 
+                        day: '2-digit',
+                        month: '2-digit',
+                        timeZone: 'UTC'
+                    })
+                }),
+                React.createElement(Victory.VictoryArea, {
+                    key: 'critical-area',
+                    data: criticalData,
+                    style: {
+                        data: { 
+                            fill: '#CC0000',
+                            fillOpacity: 0.3,
+                            stroke: '#CC0000',
+                            strokeWidth: 2
+                        }
+                    }
+                }),
+                React.createElement(Victory.VictoryArea, {
+                    key: 'warnings-area',
+                    data: warningsData,
+                    style: {
+                        data: { 
+                            fill: '#FF8800',
+                            fillOpacity: 0.3,
+                            stroke: '#FF8800',
+                            strokeWidth: 2
+                        }
+                    }
+                })
+            ]);
+
+            ReactDOM.render(chart, container);
+        }
+
+        // 4. Top 5 Workloads by Resource Usage
+        async function loadTopWorkloads() {
+            try {
+                const response = await fetch('/api/v1/historical-analysis');
+                const data = await response.json();
+                
+                // Sort workloads by CPU usage and take top 5
+                const workloads = data.workloads
+                    .filter(w => w.cpu_usage && w.cpu_usage !== 'N/A')
+                    .sort((a, b) => {
+                        const aCpu = parseFloat(a.cpu_usage.replace(' cores', ''));
+                        const bCpu = parseFloat(b.cpu_usage.replace(' cores', ''));
+                        return bCpu - aCpu;
+                    })
+                    .slice(0, 5)
+                    .map(w => ({
+                        x: w.name,
+                        y: parseFloat(w.cpu_usage.replace(' cores', '')) * 1000 // Convert to millicores
+                    }));
+
+                createTopWorkloadsChart(workloads);
+            } catch (error) {
+                console.error('Error loading top workloads:', error);
+            }
+        }
+
+        function createTopWorkloadsChart(data) {
+            const container = document.getElementById('top-workloads-chart');
+            if (!container) return;
+
+            const chart = React.createElement(Victory.VictoryChart, {
+                width: container.offsetWidth || 500,
+                height: 300,
+                theme: Victory.VictoryTheme.material,
+                padding: { top: 20, bottom: 60, left: 120, right: 40 },
+                domainPadding: { x: 0, y: 0 },
+                style: {
+                    parent: { 
+                        background: '#1A1A1A',
+                        width: '100%',
+                        height: '100%'
+                    }
+                }
+            }, [
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'y-axis',
+                    dependentAxis: true,
+                    style: {
+                        axis: { stroke: '#666' },
+                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                    },
+                    tickFormat: (t) => `${t}m`
+                }),
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'x-axis',
+                    style: {
+                        axis: { stroke: '#666' },
+                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                    }
+                }),
+                React.createElement(Victory.VictoryBar, {
+                    key: 'workloads-bar',
+                    data: data,
+                    style: {
+                        data: { 
+                            fill: '#00CC66',
+                            fillOpacity: 0.8
+                        }
+                    }
+                })
+            ]);
+
+            ReactDOM.render(chart, container);
+        }
+
+        // 5. Overcommit Status by Namespace
+        async function loadOvercommitByNamespace() {
+            try {
+                // Generate sample data for overcommit by namespace
+                const overcommitData = [
+                    { namespace: 'resource-governance', cpu: 85, memory: 90 },
+                    { namespace: 'redhat-ods-operator', cpu: 75, memory: 80 },
+                    { namespace: 'node-gather', cpu: 60, memory: 65 },
+                    { namespace: 'shishika01', cpu: 45, memory: 50 },
+                    { namespace: 'builds-test', cpu: 30, memory: 35 }
+                ];
+
+                createOvercommitNamespaceChart(overcommitData);
+            } catch (error) {
+                console.error('Error loading overcommit by namespace:', error);
+            }
+        }
+
+        function createOvercommitNamespaceChart(data) {
+            const container = document.getElementById('overcommit-namespace-chart');
+            if (!container) return;
+
+            // Transform data for Victory
+            const chartData = [];
+            data.forEach(item => {
+                chartData.push({
+                    x: item.namespace,
+                    y: item.cpu,
+                    type: 'CPU'
+                });
+                chartData.push({
+                    x: item.namespace,
+                    y: item.memory,
+                    type: 'Memory'
+                });
+            });
+
+            const chart = React.createElement(Victory.VictoryChart, {
+                width: container.offsetWidth || 500,
+                height: 300,
+                theme: Victory.VictoryTheme.material,
+                padding: { top: 20, bottom: 60, left: 80, right: 40 },
+                domainPadding: { x: 0, y: 0 },
+                style: {
+                    parent: { 
+                        background: '#1A1A1A',
+                        width: '100%',
+                        height: '100%'
+                    }
+                }
+            }, [
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'y-axis',
+                    dependentAxis: true,
+                    style: {
+                        axis: { stroke: '#666' },
+                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                    },
+                    tickFormat: (t) => `${t}%`
+                }),
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'x-axis',
+                    style: {
+                        axis: { stroke: '#666' },
+                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                    }
+                }),
+                React.createElement(Victory.VictoryGroup, {
+                    key: 'overcommit-group',
+                    offset: 10
+                }, [
+                    React.createElement(Victory.VictoryBar, {
+                        key: 'cpu-bars',
+                        data: chartData.filter(d => d.type === 'CPU'),
+                        style: {
+                            data: { 
+                                fill: '#0066CC',
+                                fillOpacity: 0.8
+                            }
+                        }
+                    }),
+                    React.createElement(Victory.VictoryBar, {
+                        key: 'memory-bars',
+                        data: chartData.filter(d => d.type === 'Memory'),
+                        style: {
+                            data: { 
+                                fill: '#CC0000',
+                                fillOpacity: 0.8
+                            }
+                        }
+                    })
+                ])
+            ]);
+
+            ReactDOM.render(chart, container);
         }
         
         // Load settings
