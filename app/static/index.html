@@ -2607,7 +2607,7 @@
                 const response = await fetch(`/api/v1/historical-analysis/${namespace}/${workloadName}?time_range=${timeRange}`);
                 const data = await response.json();
                 
-                updateWorkloadDetailsAccordion(data, index);
+                updateWorkloadDetailsAccordion(data, index, timeRange);
                 
             } catch (error) {
                 console.error('Error loading workload details:', error);
@@ -2621,7 +2621,7 @@
             }
         }
         
-        function updateWorkloadDetailsAccordion(data, index) {
+        function updateWorkloadDetailsAccordion(data, index, timeRange = '24h') {
             const container = document.getElementById(`details-content-${index}`);
             
             // Create chart containers with unique IDs
@@ -2633,6 +2633,16 @@
             const memoryData = data.memory_data || {};
             const recommendations = data.recommendations || [];
             
+            // Format time range for display
+            let timeRangeDisplay = '24h';
+            switch(timeRange) {
+                case '1h': timeRangeDisplay = '1 hour'; break;
+                case '6h': timeRangeDisplay = '6 hours'; break;
+                case '24h': timeRangeDisplay = '24 hours'; break;
+                case '7d': timeRangeDisplay = '7 days'; break;
+                case '30d': timeRangeDisplay = '30 days'; break;
+            }
+            
             container.innerHTML = `
                 <div style="padding: 24px; background-color: #1E1E1E; border-radius: 8px; margin: 16px 0;">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
@@ -2640,7 +2650,7 @@
                             <div class="card-header">
                                 <h3 class="card-title">
                                     <i class="fas fa-microchip" style="margin-right: 8px; color: var(--pf-global--info-color--100);"></i>
-                                    CPU Usage (24h)
+                                    CPU Usage (${timeRangeDisplay})
                                 </h3>
                         </div>
                             <div style="padding: 20px;">
@@ -2670,7 +2680,7 @@
                             <div class="card-header">
                                 <h3 class="card-title">
                                     <i class="fas fa-memory" style="margin-right: 8px; color: var(--pf-global--warning-color--100);"></i>
-                                    Memory Usage (24h)
+                                    Memory Usage (${timeRangeDisplay})
                                 </h3>
                             </div>
                             <div style="padding: 20px;">
