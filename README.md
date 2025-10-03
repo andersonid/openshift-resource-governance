@@ -1,4 +1,4 @@
-# ORU Scanner - OpenShift Resource Usage Scanner
+# ORU Analyzer - OpenShift Resource Usage Analyzer
 
 A comprehensive tool for analyzing user workloads and resource usage in OpenShift clusters that goes beyond what Metrics Server and VPA offer, providing validations, reports and consolidated recommendations.
 
@@ -318,7 +318,7 @@ curl http://localhost:8080/health
 - ✅ **PatternFly Design System**: Modern, enterprise-grade UI components
 - ✅ **Smart Recommendations Gallery**: Individual workload cards with bulk selection
 - ✅ **VPA CRD Integration**: Real Kubernetes API for Vertical Pod Autoscaler management
-- ✅ **Application Branding**: "ORU Scanner" - OpenShift Resource Usage Scanner
+- ✅ **Application Branding**: "ORU Analyzer" - OpenShift Resource Usage Analyzer
 - ✅ **Resource Utilization Formatting**: Human-readable percentages (1 decimal place)
 - ✅ **Quay.io Registry**: Migrated from Docker Hub to Quay.io for better reliability
 
