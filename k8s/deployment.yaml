@@ -25,12 +25,12 @@ spec:
     spec:
       serviceAccountName: resource-governance-sa
       # imagePullSecrets:
-      # - name: docker-hub-secret
+      # - name: quay-secret  # Only needed for private repositories
       securityContext:
         runAsNonRoot: true
       containers:
       - name: resource-governance
-        image: andersonid/resource-governance:latest
+        image: quay.io/rh_ee_anobre/resource-governance:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

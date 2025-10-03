@@ -35,7 +35,7 @@ echo -e "${BLUE}📦 Registry URL: $REGISTRY_URL${NC}"
 # Tag da imagem
 FULL_IMAGE_NAME="$REGISTRY_URL/$NAMESPACE/$IMAGE_NAME:$TAG"
 echo -e "${YELLOW}🏷️  Criando tag: $FULL_IMAGE_NAME${NC}"
-podman tag andersonid/resource-governance:simple $FULL_IMAGE_NAME
+podman tag quay.io/rh_ee_anobre/resource-governance:latest $FULL_IMAGE_NAME
 
 # Push da imagem
 echo -e "${YELLOW}📤 Fazendo push da imagem...${NC}"

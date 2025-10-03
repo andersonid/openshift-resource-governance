@@ -13,7 +13,7 @@ NC='\033[0m' # No Color
 # Configurações
 IMAGE_NAME="resource-governance"
 TAG="${1:-latest}"
-REGISTRY="${2:-andersonid}"
+REGISTRY="${2:-quay.io/rh_ee_anobre}"
 FULL_IMAGE_NAME="${REGISTRY}/${IMAGE_NAME}:${TAG}"
 
 echo -e "${BLUE}🚀 Building and Pushing OpenShift Resource Governance Tool${NC}"
@@ -49,9 +49,9 @@ else
     exit 1
 fi
 
-# Login no Docker Hub
-echo -e "${YELLOW}🔐 Logging into Docker Hub...${NC}"
-podman login docker.io
+# Login no Quay.io
+echo -e "${YELLOW}🔐 Logging into Quay.io...${NC}"
+podman login -u="rh_ee_anobre+oru" -p="EJNIJD7FPO5IN33ZGQZ4OM8BIB3LICASBVRGOJCX4WP84Y0ZG5SMQLTZ0S6DOZEC" quay.io
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ Login successful!${NC}"
@@ -61,7 +61,7 @@ else
 fi
 
 # Push da imagem
-echo -e "${YELLOW}📤 Pushing image to Docker Hub...${NC}"
+echo -e "${YELLOW}📤 Pushing image to Quay.io...${NC}"
 podman push "${FULL_IMAGE_NAME}"
 
 if [ $? -eq 0 ]; then
@@ -76,5 +76,6 @@ echo -e "${BLUE}📊 Image information:${NC}"
 podman images "${FULL_IMAGE_NAME}"
 
 echo -e "${GREEN}🎉 Build and push completed successfully!${NC}"
-echo -e "${BLUE}🌐 Image available at: https://hub.docker.com/r/${REGISTRY}/${IMAGE_NAME}${NC}"
+echo -e "${BLUE}🌐 Image available at: https://quay.io/repository/${REGISTRY#quay.io/}/${IMAGE_NAME}${NC}"
 echo -e "${BLUE}🚀 Ready for deployment!${NC}"
+echo -e "${BLUE}📋 Registry: Quay.io (public repository)${NC}"
