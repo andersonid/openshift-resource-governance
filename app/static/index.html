@@ -2165,7 +2165,7 @@
                 document.getElementById('cpu-overcommit').textContent = `${data.overcommit.cpu_overcommit_percent || 0}%`;
                 document.getElementById('memory-overcommit').textContent = `${data.overcommit.memory_overcommit_percent || 0}%`;
                 document.getElementById('namespaces-in-overcommit').textContent = data.overcommit.namespaces_in_overcommit || 0;
-                document.getElementById('resource-utilization').textContent = `${data.overcommit.resource_utilization || 0}%`;
+                document.getElementById('resource-utilization').textContent = `${(data.overcommit.resource_utilization || 0).toFixed(1)}%`;
                 
                 // Store overcommit data for modal display
                 window.overcommitData = data.overcommit;
@@ -2640,7 +2640,7 @@
                                 <strong>Formula:</strong> (Total Usage ÷ Total Requests) × 100
                             </div>
                             <div class="metric-detail">
-                                <strong>Current Value:</strong> ${window.overcommitData?.resource_utilization || 0}% (real-time data from Prometheus)
+                                <strong>Current Value:</strong> ${(window.overcommitData?.resource_utilization || 0).toFixed(1)}% (real-time data from Prometheus)
                             </div>
                             <div class="metric-detail">
                                 <strong>Data Source:</strong> 
