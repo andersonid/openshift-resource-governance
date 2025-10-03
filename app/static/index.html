@@ -2913,6 +2913,7 @@
                 width: containerWidth,
                 height: containerHeight,
                 theme: Victory.VictoryTheme.material,
+                scale: { x: 'time' },
                 style: {
                     parent: { 
                         background: '#1E1E1E',
@@ -2933,10 +2934,18 @@
                 }),
                 React.createElement(Victory.VictoryAxis, {
                     key: 'x-axis',
+                    scale: 'time',
                     style: {
                         axis: { stroke: '#404040' },
                         tickLabels: { fill: '#FFFFFF', fontSize: 12 },
                         grid: { stroke: '#404040' }
+                    },
+                    tickFormat: (t) => {
+                        const date = new Date(t);
+                        return date.toLocaleTimeString('pt-BR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                        });
                     }
                 }),
                 React.createElement(Victory.VictoryLine, {
@@ -2987,6 +2996,7 @@
                 width: containerWidth,
                 height: containerHeight,
                 theme: Victory.VictoryTheme.material,
+                scale: { x: 'time' },
                 style: {
                     parent: { 
                         background: '#1E1E1E',
@@ -3007,10 +3017,18 @@
                 }),
                 React.createElement(Victory.VictoryAxis, {
                     key: 'x-axis',
+                    scale: 'time',
                     style: {
                         axis: { stroke: '#404040' },
                         tickLabels: { fill: '#FFFFFF', fontSize: 12 },
                         grid: { stroke: '#404040' }
+                    },
+                    tickFormat: (t) => {
+                        const date = new Date(t);
+                        return date.toLocaleTimeString('pt-BR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                        });
                     }
                 }),
                 React.createElement(Victory.VictoryLine, {
