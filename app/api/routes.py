@@ -1419,15 +1419,33 @@ async def get_historical_analysis(
                 }
             workloads[workload_name]['pods'].append(pod)
         
-        # Convert to list and add basic info
+        # Convert to list and add basic info with real CPU/Memory data
         workload_list = []
+        historical_service = HistoricalAnalysisService()
+        
         for workload_name, workload_data in workloads.items():
+            # Get current CPU and Memory usage using OpenShift Console queries
+            try:
+                cpu_usage = await historical_service.get_workload_cpu_summary(workload_data['namespace'], workload_name)
+                memory_usage = await historical_service.get_workload_memory_summary(workload_data['namespace'], workload_name)
+                
+                # Format CPU usage (cores)
+                cpu_display = f"{cpu_usage:.3f} cores" if cpu_usage > 0 else "N/A"
+                
+                # Format memory usage (MB)
+                memory_display = f"{memory_usage / (1024 * 1024):.1f} MB" if memory_usage > 0 else "N/A"
+                
+            except Exception as e:
+                logger.warning(f"Error getting summary for {workload_name}: {e}")
+                cpu_display = "N/A"
+                memory_display = "N/A"
+            
             workload_list.append({
                 'name': workload_name,
                 'namespace': workload_data['namespace'],
                 'pod_count': len(workload_data['pods']),
-                'cpu_usage': 'N/A',  # Will be populated by Prometheus queries
-                'memory_usage': 'N/A',  # Will be populated by Prometheus queries
+                'cpu_usage': cpu_display,
+                'memory_usage': memory_display,
                 'last_updated': datetime.now().isoformat()
             })
         
@@ -1468,8 +1486,8 @@ async def get_workload_historical_details(
         cpu_data = await historical_service.get_cpu_usage_history(namespace, workload, time_range)
         memory_data = await historical_service.get_memory_usage_history(namespace, workload, time_range)
         
-        # Generate recommendations
-        recommendations = await historical_service.generate_recommendations(namespace, workload, time_range)
+        # Generate recommendations and get workload summary
+        recommendations, workload_summary = await historical_service.generate_recommendations(namespace, workload, time_range)
         
         return {
             "workload": workload,
@@ -1477,6 +1495,7 @@ async def get_workload_historical_details(
             "cpu_data": cpu_data,
             "memory_data": memory_data,
             "recommendations": recommendations,
+            "workload_summary": workload_summary,
             "timestamp": datetime.now().isoformat()
         }
         

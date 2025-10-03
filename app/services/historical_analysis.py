@@ -1448,12 +1448,92 @@ class HistoricalAnalysisService:
                 "error": str(e)
             }
 
+    async def get_workload_cpu_summary(self, namespace: str, workload: str) -> float:
+        """Get current CPU usage summary for a workload using OpenShift Console query"""
+        try:
+            # Use exact OpenShift Console query for CPU usage per pod
+            cpu_query = f'''
+            sum(
+                node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{{
+                    cluster="", 
+                    namespace="{namespace}"
+                }}
+              * on(namespace,pod)
+                group_left(workload, workload_type) 
+                namespace_workload_pod:kube_pod_owner:relabel{{
+                    cluster="", 
+                    namespace="{namespace}", 
+                    workload="{workload}", 
+                    workload_type=~".+"
+                }}
+            ) by (pod)
+            '''
+            
+            # Query Prometheus for current value
+            data = await self._query_prometheus(cpu_query, 
+                datetime.utcnow() - timedelta(seconds=300),  # Last 5 minutes
+                datetime.utcnow())
+            
+            if data and len(data) > 0:
+                # Sum all pod values for the workload
+                total_cpu = sum(self._safe_float(point[1]) for point in data if point[1] != 'NaN')
+                return total_cpu
+            
+            return 0.0
+            
+        except Exception as e:
+            logger.error(f"Error getting CPU summary for {workload}: {e}")
+            return 0.0
+
+    async def get_workload_memory_summary(self, namespace: str, workload: str) -> float:
+        """Get current memory usage summary for a workload using OpenShift Console query"""
+        try:
+            # Use exact OpenShift Console query for memory usage per pod
+            memory_query = f'''
+            sum(
+                container_memory_working_set_bytes{{
+                    cluster="", 
+                    namespace="{namespace}", 
+                    container!="", 
+                    image!=""
+                }}
+              * on(namespace,pod)
+                group_left(workload, workload_type) 
+                namespace_workload_pod:kube_pod_owner:relabel{{
+                    cluster="", 
+                    namespace="{namespace}", 
+                    workload="{workload}", 
+                    workload_type=~".+"
+                }}
+            ) by (pod)
+            '''
+            
+            # Query Prometheus for current value
+            data = await self._query_prometheus(memory_query, 
+                datetime.utcnow() - timedelta(seconds=300),  # Last 5 minutes
+                datetime.utcnow())
+            
+            if data and len(data) > 0:
+                # Sum all pod values for the workload
+                total_memory = sum(self._safe_float(point[1]) for point in data if point[1] != 'NaN')
+                return total_memory
+            
+            return 0.0
+            
+        except Exception as e:
+            logger.error(f"Error getting memory summary for {workload}: {e}")
+            return 0.0
+
     async def generate_recommendations(self, namespace: str, workload: str, time_range: str = "24h") -> List[Dict[str, Any]]:
         """Generate recommendations based on historical data"""
         try:
             # Get current usage data
             cpu_data = await self.get_cpu_usage_history(namespace, workload, time_range)
             memory_data = await self.get_memory_usage_history(namespace, workload, time_range)
+            
+            # Get current summary values for the workload
+            current_cpu_usage = await self.get_workload_cpu_summary(namespace, workload)
+            current_memory_usage = await self.get_workload_memory_summary(namespace, workload)
             
             recommendations = []
             
@@ -1505,7 +1585,16 @@ class HistoricalAnalysisService:
                             "recommendation": "Increase memory limits to handle peak usage"
                         })
             
-            return recommendations
+            # Add workload summary data to recommendations
+            workload_summary = {
+                "workload": workload,
+                "namespace": namespace,
+                "cpu_usage": current_cpu_usage,
+                "memory_usage": current_memory_usage / (1024 * 1024),  # Convert bytes to MB
+                "time_range": time_range
+            }
+            
+            return recommendations, workload_summary
             
         except Exception as e:
             logger.error(f"Error generating recommendations: {str(e)}")
@@ -1514,4 +1603,4 @@ class HistoricalAnalysisService:
                 "severity": "error",
                 "message": f"Error generating recommendations: {str(e)}",
                 "recommendation": "Check Prometheus connectivity and workload configuration"
-            }]
+            }], None
