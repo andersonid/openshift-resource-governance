@@ -1475,9 +1475,10 @@ class HistoricalAnalysisService:
                 datetime.utcnow())
             
             if data and len(data) > 0:
-                # Sum all pod values for the workload
-                total_cpu = sum(self._safe_float(point[1]) for point in data if point[1] != 'NaN')
-                return total_cpu
+                # Get current value (last point) for the workload
+                # For CPU, we want the current rate, not sum of all points
+                current_cpu = self._safe_float(data[-1][1]) if data[-1][1] != 'NaN' else 0
+                return current_cpu
             
             return 0.0
             
@@ -1514,9 +1515,10 @@ class HistoricalAnalysisService:
                 datetime.utcnow())
             
             if data and len(data) > 0:
-                # Sum all pod values for the workload
-                total_memory = sum(self._safe_float(point[1]) for point in data if point[1] != 'NaN')
-                return total_memory
+                # Get current value (last point) for the workload
+                # For memory, we want the current usage, not sum of all points
+                current_memory = self._safe_float(data[-1][1]) if data[-1][1] != 'NaN' else 0
+                return current_memory
             
             return 0.0
             
