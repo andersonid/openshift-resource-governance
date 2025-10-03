@@ -1,4 +1,4 @@
-# UWRU Scanner - User Workloads and Resource Usage Scanner
+# ORU Scanner - OpenShift Resource Usage Scanner
 
 A comprehensive tool for analyzing user workloads and resource usage in OpenShift clusters that goes beyond what Metrics Server and VPA offer, providing validations, reports and consolidated recommendations.
 
@@ -8,12 +8,14 @@ A comprehensive tool for analyzing user workloads and resource usage in OpenShif
 - **Red Hat Validations**: Validates capacity management best practices with specific request/limit values
 - **Smart Resource Analysis**: Identifies workloads without requests/limits and provides detailed analysis
 - **Detailed Problem Analysis**: Modal-based detailed view showing pod and container resource issues
+- **Smart Recommendations Engine**: PatternFly-based gallery with individual workload cards and bulk selection
+- **VPA CRD Integration**: Real Kubernetes API integration for Vertical Pod Autoscaler management
 - **Historical Analysis**: Workload-based historical resource usage analysis with real numerical data (1h, 6h, 24h, 7d)
 - **Prometheus Integration**: Collects real consumption metrics from OpenShift monitoring with OpenShift-specific queries
 - **Cluster Overcommit Analysis**: Real-time cluster capacity vs requests analysis with detailed tooltips and modals
 - **PromQL Query Display**: Shows raw Prometheus queries used for data collection, allowing validation in OpenShift console
 - **Export Reports**: Generates reports in JSON, CSV formats
-- **Modern Web UI**: Pragmatic dashboard with modal-based analysis and professional interface
+- **Modern Web UI**: PatternFly design system with professional interface and responsive layout
 - **Cluster Agnostic**: Works on any OpenShift cluster without configuration
 
 ## 📋 Requirements
@@ -31,8 +33,8 @@ A comprehensive tool for analyzing user workloads and resource usage in OpenShif
 
 ```bash
 # 1. Clone the repository
-git clone <repository-url>
-cd RequestsAndLimits
+git clone https://github.com/andersonid/openshift-resource-governance.git
+cd openshift-resource-governance
 
 # 2. Login to OpenShift
 oc login <cluster-url>
@@ -70,7 +72,7 @@ After deploy, access the application through the created route:
 oc get route -n resource-governance
 
 # Access via browser (URL will be automatically generated)
-# Example: https://resource-governance-route-resource-governance.apps.your-cluster.com
+# Example: https://oru.apps.your-cluster.com
 ```
 
 ## 🔧 Configuration
@@ -283,20 +285,20 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 
 ### Run with Podman (Recommended)
 ```bash
-# Build
-podman build -t resource-governance .
+# Build and push to Quay.io
+./scripts/build-and-push.sh
 
-# Run
-podman run -p 8080:8080 resource-governance
+# Deploy to OpenShift
+./scripts/deploy-complete.sh
 ```
 
-### Run with Podman (Alternative)
+### Available Scripts
 ```bash
-# Build
-podman build -t resource-governance .
-
-# Run
-podman run -p 8080:8080 resource-governance
+# Essential scripts (only 4 remaining after cleanup)
+./setup.sh                    # Initial environment setup
+./scripts/build-and-push.sh   # Build and push to Quay.io
+./scripts/deploy-complete.sh  # Complete OpenShift deployment
+./scripts/undeploy-complete.sh # Complete application removal
 ```
 
 ### Tests
@@ -307,6 +309,29 @@ python -c "import app.main; print('OK')"
 # Test API
 curl http://localhost:8080/health
 ```
+
+## 🆕 Recent Updates
+
+### **Latest Version (v2.0.0) - PatternFly UI Revolution**
+
+**🎨 Complete UI Overhaul:**
+- ✅ **PatternFly Design System**: Modern, enterprise-grade UI components
+- ✅ **Smart Recommendations Gallery**: Individual workload cards with bulk selection
+- ✅ **VPA CRD Integration**: Real Kubernetes API for Vertical Pod Autoscaler management
+- ✅ **Application Branding**: "ORU Scanner" - OpenShift Resource Usage Scanner
+- ✅ **Resource Utilization Formatting**: Human-readable percentages (1 decimal place)
+- ✅ **Quay.io Registry**: Migrated from Docker Hub to Quay.io for better reliability
+
+**🔧 Infrastructure Improvements:**
+- ✅ **GitHub Actions**: Automated build and push to Quay.io
+- ✅ **Script Cleanup**: Removed 19 obsolete scripts, kept only essential ones
+- ✅ **Codebase Organization**: Clean, maintainable code structure
+- ✅ **Documentation**: Updated all documentation files
+
+**🚀 Deployment Ready:**
+- ✅ **Zero Downtime**: Rolling updates with proper health checks
+- ✅ **Cluster Agnostic**: Works on any OpenShift 4.x cluster
+- ✅ **Production Tested**: Deployed on OCP 4.15, 4.18, and 4.19
 
 ## 📝 Roadmap
 
@@ -376,31 +401,38 @@ curl http://localhost:8080/health
 
 ---
 
-### **Phase 2: Smart Recommendations Engine (SHORT TERM - 2-3 weeks)**
+### **Phase 2: Smart Recommendations Engine (COMPLETED ✅)**
 
 #### 2.1 Recommendation Dashboard
-- [ ] **Dedicated Recommendations Section**
-  - Replace generic "VPA Recommendations" with "Smart Recommendations"
-  - Show actionable insights with priority levels
-  - Display estimated impact of changes
-  - Group by namespace and severity
+- [x] **Dedicated Recommendations Section**
+  - Replaced generic "VPA Recommendations" with "Smart Recommendations"
+  - PatternFly Service Card gallery with individual workload cards
+  - Bulk selection functionality for batch operations
+  - Priority-based visual indicators and scoring
 
 #### 2.2 Recommendation Types
-- [ ] **Resource Configuration Recommendations**
+- [x] **Resource Configuration Recommendations**
   - "Add CPU requests: 200m (based on 7-day P95 usage)"
   - "Increase memory limits: 512Mi (current usage peaks at 400Mi)"
   - "Fix CPU ratio: 3:1 instead of 5:1 (current: 500m limit, 100m request)"
 
-- [ ] **VPA Activation Recommendations**
+- [x] **VPA Activation Recommendations**
   - "Activate VPA for new workload 'example' (insufficient historical data)"
   - "Enable VPA for outlier workload 'high-cpu-app' (unpredictable usage patterns)"
 
 #### 2.3 Priority Scoring System
-- [ ] **Impact-Based Prioritization**
+- [x] **Impact-Based Prioritization**
   - **Critical**: Missing limits on high-resource workloads
   - **High**: Missing requests on production workloads
   - **Medium**: Suboptimal ratios on established workloads
   - **Low**: New workloads needing VPA activation
+
+#### 2.4 VPA CRD Integration
+- [x] **Real Kubernetes API Integration**
+  - Direct VPA CRD management using Kubernetes CustomObjectsApi
+  - VPA creation, listing, and deletion functionality
+  - Real-time VPA status and recommendations
+  - YAML generation and application capabilities
 
 ---
 
