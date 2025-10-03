@@ -2645,7 +2645,7 @@
                         </div>
                             <div style="padding: 20px;">
                                 <div style="height: 300px; position: relative;">
-                                    <div id="${cpuChartId}" style="width: 400px; height: 200px;"></div>
+                                    <div id="${cpuChartId}" style="width: 100%; height: 200px; min-height: 200px;"></div>
                         </div>
                                 ${cpuData.data && cpuData.data.length > 0 ? `
                                     <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
@@ -2675,7 +2675,7 @@
                             </div>
                             <div style="padding: 20px;">
                                 <div style="height: 300px; position: relative;">
-                                    <div id="${memoryChartId}" style="width: 400px; height: 200px;"></div>
+                                    <div id="${memoryChartId}" style="width: 100%; height: 200px; min-height: 200px;"></div>
                         </div>
                                 ${memoryData.data && memoryData.data.length > 0 ? `
                                     <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
@@ -2904,13 +2904,21 @@
             // Clear container
             container.innerHTML = '';
             
+            // Get container dimensions
+            const containerWidth = container.offsetWidth || 400;
+            const containerHeight = container.offsetHeight || 200;
+            
             // Create Victory chart using React.createElement
             const chart = React.createElement(Victory.VictoryChart, {
-                width: 400,
-                height: 200,
+                width: containerWidth,
+                height: containerHeight,
                 theme: Victory.VictoryTheme.material,
                 style: {
-                    parent: { background: '#1E1E1E' }
+                    parent: { 
+                        background: '#1E1E1E',
+                        width: '100%',
+                        height: '100%'
+                    }
                 }
             }, [
                 React.createElement(Victory.VictoryAxis, {
@@ -2970,13 +2978,21 @@
             // Clear container
             container.innerHTML = '';
             
+            // Get container dimensions
+            const containerWidth = container.offsetWidth || 400;
+            const containerHeight = container.offsetHeight || 200;
+            
             // Create Victory chart using React.createElement
             const chart = React.createElement(Victory.VictoryChart, {
-                width: 400,
-                height: 200,
+                width: containerWidth,
+                height: containerHeight,
                 theme: Victory.VictoryTheme.material,
                 style: {
-                    parent: { background: '#1E1E1E' }
+                    parent: { 
+                        background: '#1E1E1E',
+                        width: '100%',
+                        height: '100%'
+                    }
                 }
             }, [
                 React.createElement(Victory.VictoryAxis, {
