@@ -1276,8 +1276,8 @@
                     </a>
                 </li>
             </ul>
-        </div>
-        
+    </div>
+
         <div class="sidebar-section">
             <h3 class="sidebar-section-title">Settings</h3>
             <ul class="sidebar-nav">
@@ -1380,7 +1380,7 @@
             <div class="page-header">
                 <h1 class="page-title">Requests & Limits Analysis</h1>
                 <p class="page-description">Analyze workloads with resource configuration issues and missing requests/limits</p>
-            </div>
+                </div>
 
             <!-- Workloads Table Card -->
             <div class="openshift-card">
@@ -1390,14 +1390,14 @@
                         <i class="fas fa-sync-alt"></i>
                         Refresh
                     </button>
-                </div>
+                        </div>
                 <div class="table-content" id="workloads-table-container">
                     <div class="loading-spinner">
                         <div class="spinner"></div>
                         Loading workloads...
+                        </div>
+                        </div>
                     </div>
-                </div>
-            </div>
         </section>
 
 
@@ -1406,7 +1406,7 @@
             <div class="page-header">
                 <h1 class="page-title">VPA Management & Recommendations</h1>
                 <p class="page-description">Manage Vertical Pod Autoscaler configurations, monitor VPA status, and apply smart recommendations</p>
-            </div>
+                </div>
 
             <!-- VPA Management Content -->
             <div class="openshift-card">
@@ -1415,15 +1415,15 @@
                     <button class="openshift-button" onclick="loadVPAManagement()">
                         <i class="fas fa-sync-alt"></i>
                         Refresh
-                    </button>
-                </div>
+                        </button>
+                    </div>
                 <div class="table-content" id="vpa-management-container">
                     <div class="loading-spinner">
                         <i class="fas fa-spinner fa-spin"></i>
                         Loading VPA data...
-                    </div>
                 </div>
             </div>
+                    </div>
 
             <!-- Smart Recommendations Content -->
             <div class="openshift-card" style="margin-top: 24px;">
@@ -1431,10 +1431,10 @@
                     <h2 class="card-title">Smart Recommendations</h2>
                     <div class="card-actions">
                         <button class="openshift-button" onclick="loadSmartRecommendations()">
-                            <i class="fas fa-sync-alt"></i>
-                            Refresh
-                        </button>
-                    </div>
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
                 </div>
                 
                 <!-- Bulk Select Toolbar -->
@@ -1493,7 +1493,7 @@
                     <div class="loading-spinner">
                         <i class="fas fa-spinner fa-spin"></i>
                         Loading recommendations...
-                    </div>
+            </div>
                 </div>
             </div>
         </section>
@@ -1549,7 +1549,7 @@
                             <i class="fas fa-sync-alt"></i>
                             Refresh
                         </button>
-                    </div>
+                </div>
                 </div>
                 <div class="table-content" id="historical-workloads-container">
                     <div class="loading-spinner">
@@ -1677,9 +1677,9 @@
             } else if (section === 'requests-limits') {
                 loadRequestsLimits();
             } else if (section === 'vpa-management') {
-                loadVPAManagement();
+                    loadVPAManagement();
             } else if (section === 'historical-analysis') {
-                loadHistoricalAnalysis();
+                    loadHistoricalAnalysis();
             } else if (section === 'settings') {
                 loadSettings();
             }
@@ -1727,24 +1727,25 @@
         async function preloadAllWorkloadDetails() {
             if (!window.workloadsData) return;
             
-            // Load details for all namespaces in parallel
-            const loadPromises = window.workloadsData.map(async (namespace, index) => {
-                try {
-                    const response = await fetch(`/api/v1/validations/namespace/${namespace.namespace}`);
-                    const data = await response.json();
-                    
-                    // Store the data for when accordion is opened
-                    window.workloadDetails = window.workloadDetails || {};
-                    window.workloadDetails[namespace.namespace] = data;
-                    
-                } catch (error) {
-                    console.error(`Error loading details for namespace ${namespace.namespace}:`, error);
-                    window.workloadDetails = window.workloadDetails || {};
-                    window.workloadDetails[namespace.namespace] = { error: 'Failed to load details' };
+            try {
+                // Load all validations by namespace
+                const response = await fetch('/api/v1/validations/by-namespace');
+                const data = await response.json();
+                
+                // Store the data for each namespace
+                window.workloadDetails = {};
+                if (data.namespaces) {
+                    data.namespaces.forEach(namespace => {
+                        window.workloadDetails[namespace.namespace] = {
+                            validations: namespace.pods ? Object.values(namespace.pods).flatMap(pod => pod.validations) : []
+                        };
+                    });
                 }
-            });
-            
-            await Promise.all(loadPromises);
+                
+            } catch (error) {
+                console.error('Error loading namespace details:', error);
+                window.workloadDetails = {};
+            }
         }
         
         function toggleWorkloadIssues(index) {
@@ -1890,7 +1891,7 @@
                         <i class="fas fa-lightbulb" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--Color--400);"></i>
                         <h3>No Recommendations Available</h3>
                         <p>No smart recommendations found for the current cluster state.</p>
-                    </div>
+                            </div>
                 `;
                 updateBulkSelectUI();
                 return;
@@ -1926,7 +1927,7 @@
                         <div class="service-card-header">
                             <div class="service-card-icon">
                                 <i class="fas fa-${getRecommendationIcon(recommendationType)}"></i>
-                            </div>
+                    </div>
                             <h3 class="service-card-title">${title}</h3>
                             <div class="service-card-checkbox">
                                 <input type="checkbox" 
@@ -1944,7 +1945,7 @@
                                 <div class="service-card-meta-item">
                                     <i class="fas fa-cube"></i>
                                     <span>${workload.workload_name}</span>
-                                </div>
+                            </div>
                                 <div class="service-card-meta-item">
                                     <i class="fas fa-layer-group"></i>
                                     <span>${workload.namespace}</span>
@@ -1962,7 +1963,7 @@
                                 <div class="service-card-meta-item">
                                     <i class="fas fa-chart-line"></i>
                                     <span>Score: ${workload.priority_score}/10</span>
-                                </div>
+                            </div>
                                 <div class="service-card-meta-item">
                                     <i class="fas fa-bolt"></i>
                                     <span>Impact: ${workload.estimated_impact}</span>
@@ -1980,14 +1981,14 @@
                         
                         <div class="service-card-footer">
                             <button class="openshift-button openshift-button-primary" onclick="downloadVPAYAML('${workload.workload_name}', '${workload.namespace}')">
-                                <i class="fas fa-download"></i>
+                                    <i class="fas fa-download"></i>
                                 VPA YAML
-                            </button>
+                                </button>
                             
                             <button class="openshift-button openshift-button-success" onclick="applySmartRecommendation('${workload.workload_name}', '${workload.namespace}', '${recommendationType}', '${priority}')">
                                 <i class="fas fa-check"></i>
                                 Apply
-                            </button>
+                                </button>
                             
                             <button class="openshift-button" onclick="previewSmartRecommendation('${workload.workload_name}', '${workload.namespace}', '${recommendationType}', '${priority}')">
                                 <i class="fas fa-eye"></i>
@@ -2669,8 +2670,8 @@
                         <i class="fas fa-check-circle" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--success-color--100);"></i>
                         <h3 style="margin: 0 0 8px 0; color: var(--pf-global--Color--100);">No Issues Found</h3>
                         <p style="margin: 0;">All workloads are properly configured</p>
-                    </div>
-                `;
+                            </div>
+                        `;
                 return;
             }
 
@@ -2707,7 +2708,7 @@
                                 </div>
                             </div>
                         </div>
-                    `).join('')}
+                        `).join('')}
                 </div>
             `;
             
