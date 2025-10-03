@@ -88,11 +88,22 @@ fi
 
 # Obter URL da aplicação
 echo -e "${YELLOW}🌍 Getting application URL...${NC}"
-ROUTE_URL=$(oc get route resource-governance -n $NAMESPACE -o jsonpath='{.spec.host}')
+
+# Aguardar um pouco para garantir que a rota esteja pronta
+sleep 5
+
+# Verificar se a rota existe
+if oc get route resource-governance-route -n $NAMESPACE > /dev/null 2>&1; then
+    ROUTE_URL=$(oc get route resource-governance-route -n $NAMESPACE -o jsonpath='{.spec.host}')
+else
+    echo -e "${YELLOW}⚠️  Route not found, checking available routes...${NC}"
+    oc get routes -n $NAMESPACE
+    ROUTE_URL=""
+fi
 if [ -n "$ROUTE_URL" ]; then
     echo -e "${GREEN}✅ Application deployed successfully!${NC}"
     echo -e "${GREEN}🌐 URL: https://$ROUTE_URL${NC}"
-    echo -e "${GREEN}📊 Health check: https://$ROUTE_URL/api/v1/health${NC}"
+    echo -e "${GREEN}📊 Health check: https://$ROUTE_URL/health${NC}"
 else
     echo -e "${YELLOW}⚠️  Route not found, checking service...${NC}"
     oc get svc -n $NAMESPACE
