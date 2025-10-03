@@ -2645,7 +2645,7 @@
                         </div>
                             <div style="padding: 20px;">
                                 <div style="height: 300px; position: relative;">
-                                    <canvas id="${cpuChartId}" width="400" height="200"></canvas>
+                                    <div id="${cpuChartId}" style="width: 400px; height: 200px;"></div>
                         </div>
                                 ${cpuData.data && cpuData.data.length > 0 ? `
                                     <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
@@ -2675,7 +2675,7 @@
                             </div>
                             <div style="padding: 20px;">
                                 <div style="height: 300px; position: relative;">
-                                    <canvas id="${memoryChartId}" width="400" height="200"></canvas>
+                                    <div id="${memoryChartId}" style="width: 400px; height: 200px;"></div>
                         </div>
                                 ${memoryData.data && memoryData.data.length > 0 ? `
                                     <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
@@ -2895,128 +2895,136 @@
             };
         }
         
-        function createCPUChart(canvasId, cpuData) {
-            const ctx = document.getElementById(canvasId);
-            if (!ctx) return;
+        function createCPUChart(containerId, cpuData) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
             
             const chartData = cpuData?.data || [];
             
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'CPU Usage (cores)',
-                        data: chartData,
-                        borderColor: '#0066CC',
-                        backgroundColor: 'rgba(0, 102, 204, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#FFFFFF'
-                            }
+            // Clear container
+            container.innerHTML = '';
+            
+            // Create Victory chart using React.createElement
+            const chart = React.createElement(Victory.VictoryChart, {
+                width: 400,
+                height: 200,
+                theme: Victory.VictoryTheme.material,
+                style: {
+                    parent: { background: '#1E1E1E' }
+                }
+            }, [
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'y-axis',
+                    dependentAxis: true,
+                    style: {
+                        axis: { stroke: '#404040' },
+                        tickLabels: { fill: '#FFFFFF', fontSize: 12 },
+                        grid: { stroke: '#404040' }
+                    },
+                    tickFormat: (t) => `${t.toFixed(3)} cores`
+                }),
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'x-axis',
+                    style: {
+                        axis: { stroke: '#404040' },
+                        tickLabels: { fill: '#FFFFFF', fontSize: 12 },
+                        grid: { stroke: '#404040' }
+                    }
+                }),
+                React.createElement(Victory.VictoryLine, {
+                    key: 'cpu-line',
+                    data: chartData,
+                    style: {
+                        data: { 
+                            stroke: '#0066CC', 
+                            strokeWidth: 2
                         }
                     },
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                displayFormats: {
-                                    hour: 'HH:mm',
-                                    day: 'MMM dd'
-                                }
-                            },
-                            ticks: {
-                                color: '#FFFFFF'
-                            },
-                            grid: {
-                                color: '#404040'
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#FFFFFF',
-                                callback: function(value) {
-                                    return value.toFixed(3) + ' cores';
-                                }
-                            },
-                            grid: {
-                                color: '#404040'
-                            }
+                    animate: {
+                        duration: 2000,
+                        onLoad: { duration: 1000 }
+                    }
+                }),
+                React.createElement(Victory.VictoryArea, {
+                    key: 'cpu-area',
+                    data: chartData,
+                    style: {
+                        data: { 
+                            fill: 'rgba(0, 102, 204, 0.1)',
+                            fillOpacity: 0.3
                         }
                     }
-                }
-            });
+                })
+            ]);
+            
+            // Render the chart
+            ReactDOM.render(chart, container);
         }
         
-        function createMemoryChart(canvasId, memoryData) {
-            const ctx = document.getElementById(canvasId);
-            if (!ctx) return;
+        function createMemoryChart(containerId, memoryData) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
             
             const chartData = memoryData?.data || [];
             
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Memory Usage (MB)',
-                        data: chartData,
-                        borderColor: '#CC0000',
-                        backgroundColor: 'rgba(204, 0, 0, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#FFFFFF'
-                            }
+            // Clear container
+            container.innerHTML = '';
+            
+            // Create Victory chart using React.createElement
+            const chart = React.createElement(Victory.VictoryChart, {
+                width: 400,
+                height: 200,
+                theme: Victory.VictoryTheme.material,
+                style: {
+                    parent: { background: '#1E1E1E' }
+                }
+            }, [
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'y-axis',
+                    dependentAxis: true,
+                    style: {
+                        axis: { stroke: '#404040' },
+                        tickLabels: { fill: '#FFFFFF', fontSize: 12 },
+                        grid: { stroke: '#404040' }
+                    },
+                    tickFormat: (t) => `${t.toFixed(1)} MB`
+                }),
+                React.createElement(Victory.VictoryAxis, {
+                    key: 'x-axis',
+                    style: {
+                        axis: { stroke: '#404040' },
+                        tickLabels: { fill: '#FFFFFF', fontSize: 12 },
+                        grid: { stroke: '#404040' }
+                    }
+                }),
+                React.createElement(Victory.VictoryLine, {
+                    key: 'memory-line',
+                    data: chartData,
+                    style: {
+                        data: { 
+                            stroke: '#CC0000', 
+                            strokeWidth: 2
                         }
                     },
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                displayFormats: {
-                                    hour: 'HH:mm',
-                                    day: 'MMM dd'
-                                }
-                            },
-                            ticks: {
-                                color: '#FFFFFF'
-                            },
-                            grid: {
-                                color: '#404040'
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#FFFFFF',
-                                callback: function(value) {
-                                    return value.toFixed(1) + ' MB';
-                                }
-                            },
-                            grid: {
-                                color: '#404040'
-                            }
+                    animate: {
+                        duration: 2000,
+                        onLoad: { duration: 1000 }
+                    }
+                }),
+                React.createElement(Victory.VictoryArea, {
+                    key: 'memory-area',
+                    data: chartData,
+                    style: {
+                        data: { 
+                            fill: 'rgba(204, 0, 0, 0.1)',
+                            fillOpacity: 0.3
                         }
                     }
-                }
-            });
+                })
+            ]);
+            
+            // Render the chart
+            ReactDOM.render(chart, container);
         }
         
         function updateWorkloadDetails(data) {
@@ -3256,8 +3264,9 @@
         }
     </script>
     
-    <!-- Chart.js for historical analysis graphs -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <!-- React and Victory.js for PatternFly charts -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/victory@36.6.12/dist/victory.min.js"></script>
 </body>
 </html>
