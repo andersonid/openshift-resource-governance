@@ -1403,13 +1403,13 @@
                                     </button>
                                 </li>
                                 <li>
-                                    <button class="pf-v6-c-dropdown__menu-item pf-m-selected" onclick="selectTimeRange('24h', 'Last 24 Hours')">
-                                        Last 24 Hours
+                                    <button class="pf-v6-c-dropdown__menu-item" onclick="selectTimeRange('6h', 'Last 6 Hours')">
+                                        Last 6 Hours
                                     </button>
                                 </li>
                                 <li>
-                                    <button class="pf-v6-c-dropdown__menu-item" onclick="selectTimeRange('6h', 'Last 6 Hours')">
-                                        Last 6 Hours
+                                    <button class="pf-v6-c-dropdown__menu-item pf-m-selected" onclick="selectTimeRange('24h', 'Last 24 Hours')">
+                                        Last 24 Hours
                                     </button>
                                 </li>
                                 <li>
@@ -2730,8 +2730,8 @@
             
             // Create charts after DOM is updated
             setTimeout(() => {
-                createCPUChart(cpuChartId, cpuData);
-                createMemoryChart(memoryChartId, memoryData);
+                createCPUChart(cpuChartId, cpuData, timeRange);
+                createMemoryChart(memoryChartId, memoryData, timeRange);
             }, 100);
         }
         
@@ -2905,7 +2905,7 @@
             };
         }
         
-        function createCPUChart(containerId, cpuData) {
+        function createCPUChart(containerId, cpuData, timeRange = '24h') {
             const container = document.getElementById(containerId);
             if (!container) return;
             
@@ -2951,13 +2951,21 @@
                         tickLabels: { fill: '#FFFFFF', fontSize: 12 },
                         grid: { stroke: '#404040' }
                     },
-                    tickFormat: (t) => {
-                        const date = new Date(t);
-                        return date.toLocaleTimeString('pt-BR', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                        });
-                    }
+                        tickFormat: (t) => {
+                            const date = new Date(t);
+                            // Check if we're dealing with days (7d or 30d)
+                            if (timeRange === '7d' || timeRange === '30d') {
+                                return date.toLocaleDateString('pt-BR', { 
+                                    day: '2-digit', 
+                                    month: '2-digit' 
+                                });
+                            } else {
+                                return date.toLocaleTimeString('pt-BR', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                });
+                            }
+                        }
                 }),
                 React.createElement(Victory.VictoryLine, {
                     key: 'cpu-line',
@@ -2989,7 +2997,7 @@
             ReactDOM.render(chart, container);
         }
         
-        function createMemoryChart(containerId, memoryData) {
+        function createMemoryChart(containerId, memoryData, timeRange = '24h') {
             const container = document.getElementById(containerId);
             if (!container) return;
             
@@ -3035,13 +3043,21 @@
                         tickLabels: { fill: '#FFFFFF', fontSize: 12 },
                         grid: { stroke: '#404040' }
                     },
-                    tickFormat: (t) => {
-                        const date = new Date(t);
-                        return date.toLocaleTimeString('pt-BR', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                        });
-                    }
+                        tickFormat: (t) => {
+                            const date = new Date(t);
+                            // Check if we're dealing with days (7d or 30d)
+                            if (timeRange === '7d' || timeRange === '30d') {
+                                return date.toLocaleDateString('pt-BR', { 
+                                    day: '2-digit', 
+                                    month: '2-digit' 
+                                });
+                            } else {
+                                return date.toLocaleTimeString('pt-BR', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                });
+                            }
+                        }
                 }),
                 React.createElement(Victory.VictoryLine, {
                     key: 'memory-line',
