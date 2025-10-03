@@ -1357,7 +1357,7 @@ class HistoricalAnalysisService:
             start_time = end_time - timedelta(seconds=self.time_ranges.get(time_range, 86400))
             
             # Query Prometheus
-            data = await self._query_prometheus(cpu_usage_query, start_time, end_time, time_range, time_range)
+            data = await self._query_prometheus(cpu_usage_query, start_time, end_time, time_range)
             
             if not data:
                 return {
@@ -1408,7 +1408,7 @@ class HistoricalAnalysisService:
             start_time = end_time - timedelta(seconds=self.time_ranges.get(time_range, 86400))
             
             # Query Prometheus
-            data = await self._query_prometheus(memory_usage_query, start_time, end_time, time_range, time_range)
+            data = await self._query_prometheus(memory_usage_query, start_time, end_time, time_range)
             
             if not data:
                 return {
