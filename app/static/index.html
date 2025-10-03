@@ -2720,7 +2720,6 @@
                             <th>CPU Usage</th>
                             <th>Memory Usage</th>
                             <th>Last Updated</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -2739,14 +2738,9 @@
                                 <td>${workload.cpu_usage || 'N/A'}</td>
                                 <td>${workload.memory_usage || 'N/A'}</td>
                                 <td>${workload.last_updated ? new Date(workload.last_updated).toLocaleString() : 'N/A'}</td>
-                                <td>
-                                    <span style="color: var(--pf-global--Color--300); font-size: 12px;">
-                                        Click to expand
-                                    </span>
-                                </td>
                             </tr>
                             <tr class="workload-details-row" id="details-${index}" style="display: none;">
-                                <td colspan="8">
+                                <td colspan="7">
                                     <div class="workload-details-container" id="details-content-${index}">
                                         <div class="loading-spinner">
                                             <div class="spinner"></div>
@@ -3145,7 +3139,7 @@
                 height: containerHeight,
                 theme: Victory.VictoryTheme.material,
                 scale: { x: 'time' },
-                padding: { top: 20, bottom: 50, left: 60, right: 20 },
+                padding: { top: 20, bottom: 60, left: 80, right: 40 },
                 domainPadding: { x: 0, y: 0 },
                 style: {
                     parent: { 
@@ -3240,7 +3234,7 @@
                 height: containerHeight,
                 theme: Victory.VictoryTheme.material,
                 scale: { x: 'time' },
-                padding: { top: 20, bottom: 50, left: 60, right: 20 },
+                padding: { top: 20, bottom: 60, left: 80, right: 40 },
                 domainPadding: { x: 0, y: 0 },
                 style: {
                     parent: { 
