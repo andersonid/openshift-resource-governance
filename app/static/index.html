@@ -2575,8 +2575,17 @@
             const container = document.getElementById(`details-content-${index}`);
             
             try {
-                // Get selected time range
-                const timeRange = document.getElementById('timeRangeSelect')?.value || '24h';
+                // Get selected time range from PatternFly dropdown
+                const timeRangeText = document.getElementById('timeRangeText')?.textContent || 'Last 24 Hours';
+                let timeRange = '24h'; // default
+                
+                switch(timeRangeText) {
+                    case 'Last 1 Hour': timeRange = '1h'; break;
+                    case 'Last 6 Hours': timeRange = '6h'; break;
+                    case 'Last 24 Hours': timeRange = '24h'; break;
+                    case 'Last 7 Days': timeRange = '7d'; break;
+                    case 'Last 30 Days': timeRange = '30d'; break;
+                }
                 
                 container.innerHTML = `
                     <div class="loading-spinner">
