@@ -22,7 +22,7 @@ on:
 
 env:
   IMAGE_NAME: resource-governance
-  REGISTRY: andersonid
+  REGISTRY: quay.io/rh_ee_anobre
 
 jobs:
   deploy-to-openshift:
