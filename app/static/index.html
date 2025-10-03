@@ -732,6 +732,127 @@
             background-color: rgba(255, 255, 255, 0.02);
         }
         
+        /* Workload Accordion Styles */
+        .workloads-accordion {
+            margin-top: 16px;
+        }
+        
+        .workload-accordion-item {
+            border: 1px solid var(--pf-global--BorderColor--200);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background-color: var(--pf-global--BackgroundColor--100);
+            overflow: hidden;
+        }
+        
+        .workload-accordion-header {
+            padding: 16px 20px;
+            background-color: var(--pf-global--BackgroundColor--200);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+        
+        .workload-accordion-header:hover {
+            background-color: var(--pf-global--BackgroundColor--300);
+        }
+        
+        .workload-accordion-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .workload-accordion-icon {
+            transition: transform 0.2s ease;
+            color: var(--pf-global--Color--400);
+        }
+        
+        .workload-accordion-stats {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .workload-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--pf-global--Color--300);
+            font-size: 14px;
+        }
+        
+        .workload-stat i {
+            color: var(--pf-global--Color--400);
+        }
+        
+        .workload-accordion-content {
+            background-color: var(--pf-global--BackgroundColor--100);
+            border-top: 1px solid var(--pf-global--BorderColor--200);
+        }
+        
+        .workload-issues-container {
+            padding: 20px;
+        }
+        
+        .workload-issues-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .workload-issue-item {
+            background-color: var(--pf-global--BackgroundColor--200);
+            border: 1px solid var(--pf-global--BorderColor--200);
+            border-radius: 6px;
+            padding: 16px;
+        }
+        
+        .workload-issue-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .workload-issue-title {
+            font-weight: 600;
+            color: var(--pf-global--Color--100);
+            flex: 1;
+        }
+        
+        .workload-issue-pod {
+            color: var(--pf-global--Color--300);
+            font-size: 14px;
+            background-color: var(--pf-global--BackgroundColor--300);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .workload-issue-content {
+            margin-top: 8px;
+        }
+        
+        .workload-issue-message {
+            color: var(--pf-global--Color--200);
+            margin: 0 0 8px 0;
+            line-height: 1.5;
+        }
+        
+        .workload-issue-recommendation {
+            background-color: var(--pf-global--BackgroundColor--300);
+            border-left: 3px solid var(--pf-global--info-color--100);
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        
+        .workload-issue-recommendation strong {
+            color: var(--pf-global--info-color--100);
+        }
+        
         /* Modal Styles */
         .modal {
             display: block;
@@ -1591,13 +1712,131 @@
                 
                 currentData = { validations: validationsData };
                 
-                // Update workloads table
+                // Update workloads accordion
                 updateWorkloadsTable(validationsData);
+                
+                // Pre-load all workload details
+                await preloadAllWorkloadDetails();
                 
             } catch (error) {
                 console.error('Error loading requests & limits data:', error);
                 showError('workloads-table-container', 'Failed to load workload data');
             }
+        }
+        
+        async function preloadAllWorkloadDetails() {
+            if (!window.workloadsData) return;
+            
+            // Load details for all namespaces in parallel
+            const loadPromises = window.workloadsData.map(async (namespace, index) => {
+                try {
+                    const response = await fetch(`/api/v1/validations/namespace/${namespace.namespace}`);
+                    const data = await response.json();
+                    
+                    // Store the data for when accordion is opened
+                    window.workloadDetails = window.workloadDetails || {};
+                    window.workloadDetails[namespace.namespace] = data;
+                    
+                } catch (error) {
+                    console.error(`Error loading details for namespace ${namespace.namespace}:`, error);
+                    window.workloadDetails = window.workloadDetails || {};
+                    window.workloadDetails[namespace.namespace] = { error: 'Failed to load details' };
+                }
+            });
+            
+            await Promise.all(loadPromises);
+        }
+        
+        function toggleWorkloadIssues(index) {
+            const content = document.getElementById(`workload-content-${index}`);
+            const icon = document.getElementById(`workload-icon-${index}`);
+            
+            if (content.style.display === 'none') {
+                // Expand accordion
+                content.style.display = 'block';
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-down');
+                
+                // Load issues if not already loaded
+                loadWorkloadIssues(index);
+            } else {
+                // Collapse accordion
+                content.style.display = 'none';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-right');
+            }
+        }
+        
+        function loadWorkloadIssues(index) {
+            const namespace = window.workloadsData[index];
+            const container = document.getElementById(`workload-issues-${index}`);
+            
+            if (!namespace) return;
+            
+            // Check if we already have the data
+            if (window.workloadDetails && window.workloadDetails[namespace.namespace]) {
+                const data = window.workloadDetails[namespace.namespace];
+                
+                if (data.error) {
+                    container.innerHTML = `
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            ${data.error}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Display the issues
+                displayWorkloadIssues(container, data, namespace);
+                return;
+            }
+            
+            // If data not available, show loading
+            container.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    Loading issues...
+                </div>
+            `;
+        }
+        
+        function displayWorkloadIssues(container, data, namespace) {
+            if (!data.validations || data.validations.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--pf-global--Color--300);">
+                        <i class="fas fa-check-circle" style="font-size: 24px; margin-bottom: 8px; color: var(--pf-global--success-color--100);"></i>
+                        <p style="margin: 0;">No issues found for this namespace</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const issuesHTML = `
+                <div class="workload-issues-list">
+                    ${data.validations.map(validation => `
+                        <div class="workload-issue-item">
+                            <div class="workload-issue-header">
+                                <span class="severity-badge ${validation.severity}">
+                                    ${validation.severity.toUpperCase()}
+                                </span>
+                                <span class="workload-issue-title">${validation.validation_type || validation.title || 'Resource Issue'}</span>
+                                <span class="workload-issue-pod">${validation.pod_name}</span>
+                            </div>
+                            <div class="workload-issue-content">
+                                <p class="workload-issue-message">${validation.message || validation.description || 'No description available'}</p>
+                                ${validation.recommendation || validation.action_required ? `
+                                    <div class="workload-issue-recommendation">
+                                        <strong>Recommendation:</strong> ${validation.recommendation || validation.action_required}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            container.innerHTML = issuesHTML;
         }
         
         // Load settings
@@ -2430,48 +2669,52 @@
                         <i class="fas fa-check-circle" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--success-color--100);"></i>
                         <h3 style="margin: 0 0 8px 0; color: var(--pf-global--Color--100);">No Issues Found</h3>
                         <p style="margin: 0;">All workloads are properly configured</p>
-                            </div>
-                        `;
+                    </div>
+                `;
                 return;
             }
 
-            const tableHTML = `
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Namespace</th>
-                            <th>Pods</th>
-                            <th>Issues</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${namespaces.map(namespace => `
-                            <tr>
-                                <td>
+            // Create accordion HTML
+            const accordionHTML = `
+                <div class="workloads-accordion">
+                    ${namespaces.map((namespace, index) => `
+                        <div class="workload-accordion-item">
+                            <div class="workload-accordion-header" onclick="toggleWorkloadIssues(${index})" id="workload-header-${index}">
+                                <div class="workload-accordion-title">
+                                    <i class="fas fa-chevron-right workload-accordion-icon" id="workload-icon-${index}"></i>
                                     <strong style="color: var(--pf-global--Color--100);">${namespace.namespace}</strong>
-                                </td>
-                                <td>${namespace.pods.size}</td>
-                                <td>${namespace.validations.length}</td>
-                                <td>
+                                </div>
+                                <div class="workload-accordion-stats">
+                                    <span class="workload-stat">
+                                        <i class="fas fa-cube"></i>
+                                        ${namespace.pods.size} pods
+                                    </span>
+                                    <span class="workload-stat">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        ${namespace.validations.length} issues
+                                    </span>
                                     <span class="status-indicator ${getSeverityClass(namespace)}">
                                         ${getSeverityText(namespace)}
                                     </span>
-                                </td>
-                                <td>
-                                    <button class="openshift-button secondary" onclick="analyzeNamespace('${namespace.namespace}')">
-                                        <i class="fas fa-search"></i>
-                                        Analyze
-                                    </button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                                </div>
+                            </div>
+                            <div class="workload-accordion-content" id="workload-content-${index}" style="display: none;">
+                                <div class="workload-issues-container" id="workload-issues-${index}">
+                                    <div class="loading-spinner">
+                                        <div class="spinner"></div>
+                                        Loading issues...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             `;
             
-            container.innerHTML = tableHTML;
+            container.innerHTML = accordionHTML;
+            
+            // Store namespace data globally for accordion functions
+            window.workloadsData = namespaces;
         }
         
         function updateHistoricalWorkloads(data) {
@@ -3122,177 +3365,7 @@
                 `;
             }
 
-        function analyzeNamespace(namespaceName) {
-            if (!currentData || !currentData.validations || !currentData.validations.validations) return;
-            
-            // Filter validations for this namespace
-            const namespaceValidations = currentData.validations.validations.filter(v => v.namespace === namespaceName);
-            if (namespaceValidations.length === 0) return;
-            
-            // Group by pod
-            const podGroups = {};
-            namespaceValidations.forEach(validation => {
-                const podName = validation.pod_name;
-                if (!podGroups[podName]) {
-                    podGroups[podName] = {
-                        pod_name: podName,
-                        namespace: namespaceName,
-                        phase: 'Running', // Default phase
-                        node_name: 'Unknown', // Default node
-                        containers: [],
-                        validations: []
-                    };
-                }
-                podGroups[podName].validations.push(validation);
-            });
-            
-            // Create namespace object for compatibility
-            const namespace = {
-                namespace: namespaceName,
-                pods: podGroups,
-                validations: namespaceValidations,
-                severity_breakdown: {
-                    error: namespaceValidations.filter(v => v.severity === 'error').length,
-                    warning: namespaceValidations.filter(v => v.severity === 'warning').length,
-                    info: namespaceValidations.filter(v => v.severity === 'info').length
-                }
-            };
-            
-            // Show details in modal
-            showNamespaceDetails(namespaceName, namespace);
-        }
         
-        function showNamespaceDetails(namespaceName, namespace) {
-            // Create modal if it doesn't exist
-            let modal = document.getElementById('namespaceModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'namespaceModal';
-            modal.className = 'modal';
-            modal.innerHTML = `
-                    <div class="modal-content" style="width: 90%; max-width: 1000px;">
-                    <div class="modal-header">
-                            <h2>📋 Namespace Analysis - ${namespaceName}</h2>
-                        <span class="close">&times;</span>
-                    </div>
-                        <div class="modal-body" id="modalBody"></div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            // Add close functionality
-                modal.querySelector('.close').onclick = () => modal.style.display = 'none';
-            modal.onclick = (e) => {
-                    if (e.target === modal) modal.style.display = 'none';
-                };
-            }
-            
-            // Use the passed namespace object
-            if (!namespace) return;
-            
-            let content = `
-                <div class="namespace-details">
-                    <div class="namespace-summary" style="background-color: #1E1E1E; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                        <h3 style="color: var(--pf-global--Color--100); margin-top: 0;">📊 Summary</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                            <div>
-                                <strong>Pods:</strong> ${Object.keys(namespace.pods || {}).length}
-                    </div>
-                            <div>
-                                <strong>Total Issues:</strong> ${namespace.validations?.length || 0}
-                            </div>
-                            <div>
-                                <strong>Errors:</strong> <span style="color: var(--pf-global--danger-color--100);">${namespace.severity_breakdown?.error || 0}</span>
-                            </div>
-                            <div>
-                                <strong>Warnings:</strong> <span style="color: var(--pf-global--warning-color--100);">${namespace.severity_breakdown?.warning || 0}</span>
-                            </div>
-                            </div>
-                            </div>
-                    <div class="pods-details">
-                        <h3 style="color: var(--pf-global--Color--100);">🔍 Pod Analysis</h3>
-            `;
-            
-            // Add details for each pod
-            Object.values(namespace.pods || {}).forEach(pod => {
-                content += `
-                    <div class="pod-detail" style="background-color: #1E1E1E; padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #404040;">
-                        <h4 style="color: var(--pf-global--Color--100); margin-top: 0;">📦 ${pod.pod_name}</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
-                            <div><strong>Status:</strong> ${pod.phase}</div>
-                            <div><strong>Node:</strong> ${pod.node_name}</div>
-                            </div>
-                        <div class="containers-detail">
-                            <h5 style="color: var(--pf-global--Color--100);">Containers:</h5>
-                `;
-                
-                pod.containers.forEach(container => {
-                    const hasRequests = Object.keys(container.resources?.requests || {}).length > 0;
-                    const hasLimits = Object.keys(container.resources?.limits || {}).length > 0;
-                    
-                    content += `
-                        <div class="container-detail" style="background-color: #2B2B2B; padding: 16px; border-radius: 6px; margin-bottom: 12px;">
-                            <h6 style="color: var(--pf-global--Color--100); margin-top: 0;">${container.name}</h6>
-                            <p><strong>Image:</strong> ${container.image}</p>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                <div>
-                                    <strong>Requests:</strong> 
-                                    ${hasRequests ? 
-                                        `<span style="color: var(--pf-global--success-color--100);">${JSON.stringify(container.resources.requests)}</span>` : 
-                                        '<span style="color: var(--pf-global--danger-color--100);">❌ Not defined</span>'
-                                    }
-                                </div>
-                                <div>
-                                    <strong>Limits:</strong> 
-                                    ${hasLimits ? 
-                                        `<span style="color: var(--pf-global--success-color--100);">${JSON.stringify(container.resources.limits)}</span>` : 
-                                        '<span style="color: var(--pf-global--warning-color--100);">❌ Not defined</span>'
-                                    }
-                        </div>
-                    </div>
-                </div>
-            `;
-                });
-                
-                content += `
-                        </div>
-                        <div class="validations-detail">
-                            <h5 style="color: var(--pf-global--Color--100);">Issues Found:</h5>
-                `;
-                
-                if (pod.validations && pod.validations.length > 0) {
-                    pod.validations.forEach(validation => {
-                        const severityClass = validation.severity === 'error' ? 'danger' : 
-                                            validation.severity === 'warning' ? 'warning' : 'info';
-                        const severityColor = validation.severity === 'error' ? 'var(--pf-global--danger-color--100)' : 
-                                            validation.severity === 'warning' ? 'var(--pf-global--warning-color--100)' : 'var(--pf-global--info-color--100)';
-                        
-                        content += `
-                            <div class="validation-item" style="background-color: #2B2B2B; padding: 16px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid ${severityColor};">
-                                <p style="margin: 0 0 8px 0;"><strong style="color: ${severityColor};">${validation.validation_type || validation.title || 'Issue'}:</strong> ${validation.message || validation.description}</p>
-                                <p style="margin: 0; color: var(--pf-global--Color--300);"><em>Recommendation:</em> ${validation.recommendation || validation.action_required || 'No specific recommendation available'}</p>
-                            </div>
-                        `;
-                    });
-                } else {
-                    content += `<p style="color: var(--pf-global--success-color--100);">✅ No issues found for this pod.</p>`;
-                }
-                
-                content += `
-                        </div>
-                    </div>
-                `;
-            });
-            
-            content += `
-                    </div>
-                </div>
-            `;
-            
-            // Populate and show modal
-            document.getElementById('modalBody').innerHTML = content;
-            modal.style.display = 'block';
-        }
         
         function getSeverityClass(namespace) {
             const breakdown = namespace.severity_breakdown || {};
