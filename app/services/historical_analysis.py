@@ -1372,7 +1372,7 @@ class HistoricalAnalysisService:
             chart_data = []
             for point in data:
                 if len(point) >= 2 and point[1] != 'NaN':
-                    timestamp = int(point[0] * 1000)  # Convert to milliseconds
+                    timestamp = int(point[0])  # Already in milliseconds
                     value = self._safe_float(point[1])
                     chart_data.append({
                         "x": timestamp,
@@ -1423,7 +1423,7 @@ class HistoricalAnalysisService:
             chart_data = []
             for point in data:
                 if len(point) >= 2 and point[1] != 'NaN':
-                    timestamp = int(point[0] * 1000)  # Convert to milliseconds
+                    timestamp = int(point[0])  # Already in milliseconds
                     value = self._safe_float(point[1]) / (1024 * 1024)  # Convert to MB
                     chart_data.append({
                         "x": timestamp,
