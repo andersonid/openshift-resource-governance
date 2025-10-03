@@ -1046,12 +1046,24 @@
         </div>
         
         <div class="sidebar-section">
-            <h3 class="sidebar-section-title">VPA</h3>
+            <h3 class="sidebar-section-title">Analysis</h3>
             <ul class="sidebar-nav">
                 <li class="sidebar-nav-item">
-                    <a href="#" class="sidebar-nav-link" data-section="smart-recommendations">
-                        <i class="fas fa-lightbulb sidebar-nav-icon"></i>
-                        <span>Smart Recommendations</span>
+                    <a href="#" class="sidebar-nav-link" data-section="requests-limits">
+                        <i class="fas fa-exclamation-triangle sidebar-nav-icon"></i>
+                        <span>Requests & Limits</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3 class="sidebar-section-title">Recommendations</h3>
+            <ul class="sidebar-nav">
+                <li class="sidebar-nav-item">
+                    <a href="#" class="sidebar-nav-link" data-section="historical-analysis">
+                        <i class="fas fa-chart-line sidebar-nav-icon"></i>
+                        <span>Historical Based</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
@@ -1064,32 +1076,12 @@
         </div>
         
         <div class="sidebar-section">
-            <h3 class="sidebar-section-title">Analysis</h3>
+            <h3 class="sidebar-section-title">Settings</h3>
             <ul class="sidebar-nav">
                 <li class="sidebar-nav-item">
-                    <a href="#" class="sidebar-nav-link" data-section="requests-limits">
-                        <i class="fas fa-exclamation-triangle sidebar-nav-icon"></i>
-                        <span>Requests & Limits</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <div class="sidebar-section">
-            <h3 class="sidebar-section-title">Observe</h3>
-            <ul class="sidebar-nav">
-                <li class="sidebar-nav-item">
-                    <a href="#" class="sidebar-nav-link">
-                        <i class="fas fa-chart-bar sidebar-nav-icon"></i>
-                        <span>Metrics</span>
-                        <i class="fas fa-chevron-right sidebar-nav-arrow"></i>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="#" class="sidebar-nav-link">
-                        <i class="fas fa-search sidebar-nav-icon"></i>
-                        <span>Logs</span>
-                        <i class="fas fa-chevron-right sidebar-nav-arrow"></i>
+                    <a href="#" class="sidebar-nav-link" data-section="settings">
+                        <i class="fas fa-cog sidebar-nav-icon"></i>
+                        <span>Configuration</span>
                     </a>
                 </li>
             </ul>
@@ -1205,17 +1197,35 @@
             </div>
         </section>
 
-        <!-- Smart Recommendations Section -->
-        <section id="smart-recommendations-section" class="section-hidden">
+
+            <!-- VPA Management Section -->
+        <section id="vpa-management-section" class="section-hidden">
             <div class="page-header">
-                <h1 class="page-title">Smart Recommendations</h1>
-                <p class="page-description">AI-powered recommendations for resource optimization and VPA activation</p>
+                <h1 class="page-title">VPA Management & Recommendations</h1>
+                <p class="page-description">Manage Vertical Pod Autoscaler configurations, monitor VPA status, and apply smart recommendations</p>
+            </div>
+
+            <!-- VPA Management Content -->
+            <div class="openshift-card">
+                <div class="card-header">
+                    <h2 class="card-title">VPA Status</h2>
+                    <button class="openshift-button" onclick="loadVPAManagement()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+                <div class="table-content" id="vpa-management-container">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Loading VPA data...
+                    </div>
+                </div>
             </div>
 
             <!-- Smart Recommendations Content -->
-            <div class="openshift-card">
+            <div class="openshift-card" style="margin-top: 24px;">
                 <div class="card-header">
-                    <h2 class="card-title">VPA Recommendations</h2>
+                    <h2 class="card-title">Smart Recommendations</h2>
                     <div class="card-actions">
                         <button class="openshift-button" onclick="loadSmartRecommendations()">
                             <i class="fas fa-sync-alt"></i>
@@ -1285,31 +1295,6 @@
             </div>
         </section>
 
-            <!-- VPA Management Section -->
-        <section id="vpa-management-section" class="section-hidden">
-            <div class="page-header">
-                <h1 class="page-title">VPA Management</h1>
-                <p class="page-description">Manage Vertical Pod Autoscaler configurations and monitor VPA status</p>
-                    </div>
-
-            <!-- VPA Management Content -->
-            <div class="openshift-card">
-                <div class="card-header">
-                    <h2 class="card-title">VPA Status</h2>
-                    <button class="openshift-button" onclick="loadVPAManagement()">
-                        <i class="fas fa-sync-alt"></i>
-                        Refresh
-                    </button>
-                </div>
-                <div class="table-content" id="vpa-management-container">
-                    <div class="loading-spinner">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        Loading VPA data...
-            </div>
-                </div>
-            </div>
-        </section>
-
             <!-- Historical Analysis Section -->
         <section id="historical-analysis-section" class="section-hidden">
             <div class="page-header">
@@ -1353,6 +1338,31 @@
                     </div>
                 <div class="table-content" id="workload-details-content">
                     <!-- Workload details will be populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings-section" class="section-hidden">
+            <div class="page-header">
+                <h1 class="page-title">Configuration Settings</h1>
+                <p class="page-description">Configure analysis thresholds, ratios, and parameters for resource optimization</p>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="openshift-card">
+                <div class="card-header">
+                    <h2 class="card-title">Analysis Parameters</h2>
+                    <button class="openshift-button" onclick="loadSettings()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+                <div class="table-content" id="settings-container">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Loading settings...
+                    </div>
                 </div>
             </div>
         </section>
@@ -1421,12 +1431,12 @@
                 loadWorkloadScanner();
             } else if (section === 'requests-limits') {
                 loadRequestsLimits();
-            } else if (section === 'smart-recommendations') {
-                loadSmartRecommendations();
             } else if (section === 'vpa-management') {
                 loadVPAManagement();
             } else if (section === 'historical-analysis') {
                 loadHistoricalAnalysis();
+            } else if (section === 'settings') {
+                loadSettings();
             }
         }
         
@@ -1463,6 +1473,28 @@
             } catch (error) {
                 console.error('Error loading requests & limits data:', error);
                 showError('workloads-table-container', 'Failed to load workload data');
+            }
+        }
+        
+        // Load settings
+        async function loadSettings() {
+            try {
+                showLoading('settings-container');
+                
+                // TODO: Implement settings loading
+                // For now, show placeholder
+                document.getElementById('settings-container').innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--pf-global--Color--300);">
+                        <i class="fas fa-cog" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--Color--400);"></i>
+                        <h3>Settings Configuration</h3>
+                        <p>Configure analysis thresholds, ratios, and parameters for resource optimization.</p>
+                        <p style="margin-top: 16px; font-style: italic;">Coming soon...</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                showError('settings-container', 'Failed to load settings');
             }
         }
         
