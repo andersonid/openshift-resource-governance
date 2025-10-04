@@ -148,10 +148,12 @@ class K8sClient:
                 
                 # Filter out non-running pods (build pods, completed pods, etc.)
                 if pod.status.phase not in ["Running", "Pending"]:
+                    logger.debug(f"Filtering out pod {pod.metadata.name} with phase {pod.status.phase}")
                     continue
                 
                 # Filter out build pods (pods ending with -build)
                 if pod.metadata.name.endswith('-build'):
+                    logger.debug(f"Filtering out build pod {pod.metadata.name}")
                     continue
                 # Calculate total pod resources
                 total_cpu_requests = 0.0
