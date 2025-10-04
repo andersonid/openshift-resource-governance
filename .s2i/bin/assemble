@@ -19,7 +19,7 @@ mkdir -p /opt/app-root/src/logs
 
 # Copy application files
 echo "Copying application files..."
-cp -r app/* /opt/app-root/src/app/
+cp -r /tmp/src/app/* /opt/app-root/src/app/
 
 # Set proper permissions
 echo "Setting permissions..."
