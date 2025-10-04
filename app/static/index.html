@@ -2138,38 +2138,82 @@
                 return;
             }
 
-            // Add summary information
+            // Generate colors for namespaces
+            const colors = ['#0066CC', '#CC0000', '#00CC66', '#FF8800', '#CC00CC', '#666666', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
+            
+            // Prepare data for Victory chart
+            const chartData = data.map((item, index) => ({
+                x: item.x,
+                y: item.y,
+                color: colors[index % colors.length],
+                podCount: item.podCount || 0,
+                memoryRequests: item.memoryRequests || 0
+            }));
+
+            const chart = React.createElement(Victory.VictoryPie, {
+                width: container.offsetWidth || 500,
+                height: 300,
+                data: chartData,
+                colorScale: chartData.map(item => item.color),
+                padding: { top: 20, bottom: 20, left: 20, right: 20 },
+                style: {
+                    parent: { 
+                        background: '#1A1A1A',
+                        width: '100%',
+                        height: '100%'
+                    },
+                    labels: { 
+                        fill: '#ccc', 
+                        fontSize: 11,
+                        fontFamily: 'Red Hat Text, sans-serif'
+                    }
+                },
+                labelComponent: React.createElement(Victory.VictoryLabel, {
+                    style: { 
+                        fill: '#ccc', 
+                        fontSize: 11,
+                        fontFamily: 'Red Hat Text, sans-serif'
+                    },
+                    labelPlacement: 'perpendicular',
+                    text: (datum) => {
+                        const cpuCores = datum.y.toFixed(2);
+                        const podCount = datum.podCount;
+                        return `${datum.x}\n${cpuCores} cores\n${podCount} pods`;
+                    }
+                }),
+                events: [{
+                    target: "data",
+                    eventHandlers: {
+                        onMouseOver: () => {
+                            return [{
+                                target: "labels",
+                                mutation: (props) => {
+                                    return {
+                                        style: Object.assign({}, props.style, { fill: "#fff", fontSize: 12, fontWeight: "bold" })
+                                    };
+                                }
+                            }];
+                        },
+                        onMouseOut: () => {
+                            return [{
+                                target: "labels",
+                                mutation: (props) => {
+                                    return {
+                                        style: Object.assign({}, props.style, { fill: "#ccc", fontSize: 11, fontWeight: "normal" })
+                                    };
+                                }
+                            }];
+                        }
+                    }
+                }]
+            });
+
+            // Add summary information below the chart
             const totalCpu = data.reduce((sum, item) => sum + item.y, 0);
             const totalPods = data.reduce((sum, item) => sum + (item.podCount || 0), 0);
             
-            // Create simple HTML pie chart instead of Victory
-            const colors = ['#0066CC', '#CC0000', '#00CC66', '#FF8800', '#CC00CC', '#666666', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
-            
-            let pieHtml = '<div style="display: flex; flex-direction: column; height: 100%;">';
-            pieHtml += '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">';
-            
-            data.forEach((item, index) => {
-                const percentage = totalCpu > 0 ? ((item.y / totalCpu) * 100).toFixed(1) : 0;
-                const color = colors[index % colors.length];
-                
-                pieHtml += `
-                    <div style="display: flex; align-items: center; background: #2B2B2B; padding: 8px 12px; border-radius: 4px; border-left: 4px solid ${color};">
-                        <div style="width: 12px; height: 12px; background: ${color}; border-radius: 50%; margin-right: 8px;"></div>
-                        <div>
-                            <div style="font-weight: bold; color: var(--pf-global--Color--100);">${item.x}</div>
-                            <div style="font-size: 12px; color: var(--pf-global--Color--300);">
-                                ${item.y.toFixed(2)} cores (${percentage}%) • ${item.podCount} pods
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            pieHtml += '</div>';
-            
-            // Add summary statistics
-            pieHtml += `
-                <div style="margin-top: auto; padding: 12px; background-color: #2B2B2B; border-radius: 4px; border: 1px solid #404040;">
+            const summaryHtml = `
+                <div style="margin-top: 16px; padding: 12px; background-color: #2B2B2B; border-radius: 4px; border: 1px solid #404040;">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; text-align: center;">
                         <div>
                             <div style="font-size: 12px; color: var(--pf-global--Color--300); margin-bottom: 4px;">Total CPU Requests</div>
@@ -2186,10 +2230,27 @@
                     </div>
                 </div>
             `;
+
+            // Create a wrapper div to hold both chart and summary
+            const wrapper = document.createElement('div');
+            wrapper.style.width = '100%';
+            wrapper.style.height = '100%';
+            wrapper.style.display = 'flex';
+            wrapper.style.flexDirection = 'column';
             
-            pieHtml += '</div>';
+            const chartDiv = document.createElement('div');
+            chartDiv.style.flex = '1';
+            chartDiv.style.minHeight = '200px';
             
-            container.innerHTML = pieHtml;
+            wrapper.appendChild(chartDiv);
+            wrapper.innerHTML += summaryHtml;
+            
+            // Clear container and add wrapper
+            container.innerHTML = '';
+            container.appendChild(wrapper);
+            
+            // Render chart in the chart div
+            ReactDOM.render(chart, chartDiv);
         }
 
         // 3. Issues by Severity Timeline
