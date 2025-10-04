@@ -16,6 +16,34 @@ echo "   - Service and Route"
 echo "   - Resource limits and requests"
 echo ""
 
+# Check for GitHub Actions option
+if [ "$1" = "--github" ] || [ "$1" = "-g" ]; then
+    echo "🔄 Deploying via GitHub Actions (S2I Webhook)..."
+    echo "📦 Repository: andersonid/openshift-resource-governance"
+    echo "🌿 Branch: $(git branch --show-current)"
+    echo "🔗 Commit: $(git rev-parse HEAD)"
+    echo ""
+    
+    # Trigger GitHub Actions workflow
+    if command -v gh &> /dev/null; then
+        echo "🚀 Triggering S2I deployment via GitHub Actions..."
+        gh workflow run s2i-deploy.yml
+        echo "✅ GitHub Actions workflow triggered!"
+        echo "📱 Monitor progress: https://github.com/andersonid/openshift-resource-governance/actions"
+    else
+        echo "❌ GitHub CLI (gh) not found. Please install it or use manual deployment."
+        echo "💡 Manual webhook URL:"
+        echo "   curl -X POST 'https://oru.apps.shrocp4upi419ovn.lab.upshift.rdu2.redhat.com/apis/build.openshift.io/v1/namespaces/resource-governance/buildconfigs/resource-governance/webhooks/pqWLANKULBy1p6aTbPFa/generic'"
+        exit 1
+    fi
+    exit 0
+fi
+
+echo "💡 Usage options:"
+echo "   ./scripts/deploy-s2i.sh          # Manual S2I deployment"
+echo "   ./scripts/deploy-s2i.sh --github # Deploy via GitHub Actions"
+echo ""
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'

@@ -1,0 +1,76 @@
+name: S2I Deploy (Automatic)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      openshift_server:
+        description: 'OpenShift Server URL'
+        required: true
+        default: 'https://oru.apps.shrocp4upi419ovn.lab.upshift.rdu2.redhat.com'
+      namespace:
+        description: 'Target Namespace'
+        required: true
+        default: 'resource-governance'
+
+env:
+  APP_NAME: resource-governance
+  NAMESPACE: resource-governance
+
+jobs:
+  s2i-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Trigger S2I Build via Webhook
+      run: |
+        echo "🚀 Triggering S2I build via Generic Webhook..."
+        echo "📦 Repository: ${{ github.repository }}"
+        echo "🔗 Commit: ${{ github.sha }}"
+        echo "🌿 Branch: ${{ github.ref_name }}"
+        
+        # URL do webhook genérico do OpenShift
+        WEBHOOK_URL="https://${{ inputs.openshift_server || 'oru.apps.shrocp4upi419ovn.lab.upshift.rdu2.redhat.com' }}/apis/build.openshift.io/v1/namespaces/${{ inputs.namespace || env.NAMESPACE }}/buildconfigs/${{ env.APP_NAME }}/webhooks/pqWLANKULBy1p6aTbPFa/generic"
+        
+        echo "🔗 Webhook URL: $WEBHOOK_URL"
+        
+        # Disparar build S2I
+        curl -X POST "$WEBHOOK_URL" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "repository": {
+              "full_name": "${{ github.repository }}",
+              "clone_url": "${{ github.server_url }}/${{ github.repository }}.git"
+            },
+            "ref": "${{ github.ref }}",
+            "head_commit": {
+              "id": "${{ github.sha }}",
+              "message": "${{ github.event.head_commit.message }}",
+              "author": {
+                "name": "${{ github.event.head_commit.author.name }}",
+                "email": "${{ github.event.head_commit.author.email }}"
+              }
+            },
+            "pusher": {
+              "name": "${{ github.actor }}"
+            }
+          }' \
+          --fail-with-body
+        
+        echo "✅ S2I build triggered successfully!"
+        
+    - name: Wait for build completion (optional)
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        echo "⏳ Waiting for S2I build to complete..."
+        echo "ℹ️  Check OpenShift console for build progress:"
+        echo "   oc get builds -n ${{ inputs.namespace || env.NAMESPACE }}"
+        echo "   oc logs -f buildconfig/${{ env.APP_NAME }} -n ${{ inputs.namespace || env.NAMESPACE }}"
+        echo ""
+        echo "🎯 Build will complete automatically in the background"
+        echo "📱 You can monitor progress in the OpenShift console"
