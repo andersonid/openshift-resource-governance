@@ -145,6 +145,14 @@ class K8sClient:
                 # Filter system namespaces
                 if self._is_system_namespace(pod.metadata.namespace, include_system_namespaces):
                     continue
+                
+                # Filter out non-running pods (build pods, completed pods, etc.)
+                if pod.status.phase not in ["Running", "Pending"]:
+                    continue
+                
+                # Filter out build pods (pods ending with -build)
+                if pod.metadata.name.endswith('-build'):
+                    continue
                 # Calculate total pod resources
                 total_cpu_requests = 0.0
                 total_memory_requests = 0.0
