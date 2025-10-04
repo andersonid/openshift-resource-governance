@@ -84,10 +84,10 @@ deploy_s2i() {
         -p GIT_REPOSITORY="$GIT_REPO" \
         -p GIT_REF="$GIT_REF" \
         -p PYTHON_VERSION="$PYTHON_VERSION" \
-        -p CPU_REQUEST="100m" \
-        -p CPU_LIMIT="500m" \
-        -p MEMORY_REQUEST="256Mi" \
-        -p MEMORY_LIMIT="1Gi" \
+        -p CPU_REQUEST="50m" \
+        -p CPU_LIMIT="200m" \
+        -p MEMORY_REQUEST="64Mi" \
+        -p MEMORY_LIMIT="256Mi" \
         -p REPLICAS="1" \
         | oc apply -f -
     
