@@ -6,9 +6,9 @@
 
 set -e
 
-echo "🚀 ORU Analyzer S2I Deployment"
-echo "==============================="
-echo "📦 This will deploy the application with ALL required resources"
+echo "ORU Analyzer S2I Deployment"
+echo "============================"
+echo "This will deploy the application with ALL required resources"
 echo "   - RBAC (ServiceAccount, ClusterRole, ClusterRoleBinding)"
 echo "   - ConfigMap with all configurations"
 echo "   - S2I Build and Deployment"
@@ -18,28 +18,28 @@ echo ""
 
 # Check for GitHub Actions option
 if [ "$1" = "--github" ] || [ "$1" = "-g" ]; then
-    echo "🔄 Deploying via GitHub Actions (S2I Webhook)..."
-    echo "📦 Repository: andersonid/openshift-resource-governance"
-    echo "🌿 Branch: $(git branch --show-current)"
-    echo "🔗 Commit: $(git rev-parse HEAD)"
+    echo "Deploying via GitHub Actions (S2I Webhook)..."
+    echo "Repository: andersonid/openshift-resource-governance"
+    echo "Branch: $(git branch --show-current)"
+    echo "Commit: $(git rev-parse HEAD)"
     echo ""
     
     # Trigger GitHub Actions workflow
     if command -v gh &> /dev/null; then
-        echo "🚀 Triggering S2I deployment via GitHub Actions..."
+        echo "Triggering S2I deployment via GitHub Actions..."
         gh workflow run s2i-deploy.yml
-        echo "✅ GitHub Actions workflow triggered!"
-        echo "📱 Monitor progress: https://github.com/andersonid/openshift-resource-governance/actions"
+        echo "SUCCESS: GitHub Actions workflow triggered!"
+        echo "Monitor progress: https://github.com/andersonid/openshift-resource-governance/actions"
     else
-        echo "❌ GitHub CLI (gh) not found. Please install it or use manual deployment."
-        echo "💡 Manual webhook URL:"
+        echo "ERROR: GitHub CLI (gh) not found. Please install it or use manual deployment."
+        echo "Manual webhook URL:"
         echo "   curl -X POST 'https://oru.apps.shrocp4upi419ovn.lab.upshift.rdu2.redhat.com/apis/build.openshift.io/v1/namespaces/resource-governance/buildconfigs/resource-governance/webhooks/pqWLANKULBy1p6aTbPFa/generic'"
         exit 1
     fi
     exit 0
 fi
 
-echo "💡 Usage options:"
+echo "Usage options:"
 echo "   ./scripts/deploy-s2i.sh          # Manual S2I deployment"
 echo "   ./scripts/deploy-s2i.sh --github # Deploy via GitHub Actions"
 echo ""
@@ -237,9 +237,9 @@ oc get route -n "$NAMESPACE"
 
 # Final status
 echo ""
-echo "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!"
-echo "====================================="
-echo "✅ All resources deployed:"
+echo "DEPLOYMENT COMPLETED SUCCESSFULLY!"
+echo "=================================="
+echo "SUCCESS: All resources deployed:"
 echo "   - Namespace: $NAMESPACE"
 echo "   - RBAC: ServiceAccount, ClusterRole, ClusterRoleBinding"
 echo "   - ConfigMap: resource-governance-config"
@@ -248,7 +248,7 @@ echo "   - Deployment: $APP_NAME"
 echo "   - Service: resource-governance-service"
 echo "   - Route: resource-governance-route"
 echo ""
-echo "🌐 Application Access:"
+echo "Application Access:"
 if [ -n "$ROUTE_URL" ]; then
     echo "   URL: https://$ROUTE_URL"
     echo "   Health: https://$ROUTE_URL/health"
@@ -257,10 +257,10 @@ else
     echo "   Get URL: oc get route -n $NAMESPACE"
 fi
 echo ""
-echo "🔧 Management Commands:"
+echo "Management Commands:"
 echo "   View logs: oc logs -f deployment/$APP_NAME -n $NAMESPACE"
 echo "   Check status: oc get all -n $NAMESPACE"
 echo "   Restart: oc rollout restart deployment/$APP_NAME -n $NAMESPACE"
 echo ""
-echo "📚 The application is now fully functional and self-service!"
+echo "The application is now fully functional and self-service!"
 echo "   No additional configuration needed."

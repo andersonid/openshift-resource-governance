@@ -1,81 +1,81 @@
 #!/bin/bash
 
-# Script de build e push para OpenShift Resource Governance Tool usando Podman
+# Build and push script for OpenShift Resource Governance Tool using Podman
 set -e
 
-# Cores para output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configurações
+# Configuration
 IMAGE_NAME="resource-governance"
 TAG="${1:-latest}"
 REGISTRY="${2:-quay.io/rh_ee_anobre}"
 FULL_IMAGE_NAME="${REGISTRY}/${IMAGE_NAME}:${TAG}"
 
-echo -e "${BLUE}🚀 Building and Pushing OpenShift Resource Governance Tool${NC}"
+echo -e "${BLUE}Building and Pushing OpenShift Resource Governance Tool${NC}"
 echo -e "${BLUE}Image: ${FULL_IMAGE_NAME}${NC}"
 
-# Verificar se Podman está instalado
+# Check if Podman is installed
 if ! command -v podman &> /dev/null; then
-    echo -e "${RED}❌ Podman não está instalado. Instale o Podman e tente novamente.${NC}"
+    echo -e "${RED}ERROR: Podman is not installed. Please install Podman and try again.${NC}"
     exit 1
 fi
 
-# Buildah é opcional, Podman pode fazer o build
+# Buildah is optional, Podman can do the build
 
-# Build da imagem
-echo -e "${YELLOW}📦 Building container image with Podman...${NC}"
+# Build image
+echo -e "${YELLOW}Building container image with Podman...${NC}"
 podman build -t "${FULL_IMAGE_NAME}" .
 
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ Image built successfully!${NC}"
+    echo -e "${GREEN}SUCCESS: Image built successfully!${NC}"
 else
-    echo -e "${RED}❌ Build failed!${NC}"
+    echo -e "${RED}ERROR: Build failed!${NC}"
     exit 1
 fi
 
-# Testar a imagem
-echo -e "${YELLOW}🧪 Testing image...${NC}"
-podman run --rm "${FULL_IMAGE_NAME}" python -c "import app.main; print('✅ App imports successfully')"
+# Test image
+echo -e "${YELLOW}Testing image...${NC}"
+podman run --rm "${FULL_IMAGE_NAME}" python -c "import app.main; print('SUCCESS: App imports successfully')"
 
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ Image test passed!${NC}"
+    echo -e "${GREEN}SUCCESS: Image test passed!${NC}"
 else
-    echo -e "${RED}❌ Image test failed!${NC}"
+    echo -e "${RED}ERROR: Image test failed!${NC}"
     exit 1
 fi
 
-# Login no Quay.io
-echo -e "${YELLOW}🔐 Logging into Quay.io...${NC}"
+# Login to Quay.io
+echo -e "${YELLOW}Logging into Quay.io...${NC}"
 podman login -u="rh_ee_anobre+oru" -p="EJNIJD7FPO5IN33ZGQZ4OM8BIB3LICASBVRGOJCX4WP84Y0ZG5SMQLTZ0S6DOZEC" quay.io
 
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ Login successful!${NC}"
+    echo -e "${GREEN}SUCCESS: Login successful!${NC}"
 else
-    echo -e "${RED}❌ Login failed!${NC}"
+    echo -e "${RED}ERROR: Login failed!${NC}"
     exit 1
 fi
 
-# Push da imagem
-echo -e "${YELLOW}📤 Pushing image to Quay.io...${NC}"
+# Push image
+echo -e "${YELLOW}Pushing image to Quay.io...${NC}"
 podman push "${FULL_IMAGE_NAME}"
 
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ Image pushed successfully!${NC}"
+    echo -e "${GREEN}SUCCESS: Image pushed successfully!${NC}"
 else
-    echo -e "${RED}❌ Push failed!${NC}"
+    echo -e "${RED}ERROR: Push failed!${NC}"
     exit 1
 fi
 
-# Mostrar informações da imagem
-echo -e "${BLUE}📊 Image information:${NC}"
+# Show image information
+echo -e "${BLUE}Image information:${NC}"
 podman images "${FULL_IMAGE_NAME}"
 
-echo -e "${GREEN}🎉 Build and push completed successfully!${NC}"
-echo -e "${BLUE}🌐 Image available at: https://quay.io/repository/${REGISTRY#quay.io/}/${IMAGE_NAME}${NC}"
-echo -e "${BLUE}🚀 Ready for deployment!${NC}"
-echo -e "${BLUE}📋 Registry: Quay.io (public repository)${NC}"
+echo -e "${GREEN}SUCCESS: Build and push completed successfully!${NC}"
+echo -e "${BLUE}Image available at: https://quay.io/repository/${REGISTRY#quay.io/}/${IMAGE_NAME}${NC}"
+echo -e "${BLUE}Ready for deployment!${NC}"
+echo -e "${BLUE}Registry: Quay.io (public repository)${NC}"

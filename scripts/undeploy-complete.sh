@@ -1,71 +1,81 @@
 #!/bin/bash
 
-# Script completo de undeploy para OpenShift Resource Governance Tool
+# Complete undeploy script for OpenShift Resource Governance Tool
 set -e
 
-# Cores para output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configurações
+# Configuration
 NAMESPACE="resource-governance"
 
-echo -e "${BLUE}🗑️  Undeploy - OpenShift Resource Governance Tool${NC}"
-echo -e "${BLUE}===============================================${NC}"
+echo -e "${BLUE}Undeploy - OpenShift Resource Governance Tool${NC}"
+echo -e "${BLUE}============================================${NC}"
 
-# Verificar se está logado no OpenShift
+# Check if logged into OpenShift
 if ! oc whoami > /dev/null 2>&1; then
-    echo -e "${RED}❌ Não está logado no OpenShift. Faça login primeiro.${NC}"
+    echo -e "${RED}ERROR: Not logged into OpenShift. Please login first.${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✅ Logado como: $(oc whoami)${NC}"
+echo -e "${GREEN}SUCCESS: Logged in as: $(oc whoami)${NC}"
 
-# Confirmar remoção
-echo -e "${YELLOW}⚠️  Tem certeza que deseja remover a aplicação do namespace '$NAMESPACE'?${NC}"
-read -p "Digite 'yes' para confirmar: " CONFIRM
+# Confirm removal
+echo -e "${YELLOW}WARNING: Are you sure you want to remove the application from namespace '$NAMESPACE'?${NC}"
+read -p "Type 'yes' to confirm: " CONFIRM
 
 if [ "$CONFIRM" != "yes" ]; then
-    echo -e "${YELLOW}❌ Operação cancelada.${NC}"
+    echo -e "${YELLOW}Operation cancelled.${NC}"
     exit 0
 fi
 
-# Remover recursos
-echo -e "${YELLOW}🗑️  Removendo recursos...${NC}"
+# Remove resources
+echo -e "${YELLOW}Removing resources...${NC}"
 
-# Remover Route
-echo -e "${YELLOW}  🛣️  Removendo Route...${NC}"
+# Remove Route
+echo -e "${YELLOW}  Removing Route...${NC}"
 oc delete -f k8s/route.yaml --ignore-not-found=true
 
-# Remover Service
-echo -e "${YELLOW}  🌐 Removendo Service...${NC}"
+# Remove Service
+echo -e "${YELLOW}  Removing Service...${NC}"
 oc delete -f k8s/service.yaml --ignore-not-found=true
 
-# Remover Deployment
-echo -e "${YELLOW}  📦 Removendo Deployment...${NC}"
+# Remove Deployment
+echo -e "${YELLOW}  Removing Deployment...${NC}"
 oc delete -f k8s/deployment.yaml --ignore-not-found=true
 
-# Aguardar pods serem removidos
-echo -e "${YELLOW}  ⏳ Aguardando pods serem removidos...${NC}"
+# Wait for pods to be removed
+echo -e "${YELLOW}  Waiting for pods to be removed...${NC}"
 oc wait --for=delete pod -l app.kubernetes.io/name=resource-governance -n $NAMESPACE --timeout=60s || true
 
-# Remover ConfigMap
-echo -e "${YELLOW}  ⚙️  Removendo ConfigMap...${NC}"
+# Remove ConfigMap
+echo -e "${YELLOW}  Removing ConfigMap...${NC}"
 oc delete -f k8s/configmap.yaml --ignore-not-found=true
 
-# Remover RBAC
-echo -e "${YELLOW}  🔐 Removendo RBAC...${NC}"
+# Remove RBAC (cluster resources)
+echo -e "${YELLOW}  Removing RBAC (ServiceAccount, ClusterRole, ClusterRoleBinding)...${NC}"
 oc delete -f k8s/rbac.yaml --ignore-not-found=true
 
-# Remover namespace (opcional)
-echo -e "${YELLOW}  📁 Removendo namespace...${NC}"
+# Remove cluster resources manually (in case namespace was already removed)
+echo -e "${YELLOW}  Removing ClusterRole and ClusterRoleBinding...${NC}"
+oc delete clusterrole resource-governance-role --ignore-not-found=true
+oc delete clusterrolebinding resource-governance-binding --ignore-not-found=true
+oc delete clusterrolebinding resource-governance-monitoring --ignore-not-found=true
+
+# Remove ServiceAccount (if still exists)
+echo -e "${YELLOW}  Removing ServiceAccount...${NC}"
+oc delete serviceaccount resource-governance-sa -n $NAMESPACE --ignore-not-found=true
+
+# Remove namespace (optional)
+echo -e "${YELLOW}  Removing namespace...${NC}"
 oc delete -f k8s/namespace.yaml --ignore-not-found=true
 
-echo -e "${GREEN}✅ Undeploy concluído com sucesso!${NC}"
-echo -e "${BLUE}===============================================${NC}"
-echo -e "${GREEN}✅ Todos os recursos foram removidos${NC}"
-echo -e "${GREEN}✅ Namespace '$NAMESPACE' foi removido${NC}"
-echo -e "${BLUE}===============================================${NC}"
+echo -e "${GREEN}SUCCESS: Undeploy completed successfully!${NC}"
+echo -e "${BLUE}============================================${NC}"
+echo -e "${GREEN}SUCCESS: All resources have been removed${NC}"
+echo -e "${GREEN}SUCCESS: Namespace '$NAMESPACE' has been removed${NC}"
+echo -e "${BLUE}============================================${NC}"
