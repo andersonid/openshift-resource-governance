@@ -70,6 +70,10 @@ oc apply -f k8s/service.yaml
 echo -e "${YELLOW}Creating Route...${NC}"
 oc expose service resource-governance-service -n $NAMESPACE --name=resource-governance-route --path=/
 
+# Configure TLS for the route
+echo -e "${YELLOW}Configuring TLS for Route...${NC}"
+oc patch route resource-governance-route -n $NAMESPACE -p '{"spec":{"tls":{"termination":"edge","insecureEdgeTerminationPolicy":"Redirect"}}}'
+
 # Wait for deployment to be ready
 echo -e "${YELLOW}Waiting for deployment to be ready...${NC}"
 oc rollout status deployment/resource-governance -n $NAMESPACE --timeout=300s

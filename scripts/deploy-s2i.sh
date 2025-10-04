@@ -211,7 +211,11 @@ print_success "Service applied successfully"
 # Step 10: Create Route (let OpenShift generate host automatically)
 print_status "Step 10: Creating Route..."
 oc expose service resource-governance-service -n "$NAMESPACE" --name=resource-governance-route --path=/
-print_success "Route created successfully"
+
+# Configure TLS for the route
+print_status "Step 10a: Configuring TLS for Route..."
+oc patch route resource-governance-route -n "$NAMESPACE" -p '{"spec":{"tls":{"termination":"edge","insecureEdgeTerminationPolicy":"Redirect"}}}'
+print_success "Route created and configured successfully"
 
 # Step 11: Get application URL
 print_status "Step 11: Getting application URL..."
