@@ -346,7 +346,7 @@ oc new-app python:3.11~https://github.com/andersonid/openshift-resource-governan
   --name=oru-analyzer --env=PYTHON_VERSION=3.11
 ```
 
-For detailed S2I documentation, see [README-S2I.md](README-S2I.md).
+For detailed S2I deployment information, see the S2I section above.
 
 ### Tests
 ```bash
