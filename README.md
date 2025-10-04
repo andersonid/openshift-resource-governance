@@ -333,6 +333,61 @@ curl http://localhost:8080/health
 - ✅ **Cluster Agnostic**: Works on any OpenShift 4.x cluster
 - ✅ **Production Tested**: Deployed on OCP 4.15, 4.18, and 4.19
 
+### **Performance Analysis & Optimization Roadmap**
+
+**📊 Current Performance Analysis:**
+- **Query Efficiency**: Currently using individual queries per workload (6 queries × N workloads)
+- **Response Time**: 30-60 seconds for 10 workloads
+- **Cache Strategy**: No caching implemented
+- **Batch Processing**: Sequential workload processing
+
+**🎯 Performance Optimization Plan:**
+- **Phase 1**: Aggregated Queries (10x performance improvement)
+- **Phase 2**: Intelligent Caching (5x performance improvement)  
+- **Phase 3**: Batch Processing (3x performance improvement)
+- **Phase 4**: Advanced Queries with MAX_OVER_TIME and percentiles
+
+**Expected Results**: 10-20x faster response times (from 30-60s to 3-6s)
+
+### **🔍 Performance Analysis: ORU Analyzer vs thanos-metrics-analyzer**
+
+**Our Current Approach:**
+```python
+# ✅ STRENGTHS:
+# - Dynamic step calculation based on time range
+# - Async queries with aiohttp
+# - Individual workload precision
+# - OpenShift-specific queries
+
+# ❌ WEAKNESSES:
+# - 6 queries per workload (60 queries for 10 workloads)
+# - No caching mechanism
+# - Sequential processing
+# - No batch optimization
+```
+
+**thanos-metrics-analyzer Approach:**
+```python
+# ✅ STRENGTHS:
+# - MAX_OVER_TIME for peak usage analysis
+# - Batch processing with cluster grouping
+# - Aggregated queries for multiple workloads
+# - Efficient data processing with pandas
+
+# ❌ WEAKNESSES:
+# - Synchronous queries (prometheus_api_client)
+# - Fixed resolution (10m step)
+# - No intelligent caching
+# - Less granular workload analysis
+```
+
+**🚀 Optimization Strategy:**
+1. **Aggregated Queries**: Single query for all workloads instead of N×6 queries
+2. **Intelligent Caching**: 5-minute TTL cache for repeated queries
+3. **Batch Processing**: Process workloads in groups of 5
+4. **Advanced Queries**: Implement MAX_OVER_TIME and percentiles like thanos
+5. **Async + Batch**: Combine our async approach with thanos batch processing
+
 ## 📝 Roadmap
 
 ### 🎯 **PRAGMATIC ROADMAP - Resource Governance Focus**
