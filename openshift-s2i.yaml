@@ -1,0 +1,320 @@
+# OpenShift S2I Template for ORU Analyzer
+# Source-to-Image deployment configuration
+
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: oru-analyzer-s2i
+  annotations:
+    description: "ORU Analyzer - OpenShift Resource Usage Analyzer (S2I)"
+    tags: "python,fastapi,openshift,resource-governance,monitoring"
+    iconClass: "icon-python"
+    openshift.io/display-name: "ORU Analyzer (S2I)"
+    openshift.io/long-description: "OpenShift Resource Usage Analyzer using Source-to-Image"
+    openshift.io/provider-display-name: "Red Hat"
+    openshift.io/documentation-url: "https://github.com/andersonid/openshift-resource-governance"
+    openshift.io/support-url: "https://github.com/andersonid/openshift-resource-governance/issues"
+
+parameters:
+- name: NAME
+  displayName: "Application Name"
+  description: "The name assigned to all of the frontend objects defined in this template."
+  value: "oru-analyzer"
+  required: true
+
+- name: NAMESPACE
+  displayName: "Namespace"
+  description: "The OpenShift Namespace where the ImageStream resides."
+  value: "resource-governance"
+  required: true
+
+- name: GIT_REPOSITORY
+  displayName: "Git Repository URL"
+  description: "The URL of the repository with your application source code."
+  value: "https://github.com/andersonid/openshift-resource-governance.git"
+  required: true
+
+- name: GIT_REF
+  displayName: "Git Reference"
+  description: "Set this to a branch name, tag or other ref of your repository if you are not using the default branch."
+  value: "main"
+  required: true
+
+- name: PYTHON_VERSION
+  displayName: "Python Version"
+  description: "Version of Python to use."
+  value: "3.11"
+  required: true
+
+- name: CPU_REQUEST
+  displayName: "CPU Request"
+  description: "The amount of CPU to request for the container."
+  value: "100m"
+  required: true
+
+- name: CPU_LIMIT
+  displayName: "CPU Limit"
+  description: "The amount of CPU to limit the container to."
+  value: "500m"
+  required: true
+
+- name: MEMORY_REQUEST
+  displayName: "Memory Request"
+  description: "The amount of memory to request for the container."
+  value: "256Mi"
+  required: true
+
+- name: MEMORY_LIMIT
+  displayName: "Memory Limit"
+  description: "The amount of memory to limit the container to."
+  value: "1Gi"
+  required: true
+
+- name: REPLICAS
+  displayName: "Number of Replicas"
+  description: "Number of replicas to run."
+  value: "1"
+  required: true
+
+- name: ROUTE_HOSTNAME
+  displayName: "Route Hostname"
+  description: "The hostname for the route. Leave blank for auto-generated hostname."
+  value: ""
+  required: false
+
+objects:
+# ImageStream for the application
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    name: ${NAME}
+    namespace: ${NAMESPACE}
+    labels:
+      app: ${NAME}
+      component: backend
+  spec:
+    lookupPolicy:
+      local: false
+
+# BuildConfig for S2I
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    name: ${NAME}
+    namespace: ${NAMESPACE}
+    labels:
+      app: ${NAME}
+      component: backend
+  spec:
+    source:
+      type: Git
+      git:
+        uri: ${GIT_REPOSITORY}
+        ref: ${GIT_REF}
+      contextDir: /
+    strategy:
+      type: Source
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          namespace: openshift
+          name: python:${PYTHON_VERSION}
+        env:
+        - name: PYTHON_VERSION
+          value: ${PYTHON_VERSION}
+        - name: PIP_INDEX_URL
+          value: "https://pypi.org/simple"
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${NAME}:latest
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChange: {}
+
+# Service
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${NAME}
+    namespace: ${NAMESPACE}
+    labels:
+      app: ${NAME}
+      component: backend
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+    selector:
+      app: ${NAME}
+      component: backend
+
+# DeploymentConfig
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${NAME}
+    namespace: ${NAMESPACE}
+    labels:
+      app: ${NAME}
+      component: backend
+  spec:
+    replicas: ${REPLICAS}
+    selector:
+      app: ${NAME}
+      component: backend
+    template:
+      metadata:
+        labels:
+          app: ${NAME}
+          component: backend
+      spec:
+        containers:
+        - name: ${NAME}
+          image: ${NAME}:latest
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          env:
+          - name: PYTHON_VERSION
+            value: ${PYTHON_VERSION}
+          - name: HOST
+            value: "0.0.0.0"
+          - name: PORT
+            value: "8080"
+          - name: WORKERS
+            value: "1"
+          resources:
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${NAME}:latest
+
+# Route
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: ${NAME}
+    namespace: ${NAMESPACE}
+    labels:
+      app: ${NAME}
+      component: backend
+  spec:
+    host: ${ROUTE_HOSTNAME}
+    to:
+      kind: Service
+      name: ${NAME}
+      weight: 100
+    port:
+      targetPort: 8080
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+
+# ServiceAccount
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: ${NAME}-sa
+    namespace: ${NAMESPACE}
+    labels:
+      app: ${NAME}
+      component: backend
+
+# Role
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    name: ${NAME}-role
+    namespace: ${NAMESPACE}
+    labels:
+      app: ${NAME}
+      component: backend
+  rules:
+  - apiGroups: [""]
+    resources: ["pods", "namespaces", "nodes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+  - apiGroups: ["autoscaling.k8s.io"]
+    resources: ["verticalpodautoscalers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services", "endpoints"]
+    verbs: ["get", "list", "watch"]
+
+# RoleBinding
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: ${NAME}-rolebinding
+    namespace: ${NAMESPACE}
+    labels:
+      app: ${NAME}
+      component: backend
+  subjects:
+  - kind: ServiceAccount
+    name: ${NAME}-sa
+    namespace: ${NAMESPACE}
+  roleRef:
+    kind: Role
+    name: ${NAME}-role
+    apiGroup: rbac.authorization.k8s.io
+
+# ConfigMap
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: ${NAME}-config
+    namespace: ${NAMESPACE}
+    labels:
+      app: ${NAME}
+      component: backend
+  data:
+    CPU_LIMIT_RATIO: "3.0"
+    MEMORY_LIMIT_RATIO: "3.0"
+    MIN_CPU_REQUEST: "10m"
+    MIN_MEMORY_REQUEST: "32Mi"
+    CRITICAL_NAMESPACES: |
+      openshift-monitoring
+      openshift-ingress
+      openshift-apiserver
+      openshift-controller-manager
+      openshift-sdn
+    PROMETHEUS_URL: "https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091"
+    LOG_LEVEL: "INFO"
+    HOST: "0.0.0.0"
+    PORT: "8080"
+    WORKERS: "1"

@@ -31,6 +31,20 @@ A comprehensive tool for analyzing user workloads and resource usage in OpenShif
 
 ### 🚀 Quick Deploy (Recommended)
 
+#### Option 1: Source-to-Image (S2I) - Fastest
+```bash
+# 1. Clone the repository
+git clone https://github.com/andersonid/openshift-resource-governance.git
+cd openshift-resource-governance
+
+# 2. Login to OpenShift
+oc login <cluster-url>
+
+# 3. Deploy using S2I (automatic build from Git)
+./scripts/deploy-s2i.sh
+```
+
+#### Option 2: Container Build (Traditional)
 ```bash
 # 1. Clone the repository
 git clone https://github.com/andersonid/openshift-resource-governance.git
@@ -294,12 +308,45 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 
 ### Available Scripts
 ```bash
-# Essential scripts (only 4 remaining after cleanup)
+# Essential scripts (only 5 remaining after cleanup)
 ./setup.sh                    # Initial environment setup
 ./scripts/build-and-push.sh   # Build and push to Quay.io
-./scripts/deploy-complete.sh  # Complete OpenShift deployment
+./scripts/deploy-complete.sh  # Complete OpenShift deployment (Container Build)
+./scripts/deploy-s2i.sh       # S2I deployment (Source-to-Image)
 ./scripts/undeploy-complete.sh # Complete application removal
 ```
+
+## 🚀 Source-to-Image (S2I) Support
+
+ORU Analyzer now supports **Source-to-Image (S2I)** deployment as an alternative to container-based deployment.
+
+### S2I Benefits
+- ⚡ **Faster deployment** - Direct from Git repository
+- 🔄 **Automatic rebuilds** - When code changes
+- 🎯 **No external registry** - OpenShift manages everything
+- 🔧 **Simpler CI/CD** - No GitHub Actions + Quay.io needed
+
+### S2I vs Container Build
+
+| Feature | S2I | Container Build |
+|---------|-----|-----------------|
+| **Deployment Speed** | ⚡ Fast | 🐌 Slower |
+| **Auto Rebuilds** | ✅ Yes | ❌ No |
+| **Git Integration** | ✅ Native | ❌ Manual |
+| **Registry Dependency** | ❌ None | ✅ Quay.io |
+| **Build Control** | 🔒 Limited | 🎛️ Full Control |
+
+### S2I Quick Start
+```bash
+# Deploy using S2I
+./scripts/deploy-s2i.sh
+
+# Or use oc new-app
+oc new-app python:3.11~https://github.com/andersonid/openshift-resource-governance.git \
+  --name=oru-analyzer --env=PYTHON_VERSION=3.11
+```
+
+For detailed S2I documentation, see [README-S2I.md](README-S2I.md).
 
 ### Tests
 ```bash
@@ -312,9 +359,17 @@ curl http://localhost:8080/health
 
 ## 🆕 Recent Updates
 
-### **Latest Version (v2.0.0) - PatternFly UI Revolution**
+### **Latest Version (v2.1.0) - S2I Support Added**
 
-**🎨 Complete UI Overhaul:**
+**🚀 Source-to-Image (S2I) Support:**
+- ✅ **S2I Deployment**: Alternative deployment method using OpenShift Source-to-Image
+- ✅ **Automatic Builds**: Direct deployment from Git repository with auto-rebuilds
+- ✅ **Simplified CI/CD**: No external registry dependency (Quay.io optional)
+- ✅ **Faster Deployment**: S2I deployment is significantly faster than container builds
+- ✅ **Git Integration**: Native OpenShift integration with Git repositories
+- ✅ **Complete S2I Stack**: Custom assemble/run scripts, OpenShift templates, and deployment automation
+
+**🎨 Previous Version (v2.0.0) - PatternFly UI Revolution:**
 - ✅ **PatternFly Design System**: Modern, enterprise-grade UI components
 - ✅ **Smart Recommendations Gallery**: Individual workload cards with bulk selection
 - ✅ **VPA CRD Integration**: Real Kubernetes API for Vertical Pod Autoscaler management

@@ -1,0 +1,19 @@
+#!/bin/bash
+# S2I Run Script for ORU Analyzer
+# This script is called when the container starts
+
+set -e
+
+echo "=== ORU Analyzer S2I Run Script ==="
+echo "Starting ORU Analyzer application..."
+
+# Change to application directory
+cd /opt/app-root/src
+
+# Set environment variables
+export PYTHONPATH=/opt/app-root/src
+export PYTHONUNBUFFERED=1
+
+# Start the application
+echo "Launching ORU Analyzer..."
+exec /opt/app-root/src/start.sh

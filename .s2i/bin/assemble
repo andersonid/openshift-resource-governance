@@ -1,0 +1,40 @@
+#!/bin/bash
+# S2I Assemble Script for ORU Analyzer
+# This script is called during the S2I build process
+
+set -e
+
+echo "=== ORU Analyzer S2I Assemble Script ==="
+echo "Building ORU Analyzer from source..."
+
+# Install Python dependencies
+echo "Installing Python dependencies..."
+pip install --no-cache-dir -r requirements.txt
+
+# Create application directory structure
+echo "Creating application directory structure..."
+mkdir -p /opt/app-root/src/app/static
+mkdir -p /opt/app-root/src/app/templates
+mkdir -p /opt/app-root/src/logs
+
+# Copy application files
+echo "Copying application files..."
+cp -r app/* /opt/app-root/src/app/
+
+# Set proper permissions
+echo "Setting permissions..."
+chmod +x /opt/app-root/src/app/main.py
+chmod -R 755 /opt/app-root/src/app/static
+
+# Create startup script
+echo "Creating startup script..."
+cat > /opt/app-root/src/start.sh << 'EOF'
+#!/bin/bash
+echo "Starting ORU Analyzer..."
+cd /opt/app-root/src
+exec python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 --workers 1
+EOF
+
+chmod +x /opt/app-root/src/start.sh
+
+echo "=== S2I Assemble completed successfully ==="

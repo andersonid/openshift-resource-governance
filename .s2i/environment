@@ -1,0 +1,35 @@
+# S2I Environment Configuration for ORU Analyzer
+# OpenShift Source-to-Image configuration
+
+# Python Configuration
+PYTHON_VERSION=3.11
+PIP_INDEX_URL=https://pypi.org/simple
+
+# Application Configuration
+APP_NAME=oru-analyzer
+APP_VERSION=2.0.0
+
+# FastAPI Configuration
+HOST=0.0.0.0
+PORT=8080
+WORKERS=1
+
+# OpenShift Specific
+OPENSHIFT_BUILD_NAME=oru-analyzer
+OPENSHIFT_BUILD_NAMESPACE=resource-governance
+
+# Resource Configuration
+CPU_REQUEST=100m
+CPU_LIMIT=500m
+MEMORY_REQUEST=256Mi
+MEMORY_LIMIT=1Gi
+
+# Health Check Configuration
+HEALTH_CHECK_PATH=/health
+HEALTH_CHECK_INTERVAL=30s
+HEALTH_CHECK_TIMEOUT=10s
+HEALTH_CHECK_RETRIES=3
+
+# Logging Configuration
+LOG_LEVEL=INFO
+LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s

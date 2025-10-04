@@ -44,9 +44,9 @@ oc delete -f k8s/route.yaml --ignore-not-found=true
 echo -e "${YELLOW}  🌐 Removendo Service...${NC}"
 oc delete -f k8s/service.yaml --ignore-not-found=true
 
-# Remover DaemonSet
-echo -e "${YELLOW}  📦 Removendo DaemonSet...${NC}"
-oc delete -f k8s/daemonset.yaml --ignore-not-found=true
+# Remover Deployment
+echo -e "${YELLOW}  📦 Removendo Deployment...${NC}"
+oc delete -f k8s/deployment.yaml --ignore-not-found=true
 
 # Aguardar pods serem removidos
 echo -e "${YELLOW}  ⏳ Aguardando pods serem removidos...${NC}"
