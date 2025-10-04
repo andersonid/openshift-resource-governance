@@ -1,5 +1,5 @@
 """
-UWRU Scanner - User Workloads and Resource Usage Scanner
+UWRU Scanner - User Workloads and Resource Usage Scanner (S2I Test)
 Application for analyzing user workloads and resource usage in OpenShift clusters
 """
 import os
