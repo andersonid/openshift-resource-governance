@@ -349,6 +349,76 @@ curl http://localhost:8080/health
 
 **Expected Results**: 10-20x faster response times (from 30-60s to 3-6s)
 
+## 🤖 **AI AGENT CONTEXT - CRITICAL INFORMATION**
+
+### **📋 Current Project Status (2025-01-03)**
+- **Application**: ORU Analyzer (OpenShift Resource Usage Analyzer)
+- **Version**: 2.0.0 - PatternFly UI Revolution
+- **Status**: PRODUCTION READY - Fully functional and cluster-agnostic
+- **Deployment**: Working on OCP 4.15, 4.18, and 4.19
+- **Registry**: Quay.io (migrated from Docker Hub)
+- **CI/CD**: GitHub Actions with automated build and push
+
+### **🎯 Current Focus: Performance Optimization**
+**IMMEDIATE PRIORITY**: Implement aggregated Prometheus queries to improve performance from 30-60s to 3-6s response times.
+
+**Key Performance Issues Identified:**
+1. **Query Multiplication**: Currently using 6 queries per workload (60 queries for 10 workloads)
+2. **No Caching**: Every request refetches all data from Prometheus
+3. **Sequential Processing**: Workloads processed one by one
+4. **Missing Advanced Features**: No MAX_OVER_TIME, percentiles, or batch processing
+
+### **🔧 Technical Architecture**
+- **Backend**: FastAPI with async support
+- **Frontend**: Single-page HTML with PatternFly design system
+- **Database**: Prometheus for metrics, Kubernetes API for cluster data
+- **Container**: Podman (NOT Docker) with Python 3.11
+- **Registry**: Quay.io/rh_ee_anobre/resource-governance:latest
+- **Deployment**: OpenShift with rolling updates
+
+### **📁 Key Files Structure**
+```
+app/
+├── main.py                    # FastAPI application
+├── api/routes.py             # REST endpoints
+├── core/
+│   ├── kubernetes_client.py  # K8s/OpenShift API client
+│   └── prometheus_client.py  # Prometheus metrics client
+├── services/
+│   ├── historical_analysis.py # Historical data analysis (NEEDS OPTIMIZATION)
+│   ├── validation_service.py  # Resource validation rules
+│   └── report_service.py     # Report generation
+├── models/resource_models.py # Pydantic data models
+└── static/index.html         # Frontend (PatternFly UI)
+```
+
+### **🚀 Deployment Process (STANDARD WORKFLOW)**
+```bash
+# 1. Make changes to code
+# 2. Commit and push
+git add .
+git commit -m "Description of changes"
+git push
+
+# 3. Wait for GitHub Actions (builds and pushes to Quay.io)
+# 4. Deploy to OpenShift
+oc rollout restart deployment/resource-governance -n resource-governance
+
+# 5. Wait for rollout completion
+oc rollout status deployment/resource-governance -n resource-governance
+
+# 6. Test with Playwright
+```
+
+### **⚠️ CRITICAL RULES FOR AI AGENTS**
+1. **ALWAYS use podman, NEVER docker** - All container operations use podman
+2. **ALWAYS build with 'latest' tag** - Never create version tags
+3. **ALWAYS ask for confirmation** before commit/push/build/deploy
+4. **ALWAYS test with Playwright** after deployment
+5. **NEVER use browser alerts** - Use professional modals instead
+6. **ALWAYS update documentation** after significant changes
+7. **ALWAYS use English** - No Portuguese in code or documentation
+
 ### **🔍 Performance Analysis: ORU Analyzer vs thanos-metrics-analyzer**
 
 **Our Current Approach:**
