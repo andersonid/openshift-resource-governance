@@ -9,7 +9,7 @@ echo "Building ORU Analyzer from source..."
 
 # Install Python dependencies
 echo "Installing Python dependencies..."
-pip install --no-cache-dir -r requirements.txt
+pip install --no-cache-dir -r /tmp/src/requirements.txt
 
 # Create application directory structure
 echo "Creating application directory structure..."
