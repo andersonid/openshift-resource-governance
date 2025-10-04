@@ -49,25 +49,25 @@ parameters:
 - name: CPU_REQUEST
   displayName: "CPU Request"
   description: "The amount of CPU to request for the container."
-  value: "100m"
+  value: "50m"
   required: true
 
 - name: CPU_LIMIT
   displayName: "CPU Limit"
   description: "The amount of CPU to limit the container to."
-  value: "500m"
+  value: "200m"
   required: true
 
 - name: MEMORY_REQUEST
   displayName: "Memory Request"
   description: "The amount of memory to request for the container."
-  value: "256Mi"
+  value: "64Mi"
   required: true
 
 - name: MEMORY_LIMIT
   displayName: "Memory Limit"
   description: "The amount of memory to limit the container to."
-  value: "1Gi"
+  value: "256Mi"
   required: true
 
 - name: REPLICAS

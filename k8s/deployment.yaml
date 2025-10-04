@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: resource-governance
     app.kubernetes.io/component: governance
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -115,11 +115,11 @@ spec:
               key: SERVICE_ACCOUNT_NAME
         resources:
           requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 50m
+            memory: 64Mi
           limits:
-            cpu: 500m
-            memory: 512Mi
+            cpu: 200m
+            memory: 256Mi
         volumeMounts:
         - name: reports
           mountPath: /tmp/reports
