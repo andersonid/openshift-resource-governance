@@ -51,12 +51,14 @@ fi
 
 # Login to Quay.io
 echo -e "${YELLOW}Logging into Quay.io...${NC}"
-podman login -u="rh_ee_anobre+oru" -p="EJNIJD7FPO5IN33ZGQZ4OM8BIB3LICASBVRGOJCX4WP84Y0ZG5SMQLTZ0S6DOZEC" quay.io
+echo -e "${YELLOW}Please ensure you have logged in with: podman login quay.io${NC}"
 
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}SUCCESS: Login successful!${NC}"
+# Check if already logged in
+if podman search quay.io/rh_ee_anobre/resource-governance > /dev/null 2>&1; then
+    echo -e "${GREEN}SUCCESS: Already logged in to Quay.io${NC}"
 else
-    echo -e "${RED}ERROR: Login failed!${NC}"
+    echo -e "${RED}ERROR: Not logged in to Quay.io. Please run: podman login quay.io${NC}"
+    echo -e "${YELLOW}Then run this script again.${NC}"
     exit 1
 fi
 

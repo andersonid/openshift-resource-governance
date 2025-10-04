@@ -5,27 +5,14 @@
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Configuration
-NAMESPACE="resource-governance"
-SERVICE_ACCOUNT="resource-governance-sa"
-SECRET_NAME="resource-governance-sa-token"
+# Source common functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
 echo -e "${BLUE}Deploying OpenShift Resource Governance Tool${NC}"
 
 # Check if connected to cluster
-if ! oc whoami > /dev/null 2>&1; then
-    echo -e "${RED}ERROR: Not connected to OpenShift cluster. Please run 'oc login' first.${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}SUCCESS: Connected to OpenShift cluster as $(oc whoami)${NC}"
+check_openshift_connection
 
 # Create namespace if it doesn't exist
 echo -e "${YELLOW}Creating namespace...${NC}"
@@ -78,17 +65,8 @@ oc patch route resource-governance-route -n $NAMESPACE -p '{"spec":{"tls":{"term
 echo -e "${YELLOW}Waiting for deployment to be ready...${NC}"
 oc rollout status deployment/resource-governance -n $NAMESPACE --timeout=300s
 
-# Check pod status
-echo -e "${YELLOW}Checking pod status...${NC}"
-oc get pods -n $NAMESPACE -l app.kubernetes.io/name=resource-governance
-
-# Check logs for errors
-echo -e "${YELLOW}Checking application logs...${NC}"
-POD_NAME=$(oc get pods -n $NAMESPACE -l app.kubernetes.io/name=resource-governance -o jsonpath='{.items[0].metadata.name}')
-if [ -n "$POD_NAME" ]; then
-    echo -e "${BLUE}Recent logs from $POD_NAME:${NC}"
-    oc logs $POD_NAME -n $NAMESPACE --tail=10
-fi
+# Check pod status and logs
+check_pod_status
 
 # Get application URL
 echo -e "${YELLOW}Getting application URL...${NC}"
@@ -105,13 +83,8 @@ else
     oc get routes -n $NAMESPACE
     ROUTE_URL=""
 fi
-if [ -n "$ROUTE_URL" ]; then
-    echo -e "${GREEN}SUCCESS: Application deployed successfully!${NC}"
-    echo -e "${GREEN}URL: https://$ROUTE_URL${NC}"
-    echo -e "${GREEN}Health check: https://$ROUTE_URL/health${NC}"
-else
-    echo -e "${YELLOW}WARNING: Route not found, checking service...${NC}"
-    oc get svc -n $NAMESPACE
-fi
+
+echo -e "${GREEN}SUCCESS: Application deployed successfully!${NC}"
+get_application_url
 
 echo -e "${GREEN}SUCCESS: Deployment completed successfully!${NC}"
