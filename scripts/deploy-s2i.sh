@@ -42,7 +42,7 @@ print_error() {
 
 # Default values
 NAMESPACE="resource-governance"
-APP_NAME="oru-analyzer"
+APP_NAME="resource-governance"
 GIT_REPO="https://github.com/andersonid/openshift-resource-governance.git"
 
 # Check if oc is available
@@ -113,6 +113,7 @@ print_status "   - Configuring with ServiceAccount and ConfigMap"
 oc new-app python:3.12-ubi9~"$GIT_REPO" \
   --name="$APP_NAME" \
   --namespace="$NAMESPACE" \
+  --labels="app.kubernetes.io/name=resource-governance,app.kubernetes.io/component=governance" \
   --env=PYTHON_VERSION=3.12 \
   --env=APP_ROOT=/app \
   --env=HOST=0.0.0.0 \
@@ -174,20 +175,19 @@ print_status "Step 8: Waiting for deployment to be ready..."
 oc rollout status deployment/"$APP_NAME" -n "$NAMESPACE" --timeout=300s
 print_success "Deployment is ready"
 
-# Step 9: Configure Service (use the one created by oc new-app)
-print_status "Step 9: Configuring Service..."
-# The service is already created by oc new-app, just need to expose it
-oc expose service/"$APP_NAME" -n "$NAMESPACE"
-print_success "Service configured and exposed"
+# Step 9: Apply Service (use the correct service from manifests)
+print_status "Step 9: Applying Service..."
+oc apply -f "$K8S_DIR/service.yaml"
+print_success "Service applied successfully"
 
-# Step 10: Get Route URL (created by oc expose)
-print_status "Step 10: Getting Route URL..."
-# The route is created by oc expose, no need to apply custom route
-print_success "Route created by oc expose"
+# Step 10: Apply Route (use the correct route from manifests)
+print_status "Step 10: Applying Route..."
+oc apply -f "$K8S_DIR/route.yaml"
+print_success "Route applied successfully"
 
 # Step 11: Get application URL
 print_status "Step 11: Getting application URL..."
-ROUTE_URL=$(oc get route "$APP_NAME" -o jsonpath='{.spec.host}' -n "$NAMESPACE" 2>/dev/null)
+ROUTE_URL=$(oc get route resource-governance-route -o jsonpath='{.spec.host}' -n "$NAMESPACE" 2>/dev/null)
 
 if [ -z "$ROUTE_URL" ]; then
     print_warning "Could not get route URL automatically"
@@ -217,8 +217,8 @@ echo "   - RBAC: ServiceAccount, ClusterRole, ClusterRoleBinding"
 echo "   - ConfigMap: resource-governance-config"
 echo "   - S2I Build: $APP_NAME"
 echo "   - Deployment: $APP_NAME"
-echo "   - Service: $APP_NAME"
-echo "   - Route: $APP_NAME"
+echo "   - Service: resource-governance-service"
+echo "   - Route: resource-governance-route"
 echo ""
 echo "🌐 Application Access:"
 if [ -n "$ROUTE_URL" ]; then
