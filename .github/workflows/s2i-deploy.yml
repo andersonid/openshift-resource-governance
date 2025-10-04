@@ -34,8 +34,8 @@ jobs:
         echo "🔗 Commit: ${{ github.sha }}"
         echo "🌿 Branch: ${{ github.ref_name }}"
         
-        # URL do webhook genérico do OpenShift
-        WEBHOOK_URL="https://${{ inputs.openshift_server || 'oru.apps.shrocp4upi419ovn.lab.upshift.rdu2.redhat.com' }}/apis/build.openshift.io/v1/namespaces/${{ inputs.namespace || env.NAMESPACE }}/buildconfigs/${{ env.APP_NAME }}/webhooks/pqWLANKULBy1p6aTbPFa/generic"
+        # URL do webhook genérico do OpenShift (usar API server, não rota da aplicação)
+        WEBHOOK_URL="https://api.shrocp4upi419ovn.lab.upshift.rdu2.redhat.com:6443/apis/build.openshift.io/v1/namespaces/${{ inputs.namespace || env.NAMESPACE }}/buildconfigs/${{ env.APP_NAME }}/webhooks/pqWLANKULBy1p6aTbPFa/generic"
         
         echo "🔗 Webhook URL: $WEBHOOK_URL"
         
