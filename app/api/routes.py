@@ -1267,6 +1267,136 @@ async def get_qos_classification(
         logger.error(f"Error getting QoS classification: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/namespace-distribution")
+async def get_namespace_distribution(
+    k8s_client=Depends(get_k8s_client),
+    prometheus_client=Depends(get_prometheus_client)
+):
+    """Get resource distribution by namespace for dashboard charts"""
+    try:
+        # Get all pods
+        pods = await k8s_client.get_all_pods()
+        
+        # Group pods by namespace and calculate resource usage
+        namespace_resources = {}
+        
+        for pod in pods:
+            namespace = pod.namespace
+            
+            if namespace not in namespace_resources:
+                namespace_resources[namespace] = {
+                    'namespace': namespace,
+                    'cpu_requests': 0.0,
+                    'memory_requests': 0.0,
+                    'cpu_limits': 0.0,
+                    'memory_limits': 0.0,
+                    'pod_count': 0
+                }
+            
+            # Sum up resources from all containers in the pod
+            for container in pod.containers:
+                resources = container.get('resources', {})
+                
+                # CPU requests and limits
+                cpu_req = resources.get('requests', {}).get('cpu', '0')
+                cpu_lim = resources.get('limits', {}).get('cpu', '0')
+                
+                # Memory requests and limits
+                mem_req = resources.get('requests', {}).get('memory', '0')
+                mem_lim = resources.get('limits', {}).get('memory', '0')
+                
+                # Convert to numeric values
+                namespace_resources[namespace]['cpu_requests'] += _parse_cpu_value(cpu_req)
+                namespace_resources[namespace]['cpu_limits'] += _parse_cpu_value(cpu_lim)
+                namespace_resources[namespace]['memory_requests'] += _parse_memory_value(mem_req)
+                namespace_resources[namespace]['memory_limits'] += _parse_memory_value(mem_lim)
+            
+            namespace_resources[namespace]['pod_count'] += 1
+        
+        # Convert to list and sort by CPU requests (descending)
+        distribution_data = []
+        for namespace, data in namespace_resources.items():
+            distribution_data.append({
+                'namespace': namespace,
+                'cpu_requests': data['cpu_requests'],
+                'memory_requests': data['memory_requests'],
+                'cpu_limits': data['cpu_limits'],
+                'memory_limits': data['memory_limits'],
+                'pod_count': data['pod_count']
+            })
+        
+        # Sort by CPU requests descending
+        distribution_data.sort(key=lambda x: x['cpu_requests'], reverse=True)
+        
+        # Take top 10 namespaces and group others
+        top_namespaces = distribution_data[:10]
+        others_data = distribution_data[10:]
+        
+        # Calculate "Others" total
+        others_total = {
+            'namespace': 'Others',
+            'cpu_requests': sum(ns['cpu_requests'] for ns in others_data),
+            'memory_requests': sum(ns['memory_requests'] for ns in others_data),
+            'cpu_limits': sum(ns['cpu_limits'] for ns in others_data),
+            'memory_limits': sum(ns['memory_limits'] for ns in others_data),
+            'pod_count': sum(ns['pod_count'] for ns in others_data)
+        }
+        
+        # Add "Others" if there are any
+        if others_total['cpu_requests'] > 0 or others_total['memory_requests'] > 0:
+            top_namespaces.append(others_total)
+        
+        return {
+            'distribution': top_namespaces,
+            'total_namespaces': len(distribution_data),
+            'total_cpu_requests': sum(ns['cpu_requests'] for ns in distribution_data),
+            'total_memory_requests': sum(ns['memory_requests'] for ns in distribution_data)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting namespace distribution: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+def _parse_cpu_value(cpu_str: str) -> float:
+    """Parse CPU value from string (e.g., '100m' -> 0.1, '1' -> 1.0)"""
+    if not cpu_str or cpu_str == '0':
+        return 0.0
+    
+    cpu_str = str(cpu_str).strip()
+    
+    if cpu_str.endswith('m'):
+        return float(cpu_str[:-1]) / 1000.0
+    elif cpu_str.endswith('n'):
+        return float(cpu_str[:-1]) / 1000000000.0
+    else:
+        return float(cpu_str)
+
+def _parse_memory_value(mem_str: str) -> float:
+    """Parse memory value from string (e.g., '128Mi' -> 134217728, '1Gi' -> 1073741824)"""
+    if not mem_str or mem_str == '0':
+        return 0.0
+    
+    mem_str = str(mem_str).strip()
+    
+    if mem_str.endswith('Ki'):
+        return float(mem_str[:-2]) * 1024
+    elif mem_str.endswith('Mi'):
+        return float(mem_str[:-2]) * 1024 * 1024
+    elif mem_str.endswith('Gi'):
+        return float(mem_str[:-2]) * 1024 * 1024 * 1024
+    elif mem_str.endswith('Ti'):
+        return float(mem_str[:-2]) * 1024 * 1024 * 1024 * 1024
+    elif mem_str.endswith('K'):
+        return float(mem_str[:-1]) * 1000
+    elif mem_str.endswith('M'):
+        return float(mem_str[:-1]) * 1000 * 1000
+    elif mem_str.endswith('G'):
+        return float(mem_str[:-1]) * 1000 * 1000 * 1000
+    elif mem_str.endswith('T'):
+        return float(mem_str[:-1]) * 1000 * 1000 * 1000 * 1000
+    else:
+        return float(mem_str)
+
 @api_router.get("/resource-quotas")
 async def get_resource_quotas(
     namespace: Optional[str] = None,

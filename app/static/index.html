@@ -2081,34 +2081,58 @@
         // 2. Namespace Resource Distribution
         async function loadNamespaceDistribution() {
             try {
-                const response = await fetch('/api/v1/cluster/status');
+                const response = await fetch('/api/v1/namespace-distribution');
                 const data = await response.json();
                 
-                // Generate sample data for namespace distribution
-                const distributionData = [
-                    { x: 'resource-governance', y: 25 },
-                    { x: 'redhat-ods-operator', y: 20 },
-                    { x: 'node-gather', y: 15 },
-                    { x: 'shishika01', y: 10 },
-                    { x: 'builds-test', y: 5 },
-                    { x: 'Others', y: 25 }
-                ];
+                // Convert real data to chart format
+                const distributionData = data.distribution.map(ns => ({
+                    x: ns.namespace,
+                    y: ns.cpu_requests,
+                    podCount: ns.pod_count,
+                    memoryRequests: ns.memory_requests
+                }));
 
-                createNamespaceDistributionChart(distributionData);
+                createNamespaceDistributionChart(distributionData, data);
             } catch (error) {
                 console.error('Error loading namespace distribution:', error);
+                // Fallback to empty chart
+                createNamespaceDistributionChart([], { total_namespaces: 0 });
             }
         }
 
-        function createNamespaceDistributionChart(data) {
+        function createNamespaceDistributionChart(data, metadata = {}) {
             const container = document.getElementById('namespace-distribution-chart');
             if (!container) return;
+
+            // If no data, show empty state
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--pf-global--Color--300);">
+                        <i class="fas fa-chart-pie" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--Color--400);"></i>
+                        <h3 style="margin: 0 0 8px 0; color: var(--pf-global--Color--100);">No Data Available</h3>
+                        <p style="margin: 0;">No namespace resource data found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Generate colors for namespaces
+            const colors = ['#0066CC', '#CC0000', '#00CC66', '#FF8800', '#CC00CC', '#666666', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
+            
+            // Prepare data for Victory chart
+            const chartData = data.map((item, index) => ({
+                x: item.x,
+                y: item.y,
+                color: colors[index % colors.length],
+                podCount: item.podCount || 0,
+                memoryRequests: item.memoryRequests || 0
+            }));
 
             const chart = React.createElement(Victory.VictoryPie, {
                 width: container.offsetWidth || 500,
                 height: 300,
-                data: data,
-                colorScale: ['#0066CC', '#CC0000', '#00CC66', '#FF8800', '#CC00CC', '#666666'],
+                data: chartData,
+                colorScale: chartData.map(item => item.color),
                 padding: { top: 20, bottom: 20, left: 20, right: 20 },
                 style: {
                     parent: { 
@@ -2118,16 +2142,93 @@
                     },
                     labels: { 
                         fill: '#ccc', 
-                        fontSize: 12,
+                        fontSize: 11,
                         fontFamily: 'Red Hat Text, sans-serif'
                     }
                 },
                 labelComponent: React.createElement(Victory.VictoryLabel, {
-                    style: { fill: '#ccc', fontSize: 12 }
-                })
+                    style: { 
+                        fill: '#ccc', 
+                        fontSize: 11,
+                        fontFamily: 'Red Hat Text, sans-serif'
+                    },
+                    labelPlacement: 'perpendicular',
+                    text: (datum) => {
+                        const cpuCores = datum.y.toFixed(2);
+                        const podCount = datum.podCount;
+                        return `${datum.x}\n${cpuCores} cores\n${podCount} pods`;
+                    }
+                }),
+                events: [{
+                    target: "data",
+                    eventHandlers: {
+                        onMouseOver: () => {
+                            return [{
+                                target: "labels",
+                                mutation: (props) => {
+                                    return {
+                                        style: Object.assign({}, props.style, { fill: "#fff", fontSize: 12, fontWeight: "bold" })
+                                    };
+                                }
+                            }];
+                        },
+                        onMouseOut: () => {
+                            return [{
+                                target: "labels",
+                                mutation: (props) => {
+                                    return {
+                                        style: Object.assign({}, props.style, { fill: "#ccc", fontSize: 11, fontWeight: "normal" })
+                                    };
+                                }
+                            }];
+                        }
+                    }
+                }]
             });
 
-            ReactDOM.render(chart, container);
+            // Add summary information below the chart
+            const totalCpu = data.reduce((sum, item) => sum + item.y, 0);
+            const totalPods = data.reduce((sum, item) => sum + (item.podCount || 0), 0);
+            
+            const summaryHtml = `
+                <div style="margin-top: 16px; padding: 12px; background-color: #2B2B2B; border-radius: 4px; border: 1px solid #404040;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; text-align: center;">
+                        <div>
+                            <div style="font-size: 12px; color: var(--pf-global--Color--300); margin-bottom: 4px;">Total CPU Requests</div>
+                            <div style="font-size: 16px; font-weight: bold; color: var(--pf-global--Color--100);">${totalCpu.toFixed(2)} cores</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--pf-global--Color--300); margin-bottom: 4px;">Total Pods</div>
+                            <div style="font-size: 16px; font-weight: bold; color: var(--pf-global--Color--100);">${totalPods}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--pf-global--Color--300); margin-bottom: 4px;">Namespaces</div>
+                            <div style="font-size: 16px; font-weight: bold; color: var(--pf-global--Color--100);">${metadata.total_namespaces || data.length}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Create a wrapper div to hold both chart and summary
+            const wrapper = document.createElement('div');
+            wrapper.style.width = '100%';
+            wrapper.style.height = '100%';
+            wrapper.style.display = 'flex';
+            wrapper.style.flexDirection = 'column';
+            
+            const chartDiv = document.createElement('div');
+            chartDiv.style.flex = '1';
+            chartDiv.style.minHeight = '200px';
+            
+            wrapper.appendChild(chartDiv);
+            wrapper.innerHTML += summaryHtml;
+            
+            // Clear container and add wrapper
+            container.innerHTML = '';
+            container.appendChild(wrapper);
+            
+            // Render chart in the chart div
+            ReactDOM.render(chart, chartDiv);
         }
 
         // 3. Issues by Severity Timeline
