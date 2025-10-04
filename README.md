@@ -31,7 +31,7 @@ A comprehensive tool for analyzing user workloads and resource usage in OpenShif
 
 ### 🚀 Quick Deploy (Recommended)
 
-#### Option 1: Source-to-Image (S2I) - Fastest & Complete
+#### Option 1: Source-to-Image (S2I) - Fastest
 ```bash
 # 1. Clone the repository
 git clone https://github.com/andersonid/openshift-resource-governance.git
@@ -41,7 +41,7 @@ cd openshift-resource-governance
 oc login <cluster-url>
 
 # 3. Deploy using S2I (complete deployment with all resources)
-./scripts/deploy-s2i-complete.sh
+./scripts/deploy-s2i.sh
 ```
 
 #### Option 2: Container Build (Traditional)
@@ -308,11 +308,11 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 
 ### Available Scripts
 ```bash
-# Essential scripts (only 5 remaining after cleanup)
+# Essential scripts (only 4 remaining after cleanup)
 ./setup.sh                    # Initial environment setup
 ./scripts/build-and-push.sh   # Build and push to Quay.io
 ./scripts/deploy-complete.sh  # Complete OpenShift deployment (Container Build)
-./scripts/deploy-s2i-complete.sh # Complete S2I deployment (Source-to-Image + All Resources)
+./scripts/deploy-s2i.sh       # Complete S2I deployment (Source-to-Image + All Resources)
 ./scripts/undeploy-complete.sh # Complete application removal
 ```
 
@@ -339,7 +339,7 @@ ORU Analyzer now supports **Source-to-Image (S2I)** deployment as an alternative
 ### S2I Quick Start (Complete & Self-Service)
 ```bash
 # Deploy using S2I with ALL resources automatically
-./scripts/deploy-s2i-complete.sh
+./scripts/deploy-s2i.sh
 
 # This single command creates:
 # - Namespace
