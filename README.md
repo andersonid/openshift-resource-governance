@@ -31,7 +31,7 @@ A comprehensive tool for analyzing user workloads and resource usage in OpenShif
 
 ### 🚀 Quick Deploy (Recommended)
 
-#### Option 1: Source-to-Image (S2I) - Fastest
+#### Option 1: Source-to-Image (S2I) - Fastest & Complete
 ```bash
 # 1. Clone the repository
 git clone https://github.com/andersonid/openshift-resource-governance.git
@@ -40,8 +40,8 @@ cd openshift-resource-governance
 # 2. Login to OpenShift
 oc login <cluster-url>
 
-# 3. Deploy using S2I (automatic build from Git)
-./scripts/deploy-s2i.sh
+# 3. Deploy using S2I (complete deployment with all resources)
+./scripts/deploy-s2i-complete.sh
 ```
 
 #### Option 2: Container Build (Traditional)
@@ -312,7 +312,7 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ./setup.sh                    # Initial environment setup
 ./scripts/build-and-push.sh   # Build and push to Quay.io
 ./scripts/deploy-complete.sh  # Complete OpenShift deployment (Container Build)
-./scripts/deploy-s2i.sh       # S2I deployment (Source-to-Image)
+./scripts/deploy-s2i-complete.sh # Complete S2I deployment (Source-to-Image + All Resources)
 ./scripts/undeploy-complete.sh # Complete application removal
 ```
 
@@ -336,14 +336,19 @@ ORU Analyzer now supports **Source-to-Image (S2I)** deployment as an alternative
 | **Registry Dependency** | ❌ None | ✅ Quay.io |
 | **Build Control** | 🔒 Limited | 🎛️ Full Control |
 
-### S2I Quick Start
+### S2I Quick Start (Complete & Self-Service)
 ```bash
-# Deploy using S2I
-./scripts/deploy-s2i.sh
+# Deploy using S2I with ALL resources automatically
+./scripts/deploy-s2i-complete.sh
 
-# Or use oc new-app
-oc new-app python:3.11~https://github.com/andersonid/openshift-resource-governance.git \
-  --name=oru-analyzer --env=PYTHON_VERSION=3.11
+# This single command creates:
+# - Namespace
+# - RBAC (ServiceAccount, ClusterRole, ClusterRoleBinding)
+# - ConfigMap with all configurations
+# - S2I Build and Deployment
+# - Service and Route
+# - Resource limits and requests
+# - No additional commands needed!
 ```
 
 For detailed S2I deployment information, see the S2I section above.
