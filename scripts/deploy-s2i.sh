@@ -73,25 +73,44 @@ create_namespace() {
     fi
 }
 
-# Deploy using S2I template
+# Deploy using oc new-app (simpler S2I)
 deploy_s2i() {
-    print_status "Deploying using S2I template..."
+    print_status "Deploying using oc new-app S2I..."
     
-    # Process template with parameters
-    oc process -f openshift-s2i.yaml \
-        -p NAME="$APP_NAME" \
-        -p NAMESPACE="$NAMESPACE" \
-        -p GIT_REPOSITORY="$GIT_REPO" \
-        -p GIT_REF="$GIT_REF" \
-        -p PYTHON_VERSION="$PYTHON_VERSION" \
-        -p CPU_REQUEST="50m" \
-        -p CPU_LIMIT="200m" \
-        -p MEMORY_REQUEST="64Mi" \
-        -p MEMORY_LIMIT="256Mi" \
-        -p REPLICAS="1" \
-        | oc apply -f -
+    # Use oc new-app for simple S2I deployment
+    oc new-app python:3.11~"$GIT_REPO" \
+        --name="$APP_NAME" \
+        --env=PYTHON_VERSION=3.11 \
+        --env=APP_ROOT=/app \
+        --namespace="$NAMESPACE"
     
-    print_success "S2I template applied successfully"
+    print_success "S2I application created successfully"
+    
+    # Configure resource requests and limits
+    print_status "Configuring resource requests and limits..."
+    oc patch deploymentconfig/"$APP_NAME" -p '{
+        "spec": {
+            "template": {
+                "spec": {
+                    "containers": [{
+                        "name": "'"$APP_NAME"'",
+                        "resources": {
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            },
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            }
+                        }
+                    }]
+                }
+            }
+        }
+    }'
+    
+    print_success "Resource configuration applied"
 }
 
 # Wait for build to complete
@@ -176,6 +195,7 @@ main() {
     echo "Git Repository: $GIT_REPO"
     echo "Git Reference: $GIT_REF"
     echo "Python Version: $PYTHON_VERSION"
+    echo "Method: oc new-app (simplified S2I)"
     echo "=========================================="
     echo ""
     
