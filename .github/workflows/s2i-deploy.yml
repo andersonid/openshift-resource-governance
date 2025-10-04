@@ -1,8 +1,6 @@
-name: S2I Deploy (Automatic)
+name: S2I Deploy (Manual Only)
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       openshift_server:
@@ -35,9 +33,20 @@ jobs:
         echo "🌿 Branch: ${{ github.ref_name }}"
         
         # URL do webhook genérico do OpenShift (usar API server, não rota da aplicação)
-        WEBHOOK_URL="https://api.shrocp4upi419ovn.lab.upshift.rdu2.redhat.com:6443/apis/build.openshift.io/v1/namespaces/${{ inputs.namespace || env.NAMESPACE }}/buildconfigs/${{ env.APP_NAME }}/webhooks/pqWLANKULBy1p6aTbPFa/generic"
+        # NOTA: Este webhook precisa ser configurado no cluster OpenShift de destino
+        WEBHOOK_URL="${{ inputs.openshift_server }}/apis/build.openshift.io/v1/namespaces/${{ inputs.namespace || env.NAMESPACE }}/buildconfigs/${{ env.APP_NAME }}/webhooks/PLACEHOLDER_WEBHOOK_TOKEN/generic"
         
         echo "🔗 Webhook URL: $WEBHOOK_URL"
+        
+        # Verificar se o webhook token não é placeholder
+        if [[ "$WEBHOOK_URL" == *"PLACEHOLDER_WEBHOOK_TOKEN"* ]]; then
+          echo "❌ ERRO: Webhook token não configurado!"
+          echo "ℹ️  Para usar este workflow:"
+          echo "1. Configure o webhook no OpenShift cluster"
+          echo "2. Substitua PLACEHOLDER_WEBHOOK_TOKEN pelo token real"
+          echo "3. Execute o workflow novamente"
+          exit 1
+        fi
         
         # Disparar build S2I
         curl -X POST "$WEBHOOK_URL" \
