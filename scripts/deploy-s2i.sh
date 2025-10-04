@@ -208,10 +208,10 @@ print_status "Step 9: Applying Service..."
 oc apply -f "$K8S_DIR/service.yaml"
 print_success "Service applied successfully"
 
-# Step 10: Apply Route (use the correct route from manifests)
-print_status "Step 10: Applying Route..."
-oc apply -f "$K8S_DIR/route.yaml"
-print_success "Route applied successfully"
+# Step 10: Create Route (let OpenShift generate host automatically)
+print_status "Step 10: Creating Route..."
+oc expose service resource-governance-service -n "$NAMESPACE" --name=resource-governance-route --path=/
+print_success "Route created successfully"
 
 # Step 11: Get application URL
 print_status "Step 11: Getting application URL..."

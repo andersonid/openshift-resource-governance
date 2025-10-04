@@ -66,9 +66,9 @@ oc apply -f k8s/deployment.yaml
 echo -e "${YELLOW}Applying Service...${NC}"
 oc apply -f k8s/service.yaml
 
-# Apply Route
-echo -e "${YELLOW}Applying Route...${NC}"
-oc apply -f k8s/route.yaml
+# Create Route (let OpenShift generate host automatically)
+echo -e "${YELLOW}Creating Route...${NC}"
+oc expose service resource-governance-service -n $NAMESPACE --name=resource-governance-route --path=/
 
 # Wait for deployment to be ready
 echo -e "${YELLOW}Waiting for deployment to be ready...${NC}"
@@ -92,9 +92,10 @@ echo -e "${YELLOW}Getting application URL...${NC}"
 # Wait a bit to ensure route is ready
 sleep 5
 
-# Check if route exists
+# Check if route exists and get URL
 if oc get route resource-governance-route -n $NAMESPACE > /dev/null 2>&1; then
     ROUTE_URL=$(oc get route resource-governance-route -n $NAMESPACE -o jsonpath='{.spec.host}')
+    echo -e "${GREEN}SUCCESS: Route created with host: $ROUTE_URL${NC}"
 else
     echo -e "${YELLOW}WARNING: Route not found, checking available routes...${NC}"
     oc get routes -n $NAMESPACE

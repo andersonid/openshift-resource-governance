@@ -10,13 +10,14 @@ metadata:
     haproxy.router.openshift.io/timeout: "300s"
     haproxy.router.openshift.io/rate-limit: "100"
 spec:
-  host: oru.apps.shrocp4upi419ovn.lab.upshift.rdu2.redhat.com
+  # Let OpenShift generate the host automatically for different clusters
   to:
     kind: Service
     name: resource-governance-service
     weight: 100
   port:
     targetPort: http
+  path: /
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
