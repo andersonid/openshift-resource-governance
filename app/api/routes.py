@@ -1357,6 +1357,109 @@ async def get_namespace_distribution(
         logger.error(f"Error getting namespace distribution: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/overcommit-by-namespace")
+async def get_overcommit_by_namespace(
+    k8s_client=Depends(get_k8s_client),
+    prometheus_client=Depends(get_prometheus_client)
+):
+    """Get overcommit status by namespace for dashboard charts"""
+    try:
+        # Get all pods
+        pods = await k8s_client.get_all_pods()
+        
+        # Group pods by namespace and calculate resource usage
+        namespace_resources = {}
+        
+        for pod in pods:
+            namespace = pod.namespace
+            
+            if namespace not in namespace_resources:
+                namespace_resources[namespace] = {
+                    'namespace': namespace,
+                    'cpu_requests': 0.0,
+                    'memory_requests': 0.0,
+                    'cpu_limits': 0.0,
+                    'memory_limits': 0.0,
+                    'pod_count': 0
+                }
+            
+            # Sum up resources from all containers in the pod
+            for container in pod.containers:
+                resources = container.get('resources', {})
+                
+                # CPU requests and limits
+                cpu_req = resources.get('requests', {}).get('cpu', '0')
+                cpu_lim = resources.get('limits', {}).get('cpu', '0')
+                
+                # Memory requests and limits
+                mem_req = resources.get('requests', {}).get('memory', '0')
+                mem_lim = resources.get('limits', {}).get('memory', '0')
+                
+                # Convert to numeric values
+                namespace_resources[namespace]['cpu_requests'] += _parse_cpu_value(cpu_req)
+                namespace_resources[namespace]['cpu_limits'] += _parse_cpu_value(cpu_lim)
+                namespace_resources[namespace]['memory_requests'] += _parse_memory_value(mem_req)
+                namespace_resources[namespace]['memory_limits'] += _parse_memory_value(mem_lim)
+            
+            namespace_resources[namespace]['pod_count'] += 1
+        
+        # Get cluster capacity from Prometheus
+        overcommit_info = await prometheus_client.get_cluster_overcommit()
+        
+        # Calculate cluster capacity
+        cpu_capacity = 0
+        memory_capacity = 0
+        
+        if overcommit_info and overcommit_info.get("cpu") and overcommit_info.get("memory"):
+            # Get CPU capacity
+            if overcommit_info["cpu"].get("capacity", {}).get("status") == "success":
+                for result in overcommit_info["cpu"]["capacity"].get("data", {}).get("result", []):
+                    cpu_capacity += float(result.get("value", [0, "0"])[1])
+            
+            # Get Memory capacity
+            if overcommit_info["memory"].get("capacity", {}).get("status") == "success":
+                for result in overcommit_info["memory"]["capacity"].get("data", {}).get("result", []):
+                    memory_capacity += float(result.get("value", [0, "0"])[1])
+        
+        # Calculate overcommit percentage for each namespace
+        overcommit_data = []
+        for namespace, data in namespace_resources.items():
+            # Calculate CPU overcommit percentage
+            cpu_overcommit = 0
+            if cpu_capacity > 0:
+                cpu_overcommit = (data['cpu_requests'] / cpu_capacity) * 100
+            
+            # Calculate Memory overcommit percentage
+            memory_overcommit = 0
+            if memory_capacity > 0:
+                memory_overcommit = (data['memory_requests'] / memory_capacity) * 100
+            
+            overcommit_data.append({
+                'namespace': namespace,
+                'cpu_overcommit': round(cpu_overcommit, 1),
+                'memory_overcommit': round(memory_overcommit, 1),
+                'cpu_requests': data['cpu_requests'],
+                'memory_requests': data['memory_requests'],
+                'pod_count': data['pod_count']
+            })
+        
+        # Sort by CPU overcommit descending
+        overcommit_data.sort(key=lambda x: x['cpu_overcommit'], reverse=True)
+        
+        # Take top 10 namespaces
+        top_overcommit = overcommit_data[:10]
+        
+        return {
+            'overcommit': top_overcommit,
+            'total_namespaces': len(overcommit_data),
+            'cluster_cpu_capacity': cpu_capacity,
+            'cluster_memory_capacity': memory_capacity
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting overcommit by namespace: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 def _parse_cpu_value(cpu_str: str) -> float:
     """Parse CPU value from string (e.g., '100m' -> 0.1, '1' -> 1.0)"""
     if not cpu_str or cpu_str == '0':

@@ -146,6 +146,16 @@ GET /api/v1/namespace/{namespace}/workload/{workload}/historical-analysis?time_r
 GET /api/v1/workloads/{namespace}/{workload}/metrics?time_range=24h
 ```
 
+#### Namespace Resource Distribution
+```bash
+GET /api/v1/namespace-distribution
+```
+
+#### Overcommit Status by Namespace
+```bash
+GET /api/v1/overcommit-by-namespace
+```
+
 #### Export Report
 ```bash
 POST /api/v1/export
@@ -364,7 +374,14 @@ curl http://localhost:8080/health
 
 ## 🆕 Recent Updates
 
-### **Latest Version (v2.1.0) - S2I Support Added**
+### **Latest Version (v2.1.1) - Dashboard Charts Fixed**
+
+**📊 Dashboard Charts Fixed:**
+- ✅ **Real Data Integration**: All dashboard charts now use real cluster data instead of mock data
+- ✅ **Namespace Resource Distribution**: Pie chart with real namespace data and proper labels
+- ✅ **Overcommit Status by Namespace**: Real overcommit percentages based on cluster capacity
+- ✅ **Resource Utilization Trend**: Real historical data with simulated 24h trends
+- ✅ **Issues by Severity Timeline**: Real validation data with timeline simulation
 
 **🚀 Source-to-Image (S2I) Support:**
 - ✅ **S2I Deployment**: Alternative deployment method using OpenShift Source-to-Image
@@ -387,6 +404,7 @@ curl http://localhost:8080/health
 - ✅ **Script Cleanup**: Removed 19 obsolete scripts, kept only essential ones
 - ✅ **Codebase Organization**: Clean, maintainable code structure
 - ✅ **Documentation**: Updated all documentation files
+- ✅ **API Endpoints**: Added `/api/v1/namespace-distribution` and `/api/v1/overcommit-by-namespace` for real data
 
 **🚀 Deployment Ready:**
 - ✅ **Zero Downtime**: Rolling updates with proper health checks

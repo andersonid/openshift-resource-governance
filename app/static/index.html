@@ -2106,15 +2106,8 @@
                 const response = await fetch('/api/v1/namespace-distribution');
                 const data = await response.json();
                 
-                // Convert real data to chart format
-                const distributionData = data.distribution.map(ns => ({
-                    x: ns.namespace,
-                    y: ns.cpu_requests,
-                    podCount: ns.pod_count,
-                    memoryRequests: ns.memory_requests
-                }));
-
-                createNamespaceDistributionChart(distributionData, data);
+                // Pass data directly to chart function (no mapping needed)
+                createNamespaceDistributionChart(data.distribution, data);
             } catch (error) {
                 console.error('Error loading namespace distribution:', error);
                 // Fallback to empty chart
@@ -2141,116 +2134,59 @@
             // Generate colors for namespaces
             const colors = ['#0066CC', '#CC0000', '#00CC66', '#FF8800', '#CC00CC', '#666666', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
             
-            // Prepare data for Victory chart
-            const chartData = data.map((item, index) => ({
-                x: item.x,
-                y: item.y,
-                color: colors[index % colors.length],
-                podCount: item.podCount || 0,
-                memoryRequests: item.memoryRequests || 0
-            }));
-
-            const chart = React.createElement(Victory.VictoryPie, {
-                width: container.offsetWidth || 500,
-                height: 300,
-                data: chartData,
-                colorScale: chartData.map(item => item.color),
-                padding: { top: 20, bottom: 20, left: 20, right: 20 },
-                style: {
-                    parent: { 
-                        background: '#1A1A1A',
-                        width: '100%',
-                        height: '100%'
-                    },
-                    labels: { 
-                        fill: '#ccc', 
-                        fontSize: 11,
-                        fontFamily: 'Red Hat Text, sans-serif'
-                    }
-                },
-                labelComponent: React.createElement(Victory.VictoryLabel, {
-                    style: { 
-                        fill: '#ccc', 
-                        fontSize: 11,
-                        fontFamily: 'Red Hat Text, sans-serif'
-                    },
-                    labelPlacement: 'perpendicular',
-                    text: (datum) => {
-                        const cpuCores = datum.y.toFixed(2);
-                        const podCount = datum.podCount;
-                        return `${datum.x}\n${cpuCores} cores\n${podCount} pods`;
-                    }
-                }),
-                events: [{
-                    target: "data",
-                    eventHandlers: {
-                        onMouseOver: () => {
-                            return [{
-                                target: "labels",
-                                mutation: (props) => {
-                                    return {
-                                        style: Object.assign({}, props.style, { fill: "#fff", fontSize: 12, fontWeight: "bold" })
-                                    };
-                                }
-                            }];
-                        },
-                        onMouseOut: () => {
-                            return [{
-                                target: "labels",
-                                mutation: (props) => {
-                                    return {
-                                        style: Object.assign({}, props.style, { fill: "#ccc", fontSize: 11, fontWeight: "normal" })
-                                    };
-                                }
-                            }];
-                        }
-                    }
-                }]
+            // Calculate total CPU for percentages
+            const totalCpu = data.reduce((sum, item) => sum + item.cpu_requests, 0);
+            
+            // Create pie chart with labels directly on slices (like the original mock)
+            let pieChartHtml = '<div style="display: flex; align-items: center; justify-content: center; height: 100%;">';
+            
+            // Create pie chart using CSS with labels on slices
+            pieChartHtml += '<div style="position: relative; width: 300px; height: 300px;">';
+            
+            let currentAngle = 0;
+            data.forEach((item, index) => {
+                const percentage = totalCpu > 0 ? (item.cpu_requests / totalCpu) * 100 : 0;
+                const angle = (percentage / 100) * 360;
+                const color = colors[index % colors.length];
+                
+                if (angle > 0) {
+                    // Calculate label position
+                    const midAngle = currentAngle + (angle / 2);
+                    const labelRadius = 120;
+                    const labelX = 150 + Math.cos((midAngle - 90) * Math.PI / 180) * labelRadius;
+                    const labelY = 150 + Math.sin((midAngle - 90) * Math.PI / 180) * labelRadius;
+                    
+                    pieChartHtml += `
+                        <div style="
+                            position: absolute;
+                            width: 300px;
+                            height: 300px;
+                            border-radius: 50%;
+                            background: conic-gradient(from ${currentAngle}deg, ${color} 0deg ${angle}deg, transparent ${angle}deg);
+                            transform: rotate(-90deg);
+                        "></div>
+                        <div style="
+                            position: absolute;
+                            left: ${labelX}px;
+                            top: ${labelY}px;
+                            transform: translate(-50%, -50%);
+                            color: white;
+                            font-size: 12px;
+                            font-weight: bold;
+                            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                            pointer-events: none;
+                            white-space: nowrap;
+                        ">${item.namespace}</div>
+                    `;
+                    currentAngle += angle;
+                }
             });
-
-            // Add summary information below the chart
-            const totalCpu = data.reduce((sum, item) => sum + item.y, 0);
-            const totalPods = data.reduce((sum, item) => sum + (item.podCount || 0), 0);
             
-            const summaryHtml = `
-                <div style="margin-top: 16px; padding: 12px; background-color: #2B2B2B; border-radius: 4px; border: 1px solid #404040;">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; text-align: center;">
-                        <div>
-                            <div style="font-size: 12px; color: var(--pf-global--Color--300); margin-bottom: 4px;">Total CPU Requests</div>
-                            <div style="font-size: 16px; font-weight: bold; color: var(--pf-global--Color--100);">${totalCpu.toFixed(2)} cores</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 12px; color: var(--pf-global--Color--300); margin-bottom: 4px;">Total Pods</div>
-                            <div style="font-size: 16px; font-weight: bold; color: var(--pf-global--Color--100);">${totalPods}</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 12px; color: var(--pf-global--Color--300); margin-bottom: 4px;">Namespaces</div>
-                            <div style="font-size: 16px; font-weight: bold; color: var(--pf-global--Color--100);">${metadata.total_namespaces || data.length}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Create a wrapper div to hold both chart and summary
-            const wrapper = document.createElement('div');
-            wrapper.style.width = '100%';
-            wrapper.style.height = '100%';
-            wrapper.style.display = 'flex';
-            wrapper.style.flexDirection = 'column';
+            pieChartHtml += '</div>';
+            pieChartHtml += '</div>';
             
-            const chartDiv = document.createElement('div');
-            chartDiv.style.flex = '1';
-            chartDiv.style.minHeight = '200px';
-            
-            wrapper.appendChild(chartDiv);
-            wrapper.innerHTML += summaryHtml;
-            
-            // Clear container and add wrapper
-            container.innerHTML = '';
-            container.appendChild(wrapper);
-            
-            // Render chart in the chart div
-            ReactDOM.render(chart, chartDiv);
+            // Clear container and render chart
+            container.innerHTML = pieChartHtml;
         }
 
         // 3. Issues by Severity Timeline
@@ -2459,14 +2395,18 @@
         // 5. Overcommit Status by Namespace
         async function loadOvercommitByNamespace() {
             try {
-                // Generate sample data for overcommit by namespace
-                const overcommitData = [
-                    { namespace: 'resource-governance', cpu: 85, memory: 90 },
-                    { namespace: 'redhat-ods-operator', cpu: 75, memory: 80 },
-                    { namespace: 'node-gather', cpu: 60, memory: 65 },
-                    { namespace: 'shishika01', cpu: 45, memory: 50 },
-                    { namespace: 'builds-test', cpu: 30, memory: 35 }
-                ];
+                const response = await fetch('/api/v1/overcommit-by-namespace');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                // Transform data for chart
+                const overcommitData = data.overcommit.map(item => ({
+                    namespace: item.namespace,
+                    cpu: item.cpu_overcommit,
+                    memory: item.memory_overcommit
+                }));
 
                 createOvercommitNamespaceChart(overcommitData);
             } catch (error) {
