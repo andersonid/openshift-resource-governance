@@ -372,6 +372,60 @@ python -c "import app.main; print('OK')"
 curl http://localhost:8080/health
 ```
 
+## 🚀 **REFATORAÇÃO COMPLETA PARA CLUSTERS GRANDES**
+
+### **Nova Arquitetura Escalável (v3.0.0) - Em Desenvolvimento**
+
+**🎯 Visão da Nova Arquitetura:**
+**"Ferramenta de Cluster-Admin para Clusters de Qualquer Tamanho"**
+- **Análise sequencial e robusta** - sem pressa, mas completa
+- **Loading progressivo** - mostrar exatamente o que está sendo analisado
+- **Dados relevantes para decisões** - foco no que importa para admin
+- **Escalabilidade real** - funciona em clusters de 10.000+ pods
+
+**📋 Plano de Refatoração Completa:**
+
+#### **Fase 1: Arquitetura Assíncrona + Background Jobs**
+- **Celery/Redis** para jobs em background
+- **Progress tracking** em tempo real
+- **Job queuing** para queries pesadas
+- **Status persistence** entre requisições
+
+#### **Fase 2: Análise Sequencial Inteligente**
+- **Pipeline de análise** em etapas:
+  1. **Cluster Discovery** (namespaces, pods, nodes)
+  2. **Resource Analysis** (requests/limits por workload)
+  3. **Prometheus Queries** (métricas históricas)
+  4. **Overcommit Calculation** (por namespace)
+  5. **Recommendations** (sugestões de otimização)
+
+#### **Fase 3: Loading Progressivo Detalhado**
+- **Progress granular** - "Analisando namespace X de Y"
+- **Time estimates** - "Tempo estimado: 2 minutos"
+- **Real-time updates** - WebSocket para progress
+- **Resume capability** - continuar de onde parou
+
+#### **Fase 4: Otimizações para Clusters Grandes**
+- **Batch processing** - processar em lotes de 100 pods
+- **Memory management** - limpeza automática de dados
+- **Query optimization** - queries eficientes para Prometheus
+- **Caching strategy** - cache inteligente por namespace
+
+**🔧 Stack Técnica Proposta:**
+- **Celery + Redis** para background jobs
+- **WebSocket** para progress em tempo real
+- **PostgreSQL** para persistir status de análise
+- **Docker Compose** para desenvolvimento local
+
+**📈 Benefícios Esperados:**
+- **Escalabilidade**: Funciona em clusters de 10.000+ pods
+- **Performance**: Análise sequencial sem OOM kills
+- **UX**: Loading progressivo com estimativas de tempo
+- **Robustez**: Resume capability e error handling
+- **Eficiência**: Batch processing e cache inteligente
+
+---
+
 ## 🆕 Recent Updates
 
 ### **Latest Version (v2.1.1) - Dashboard Charts Fixed**
