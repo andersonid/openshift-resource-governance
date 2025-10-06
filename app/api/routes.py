@@ -243,6 +243,7 @@ async def get_validations(
     severity: Optional[str] = None,
     page: int = 1,
     page_size: int = 50,
+    include_system_namespaces: bool = True,
     k8s_client=Depends(get_k8s_client)
 ):
     """List resource validations with pagination"""
@@ -252,7 +253,7 @@ async def get_validations(
             namespace_resources = await k8s_client.get_namespace_resources(namespace)
             pods = namespace_resources.pods
         else:
-            pods = await k8s_client.get_all_pods()
+            pods = await k8s_client.get_all_pods(include_system_namespaces=include_system_namespaces)
         
         # Validate resources
         all_validations = []
