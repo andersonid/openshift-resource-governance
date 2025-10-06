@@ -7,7 +7,7 @@ import sys
 from celery import Celery
 
 # Add the app directory to Python path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, '/app')
 
 from app.celery_app import celery_app
 
