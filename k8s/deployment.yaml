@@ -115,11 +115,11 @@ spec:
               key: SERVICE_ACCOUNT_NAME
         resources:
           requests:
-            cpu: 50m
-            memory: 64Mi
+            cpu: 100m
+            memory: 128Mi
           limits:
-            cpu: 200m
-            memory: 256Mi
+            cpu: 500m
+            memory: 512Mi
         volumeMounts:
         - name: reports
           mountPath: /tmp/reports
