@@ -1924,18 +1924,18 @@
                 // Show fullscreen loading modal
                 loadingModal = showFullscreenLoading(
                     'Analyzing Cluster Resources',
-                    'Please wait while we analyze your cluster resources and generate insights...'
+                    'Please wait while we analyze your cluster resources and generate insights... This may take up to 60 seconds for large clusters.'
                 );
                 
-                // Set timeout for loading (30 seconds)
+                // Set timeout for loading (60 seconds)
                 timeoutId = setTimeout(() => {
                     hideFullscreenLoading();
                     showError('metrics-grid', 'Request timeout - API is taking too long to respond');
-                }, 30000);
+                }, 60000);
                 
                 // Load cluster status with timeout
                 const controller = new AbortController();
-                const timeoutController = setTimeout(() => controller.abort(), 25000);
+                const timeoutController = setTimeout(() => controller.abort(), 50000);
                 
                 const clusterResponse = await fetch('/api/v1/cluster/status', {
                     signal: controller.signal
