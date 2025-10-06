@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 @celery_app.task(bind=True, name='app.tasks.cluster_analysis.analyze_cluster')
-def analyze_cluster(self, cluster_config=None):
+async def analyze_cluster(self, cluster_config=None):
     """
     Analyze cluster resources and generate recommendations.
     
