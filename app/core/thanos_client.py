@@ -146,11 +146,11 @@ class ThanosClient:
         end_time = datetime.now()
         start_time = end_time - timedelta(days=days)
         
-        # CPU utilization trend - simplified
-        cpu_query = "up"
+        # CPU utilization trend - real cluster data
+        cpu_query = "avg(rate(container_cpu_usage_seconds_total{container!=\"POD\",container!=\"\"}[5m])) by (cluster)"
         
-        # Memory utilization trend - simplified  
-        memory_query = "up"
+        # Memory utilization trend - real cluster data
+        memory_query = "avg(container_memory_working_set_bytes{container!=\"POD\",container!=\"\"}) by (cluster)"
         
         cpu_data = self.query_range(
             query=cpu_query,
@@ -188,23 +188,23 @@ class ThanosClient:
         end_time = datetime.now()
         start_time = end_time - timedelta(days=days)
         
-        # CPU requests trend
+        # CPU requests trend - real data
         cpu_requests_query = f"sum(kube_pod_container_resource_requests{{namespace=\"{namespace}\", resource=\"cpu\"}}) by (namespace)"
         
-        # Memory requests trend
+        # Memory requests trend - real data
         memory_requests_query = f"sum(kube_pod_container_resource_requests{{namespace=\"{namespace}\", resource=\"memory\"}}) by (namespace)"
         
         cpu_requests = self.query_range(
             query=cpu_requests_query,
-            start=start_time.isoformat(),
-            end=end_time.isoformat(),
+            start=int(start_time.timestamp()),
+            end=int(end_time.timestamp()),
             step="1h"
         )
         
         memory_requests = self.query_range(
             query=memory_requests_query,
-            start=start_time.isoformat(),
-            end=end_time.isoformat(),
+            start=int(start_time.timestamp()),
+            end=int(end_time.timestamp()),
             step="1h"
         )
         
@@ -236,15 +236,15 @@ class ThanosClient:
         
         cpu_overcommit = self.query_range(
             query=cpu_overcommit_query,
-            start=start_time.isoformat(),
-            end=end_time.isoformat(),
+            start=int(start_time.timestamp()),
+            end=int(end_time.timestamp()),
             step="1h"
         )
         
         memory_overcommit = self.query_range(
             query=memory_overcommit_query,
-            start=start_time.isoformat(),
-            end=end_time.isoformat(),
+            start=int(start_time.timestamp()),
+            end=int(end_time.timestamp()),
             step="1h"
         )
         
@@ -276,15 +276,15 @@ class ThanosClient:
         
         cpu_workloads = self.query_range(
             query=cpu_query,
-            start=start_time.isoformat(),
-            end=end_time.isoformat(),
+            start=int(start_time.timestamp()),
+            end=int(end_time.timestamp()),
             step="1h"
         )
         
         memory_workloads = self.query_range(
             query=memory_query,
-            start=start_time.isoformat(),
-            end=end_time.isoformat(),
+            start=int(start_time.timestamp()),
+            end=int(end_time.timestamp()),
             step="1h"
         )
         
