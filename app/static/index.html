@@ -3531,10 +3531,16 @@
         }
         
         function updateMetricsCards(data) {
-            document.getElementById('total-workloads').textContent = data.total_pods || 0;
-            document.getElementById('total-namespaces').textContent = data.total_namespaces || 0;
-            document.getElementById('critical-issues').textContent = data.total_errors || 0;
-            document.getElementById('total-warnings').textContent = data.total_warnings || 0;
+            console.log('updateMetricsCards called with data:', data);
+            try {
+                document.getElementById('total-workloads').textContent = data.total_pods || 0;
+                document.getElementById('total-namespaces').textContent = data.total_namespaces || 0;
+                document.getElementById('critical-issues').textContent = data.total_errors || 0;
+                document.getElementById('total-warnings').textContent = data.total_warnings || 0;
+                console.log('updateMetricsCards completed successfully');
+            } catch (error) {
+                console.error('Error in updateMetricsCards:', error);
+            }
             
             // Update overcommit metrics
             if (data.overcommit) {
