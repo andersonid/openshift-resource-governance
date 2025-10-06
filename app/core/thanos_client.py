@@ -128,8 +128,8 @@ class ThanosClient:
         
         return self.query_range(
             query=query,
-            start=start_time.isoformat(),
-            end=end_time.isoformat(),
+            start=int(start_time.timestamp()),
+            end=int(end_time.timestamp()),
             step="1h"
         )
     
@@ -154,15 +154,15 @@ class ThanosClient:
         
         cpu_data = self.query_range(
             query=cpu_query,
-            start=start_time.isoformat(),
-            end=end_time.isoformat(),
+            start=int(start_time.timestamp()),
+            end=int(end_time.timestamp()),
             step="1h"
         )
         
         memory_data = self.query_range(
             query=memory_query,
-            start=start_time.isoformat(),
-            end=end_time.isoformat(),
+            start=int(start_time.timestamp()),
+            end=int(end_time.timestamp()),
             step="1h"
         )
         
