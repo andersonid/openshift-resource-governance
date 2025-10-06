@@ -57,6 +57,10 @@ fi
 echo -e "${YELLOW}Applying Deployment...${NC}"
 oc apply -f k8s/deployment.yaml
 
+# Apply Celery Worker Deployment
+echo -e "${YELLOW}Applying Celery Worker Deployment...${NC}"
+oc apply -f k8s/celery-worker-deployment.yaml
+
 # Apply Service
 echo -e "${YELLOW}Applying Service...${NC}"
 oc apply -f k8s/service.yaml

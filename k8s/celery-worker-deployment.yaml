@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+  namespace: resource-governance
+  labels:
+    app.kubernetes.io/name: celery-worker
+    app.kubernetes.io/component: worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: celery-worker
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: celery-worker
+        app.kubernetes.io/component: worker
+    spec:
+      serviceAccountName: resource-governance-sa
+      securityContext:
+        runAsNonRoot: true
+      containers:
+      - name: celery-worker
+        image: quay.io/rh_ee_anobre/resource-governance:latest
+        imagePullPolicy: Always
+        command: ["python", "app/workers/celery_worker.py"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        env:
+        - name: KUBECONFIG
+          value: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: REDIS_URL
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_BACKEND
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: CELERY_RESULT_BACKEND
+        - name: CPU_LIMIT_RATIO
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: CPU_LIMIT_RATIO
+        - name: MEMORY_LIMIT_RATIO
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: MEMORY_LIMIT_RATIO
+        - name: MIN_CPU_REQUEST
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: MIN_CPU_REQUEST
+        - name: MIN_MEMORY_REQUEST
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: MIN_MEMORY_REQUEST
+        - name: CRITICAL_NAMESPACES
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: CRITICAL_NAMESPACES
+        - name: INCLUDE_SYSTEM_NAMESPACES
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: INCLUDE_SYSTEM_NAMESPACES
+        - name: SYSTEM_NAMESPACE_PREFIXES
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: SYSTEM_NAMESPACE_PREFIXES
+        - name: PROMETHEUS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: PROMETHEUS_URL
+        - name: REPORT_EXPORT_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: REPORT_EXPORT_PATH
+        - name: SERVICE_ACCOUNT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: SERVICE_ACCOUNT_NAME
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: service-account-token
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          readOnly: true
+      volumes:
+      - name: service-account-token
+        secret:
+          secretName: resource-governance-sa-token
+          optional: false
+      restartPolicy: Always

@@ -8,6 +8,7 @@ resources:
 - redis-configmap.yaml
 - redis-deployment.yaml
 - deployment.yaml
+- celery-worker-deployment.yaml
 - service.yaml
 - route.yaml
 

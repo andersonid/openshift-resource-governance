@@ -1982,34 +1982,79 @@
                 // Show fullscreen loading modal
                 showFullscreenLoading(
                     'Analyzing Cluster Resources',
-                    'Please wait while we analyze your cluster resources and generate insights... This may take up to 60 seconds for large clusters.'
+                    'Starting background analysis pipeline... This may take up to 2 minutes for large clusters.'
                 );
                 
                 // Start smart loading system
                 startSmartLoading();
                 
-                // Step 1: Load cluster status
-                updateSmartProgress(0, 'Connecting to OpenShift API...');
+                // Step 1: Start background cluster analysis
+                updateSmartProgress(0, 'Starting background cluster analysis...');
                 
-                const clusterResponse = await fetch('/api/v1/cluster/status');
-                if (!clusterResponse.ok) {
-                    throw new Error(`HTTP error! status: ${clusterResponse.status}`);
+                const analysisResponse = await fetch('/api/v1/tasks/cluster/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!analysisResponse.ok) {
+                    throw new Error(`HTTP error! status: ${analysisResponse.status}`);
                 }
                 
-                const clusterData = await clusterResponse.json();
-                updateSmartProgress(1, 'Cluster data loaded successfully');
+                const analysisData = await analysisResponse.json();
+                const taskId = analysisData.task_id;
                 
-                // Update metrics cards
-                updateMetricsCards(clusterData);
+                updateSmartProgress(1, 'Background analysis started, monitoring progress...');
                 
-                // Step 2: Load dashboard charts
-                updateSmartProgress(2, 'Loading dashboard charts...');
-                await loadDashboardCharts();
+                // Step 2: Monitor task progress
+                let taskCompleted = false;
+                let attempts = 0;
+                const maxAttempts = 120; // 2 minutes max
                 
-                // Step 3: Complete
-                updateSmartProgress(3, 'Analysis complete');
+                while (!taskCompleted && attempts < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+                    attempts++;
+                    
+                    try {
+                        const statusResponse = await fetch(`/api/v1/tasks/${taskId}/status`);
+                        if (!statusResponse.ok) {
+                            throw new Error(`HTTP error! status: ${statusResponse.status}`);
+                        }
+                        
+                        const statusData = await statusResponse.json();
+                        
+                        if (statusData.state === 'PROGRESS') {
+                            const progress = Math.round((statusData.current / statusData.total) * 100);
+                            updateSmartProgress(progress, statusData.status);
+                        } else if (statusData.state === 'SUCCESS') {
+                            updateSmartProgress(100, 'Analysis completed successfully!');
+                            
+                            // Update metrics cards with results
+                            updateMetricsCards(statusData.result);
+                            
+                            // Load dashboard charts
+                            updateSmartProgress(100, 'Loading dashboard charts...');
+                            await loadDashboardCharts();
+                            
+                            currentData = { cluster: statusData.result };
+                            taskCompleted = true;
+                            
+                        } else if (statusData.state === 'FAILURE') {
+                            throw new Error(`Analysis failed: ${statusData.error}`);
+                        }
+                        
+                    } catch (error) {
+                        console.warn('Error checking task status:', error);
+                        if (attempts >= maxAttempts) {
+                            throw new Error('Analysis timeout - please try again');
+                        }
+                    }
+                }
                 
-                currentData = { cluster: clusterData };
+                if (!taskCompleted) {
+                    throw new Error('Analysis timeout - please try again');
+                }
                 
                 // Stop smart loading and hide modal
                 stopSmartLoading();
