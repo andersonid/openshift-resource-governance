@@ -1720,6 +1720,16 @@
         // Global variables
         let currentData = null;
         let currentSection = 'workload-scanner';
+        let loadingState = {
+            dashboard: false,
+            charts: {
+                resourceUtilization: false,
+                namespaceDistribution: false,
+                issuesTimeline: false,
+                topWorkloads: false,
+                overcommitByNamespace: false
+            }
+        };
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
@@ -1732,6 +1742,52 @@
             
             // Load initial data
             loadWorkloadScanner();
+        }
+
+        // Loading Functions
+        function showLoadingOverlay(containerId, message = 'Loading...') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            const loadingHTML = `
+                <div class="pf-c-empty-state" style="padding: 2rem;">
+                    <div class="pf-c-empty-state__icon">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: var(--pf-global--primary-color--100);"></i>
+                    </div>
+                    <h1 class="pf-c-title pf-m-lg">${message}</h1>
+                    <div class="pf-c-empty-state__body">
+                        <p>Please wait while we analyze your cluster resources...</p>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = loadingHTML;
+        }
+
+        function showChartLoading(containerId, message = 'Loading chart...') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            const loadingHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; color: var(--pf-global--Color--300);">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem; color: var(--pf-global--primary-color--100);"></i>
+                    <p style="margin: 0; font-size: 0.9rem;">${message}</p>
+                </div>
+            `;
+            container.innerHTML = loadingHTML;
+        }
+
+        function hideLoading(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            // Remove loading indicators
+            const loadingElements = container.querySelectorAll('.fa-spinner, .pf-c-empty-state');
+            loadingElements.forEach(el => el.remove());
+        }
+
+        function updateLoadingProgress(loaded, total) {
+            const progress = Math.round((loaded / total) * 100);
+            console.log(`Loading progress: ${progress}% (${loaded}/${total})`);
         }
         
         function setupNavigation() {
@@ -1802,17 +1858,20 @@
         
         async function loadWorkloadScanner() {
             try {
+                // Show loading overlay for metrics
+                showLoadingOverlay('metrics-grid', 'Analyzing Cluster Resources');
+                
                 // Load cluster status
                 const clusterResponse = await fetch('/api/v1/cluster/status');
                 const clusterData = await clusterResponse.json();
                 
-                // Load dashboard charts
+                // Update metrics cards
+                updateMetricsCards(clusterData);
+                
+                // Load dashboard charts with loading states
                 await loadDashboardCharts();
                 
                 currentData = { cluster: clusterData };
-                
-                // Update metrics cards
-                updateMetricsCards(clusterData);
                 
             } catch (error) {
                 console.error('Error loading workload scanner data:', error);
@@ -1961,6 +2020,13 @@
         // Dashboard Charts Functions
         async function loadDashboardCharts() {
             try {
+                // Show loading for all charts
+                showChartLoading('resource-utilization-chart', 'Loading Resource Trends...');
+                showChartLoading('namespace-distribution-chart', 'Analyzing Namespace Distribution...');
+                showChartLoading('issues-timeline-chart', 'Loading Issues Timeline...');
+                showChartLoading('top-workloads-chart', 'Identifying Top Workloads...');
+                showChartLoading('overcommit-chart', 'Calculating Overcommit Status...');
+                
                 // Load all charts in parallel
                 await Promise.all([
                     loadResourceUtilizationTrend(),
@@ -1969,6 +2035,8 @@
                     loadTopWorkloads(),
                     loadOvercommitByNamespace()
                 ]);
+                
+                console.log('All dashboard charts loaded successfully');
             } catch (error) {
                 console.error('Error loading dashboard charts:', error);
             }
@@ -2013,6 +2081,9 @@
                 }
 
                 createResourceTrendChart(trendData);
+                
+                // Update loading state
+                loadingState.charts.resourceUtilization = true;
             } catch (error) {
                 console.error('Error loading resource utilization trend:', error);
                 // Show empty state
@@ -2108,6 +2179,9 @@
                 
                 // Pass data directly to chart function (no mapping needed)
                 createNamespaceDistributionChart(data.distribution, data);
+                
+                // Update loading state
+                loadingState.charts.namespaceDistribution = true;
             } catch (error) {
                 console.error('Error loading namespace distribution:', error);
                 // Fallback to empty chart
@@ -2227,6 +2301,9 @@
                 }
 
                 createIssuesTimelineChart(timelineData);
+                
+                // Update loading state
+                loadingState.charts.issuesTimeline = true;
             } catch (error) {
                 console.error('Error loading issues timeline:', error);
                 // Show empty state
@@ -2338,6 +2415,9 @@
                     }));
 
                 createTopWorkloadsChart(workloads);
+                
+                // Update loading state
+                loadingState.charts.topWorkloads = true;
             } catch (error) {
                 console.error('Error loading top workloads:', error);
             }
@@ -2409,6 +2489,9 @@
                 }));
 
                 createOvercommitNamespaceChart(overcommitData);
+                
+                // Update loading state
+                loadingState.charts.overcommitByNamespace = true;
             } catch (error) {
                 console.error('Error loading overcommit by namespace:', error);
             }
