@@ -1730,6 +1730,15 @@
                 overcommitByNamespace: false
             }
         };
+        
+        // Smart loading system
+        let loadingProgress = {
+            lastActivity: Date.now(),
+            timeoutId: null,
+            isActive: false,
+            progressSteps: 0,
+            totalSteps: 3
+        };
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
@@ -1849,6 +1858,58 @@
             }
             console.log(`Loading progress: ${progress}% (${loaded}/${total})`);
         }
+
+        // Smart loading system functions
+        function resetLoadingTimeout() {
+            loadingProgress.lastActivity = Date.now();
+            if (loadingProgress.timeoutId) {
+                clearTimeout(loadingProgress.timeoutId);
+            }
+            
+            // Set timeout only if no activity for 30 seconds
+            loadingProgress.timeoutId = setTimeout(() => {
+                if (loadingProgress.isActive) {
+                    console.log('Loading timeout - no activity for 30 seconds');
+                    hideFullscreenLoading();
+                    showError('metrics-grid', 'Request timeout - API stopped responding');
+                }
+            }, 30000);
+        }
+
+        function updateSmartProgress(step, message = '') {
+            loadingProgress.progressSteps = step;
+            loadingProgress.lastActivity = Date.now();
+            
+            // Update progress bar
+            const progress = Math.round((step / loadingProgress.totalSteps) * 100);
+            const progressBar = document.getElementById('loading-progress');
+            if (progressBar) {
+                progressBar.style.width = progress + '%';
+            }
+            
+            // Update status message if provided
+            if (message) {
+                console.log(`Loading progress: ${progress}% - ${message}`);
+            }
+            
+            // Reset timeout since we have activity
+            resetLoadingTimeout();
+        }
+
+        function startSmartLoading() {
+            loadingProgress.isActive = true;
+            loadingProgress.progressSteps = 0;
+            loadingProgress.lastActivity = Date.now();
+            resetLoadingTimeout();
+        }
+
+        function stopSmartLoading() {
+            loadingProgress.isActive = false;
+            if (loadingProgress.timeoutId) {
+                clearTimeout(loadingProgress.timeoutId);
+                loadingProgress.timeoutId = null;
+            }
+        }
         
         function setupNavigation() {
             // Sidebar navigation
@@ -1917,67 +1978,52 @@
         }
         
         async function loadWorkloadScanner() {
-            let loadingModal = null;
-            let timeoutId = null;
-            
             try {
                 // Show fullscreen loading modal
-                loadingModal = showFullscreenLoading(
+                showFullscreenLoading(
                     'Analyzing Cluster Resources',
                     'Please wait while we analyze your cluster resources and generate insights... This may take up to 60 seconds for large clusters.'
                 );
                 
-                // Set timeout for loading (60 seconds)
-                timeoutId = setTimeout(() => {
-                    hideFullscreenLoading();
-                    showError('metrics-grid', 'Request timeout - API is taking too long to respond');
-                }, 60000);
+                // Start smart loading system
+                startSmartLoading();
                 
-                // Load cluster status with timeout
-                const controller = new AbortController();
-                const timeoutController = setTimeout(() => controller.abort(), 50000);
+                // Step 1: Load cluster status
+                updateSmartProgress(0, 'Connecting to OpenShift API...');
                 
-                const clusterResponse = await fetch('/api/v1/cluster/status', {
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutController);
-                
+                const clusterResponse = await fetch('/api/v1/cluster/status');
                 if (!clusterResponse.ok) {
                     throw new Error(`HTTP error! status: ${clusterResponse.status}`);
                 }
                 
                 const clusterData = await clusterResponse.json();
-                
-                // Update progress
-                updateLoadingProgress(1, 3);
+                updateSmartProgress(1, 'Cluster data loaded successfully');
                 
                 // Update metrics cards
                 updateMetricsCards(clusterData);
                 
-                // Update progress
-                updateLoadingProgress(2, 3);
-                
-                // Load dashboard charts with loading states
+                // Step 2: Load dashboard charts
+                updateSmartProgress(2, 'Loading dashboard charts...');
                 await loadDashboardCharts();
                 
-                // Update progress
-                updateLoadingProgress(3, 3);
+                // Step 3: Complete
+                updateSmartProgress(3, 'Analysis complete');
                 
                 currentData = { cluster: clusterData };
                 
-                // Clear timeout and hide loading modal
-                clearTimeout(timeoutId);
+                // Stop smart loading and hide modal
+                stopSmartLoading();
                 setTimeout(() => {
                     hideFullscreenLoading();
                 }, 500);
                 
             } catch (error) {
                 console.error('Error loading workload scanner data:', error);
-                if (timeoutId) clearTimeout(timeoutId);
+                stopSmartLoading();
                 hideFullscreenLoading();
                 
                 if (error.name === 'AbortError') {
-                    showError('metrics-grid', 'Request timeout - API is taking too long to respond');
+                    showError('metrics-grid', 'Request timeout - API stopped responding');
                 } else {
                     showError('metrics-grid', 'Failed to load cluster data: ' + error.message);
                 }
@@ -2125,16 +2171,45 @@
         // Dashboard Charts Functions
         async function loadDashboardCharts() {
             try {
-                // Load all charts in parallel
-                await Promise.all([
-                    loadResourceUtilizationTrend(),
-                    loadNamespaceDistribution(),
-                    loadIssuesTimeline(),
-                    loadTopWorkloads(),
-                    loadOvercommitByNamespace()
-                ]);
+                // Load all charts in parallel with individual error handling
+                const chartPromises = [
+                    loadResourceUtilizationTrend().catch(err => {
+                        console.warn('Resource utilization trend failed:', err);
+                        return null;
+                    }),
+                    loadNamespaceDistribution().catch(err => {
+                        console.warn('Namespace distribution failed:', err);
+                        return null;
+                    }),
+                    loadIssuesTimeline().catch(err => {
+                        console.warn('Issues timeline failed:', err);
+                        return null;
+                    }),
+                    loadTopWorkloads().catch(err => {
+                        console.warn('Top workloads failed:', err);
+                        return null;
+                    }),
+                    loadOvercommitByNamespace().catch(err => {
+                        console.warn('Overcommit by namespace failed:', err);
+                        return null;
+                    })
+                ];
                 
-                console.log('All dashboard charts loaded successfully');
+                // Wait for all charts to complete (or fail gracefully)
+                await Promise.allSettled(chartPromises);
+                
+                // Update progress for each successful chart
+                let successCount = 0;
+                chartPromises.forEach((promise, index) => {
+                    promise.then(result => {
+                        if (result !== null) {
+                            successCount++;
+                            updateSmartProgress(2, `Loaded ${successCount}/5 charts successfully`);
+                        }
+                    });
+                });
+                
+                console.log('Dashboard charts loading completed');
             } catch (error) {
                 console.error('Error loading dashboard charts:', error);
             }
@@ -2143,8 +2218,14 @@
         // 1. Resource Utilization Trend (24h)
         async function loadResourceUtilizationTrend() {
             try {
+                // Update progress
+                updateSmartProgress(2, 'Loading resource utilization trend...');
+                
                 // Use real Prometheus data from historical analysis
                 const response = await fetch('/api/v1/optimized/historical/summary');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
                 
                 // Create trend data from real cluster metrics
@@ -2272,7 +2353,13 @@
         // 2. Namespace Resource Distribution
         async function loadNamespaceDistribution() {
             try {
+                // Update progress
+                updateSmartProgress(2, 'Loading namespace distribution...');
+                
                 const response = await fetch('/api/v1/namespace-distribution');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
                 
                 // Pass data directly to chart function (no mapping needed)
