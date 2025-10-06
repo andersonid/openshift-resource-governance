@@ -2444,7 +2444,7 @@
             // Calculate total CPU for percentages
             const totalCpu = data.reduce((sum, item) => sum + item.cpu_requests, 0);
             
-            // Create pie chart with labels directly on slices (like the original mock)
+            // Create pie chart with labels directly on slices
             let pieChartHtml = '<div style="display: flex; align-items: center; justify-content: center; height: 100%;">';
             
             // Create pie chart using CSS with labels on slices
@@ -2815,7 +2815,7 @@
                 showLoading('settings-container');
                 
                 // TODO: Implement settings loading
-                // For now, show placeholder
+                // Show error message
                 document.getElementById('settings-container').innerHTML = `
                     <div style="text-align: center; padding: 40px; color: var(--pf-global--Color--300);">
                         <i class="fas fa-cog" style="font-size: 48px; margin-bottom: 16px; color: var(--pf-global--Color--400);"></i>

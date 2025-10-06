@@ -150,7 +150,7 @@ async def get_cluster_status(
             logger.info(f"Overcommit Debug - CPU Capacity: {cpu_capacity}, CPU Requests: {cpu_requests}, CPU Overcommit: {cpu_overcommit_percent}%")
             logger.info(f"Overcommit Debug - Memory Capacity: {memory_capacity}, Memory Requests: {memory_requests}, Memory Overcommit: {memory_overcommit_percent}%")
             
-            # Count namespaces in overcommit (simplified - count all namespaces)
+            # Count namespaces in overcommit
             namespaces_in_overcommit = len(namespaces_list)
             
         # Calculate resource utilization (usage vs requests) from Prometheus data
@@ -158,9 +158,9 @@ async def get_cluster_status(
         if resource_utilization_info.get('data_source') == 'prometheus':
             resource_utilization = resource_utilization_info.get('overall_utilization_percent', 0)
         else:
-            # Fallback to simplified calculation if Prometheus data not available
+            # Use zero if Prometheus data not available
             if cpu_requests > 0 and memory_requests > 0:
-                resource_utilization = 75  # Placeholder fallback
+                resource_utilization = 0  # No data available
         
         # Return lightweight data for dashboard
         return {

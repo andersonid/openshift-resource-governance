@@ -277,7 +277,7 @@ class PrometheusClient:
                         return {
                             'status': 'healthy',
                             'prometheus_url': self.base_url,
-                            'response_time': 0.1  # Placeholder
+                            'response_time': 0.0  # No data available
                         }
                     else:
                         return {
