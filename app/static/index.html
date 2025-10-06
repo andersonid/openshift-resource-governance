@@ -1815,7 +1815,10 @@
             const progressInterval = setInterval(() => {
                 progress += Math.random() * 15;
                 if (progress > 90) progress = 90;
-                document.getElementById('loading-progress').style.width = progress + '%';
+                const progressElement = document.getElementById('loading-progress');
+                if (progressElement) {
+                    progressElement.style.width = progress + '%';
+                }
             }, 200);
             
             return { modal: loadingModal, progressInterval };
