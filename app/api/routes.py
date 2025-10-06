@@ -150,8 +150,8 @@ async def get_cluster_status(
             logger.info(f"Overcommit Debug - CPU Capacity: {cpu_capacity}, CPU Requests: {cpu_requests}, CPU Overcommit: {cpu_overcommit_percent}%")
             logger.info(f"Overcommit Debug - Memory Capacity: {memory_capacity}, Memory Requests: {memory_requests}, Memory Overcommit: {memory_overcommit_percent}%")
             
-            # Count namespaces in overcommit (simplified - any namespace with requests > 0)
-            namespaces_in_overcommit = len([ns for ns in namespaces_list if ns['total_validations'] > 0])
+            # Count namespaces in overcommit (simplified - count all namespaces)
+            namespaces_in_overcommit = len(namespaces_list)
             
         # Calculate resource utilization (usage vs requests) from Prometheus data
         resource_utilization = 0
