@@ -39,6 +39,9 @@ WORKDIR /app
 # Copiar código da aplicação
 COPY app/ ./app/
 
+# Tornar scripts executáveis
+RUN chmod +x ./app/workers/celery_worker.py ./app/workers/celery_beat.py
+
 # Alterar propriedade dos arquivos
 RUN chown -R appuser:appuser /app
 
@@ -52,8 +55,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
-# Tornar scripts executáveis
-RUN chmod +x ./app/workers/celery_worker.py ./app/workers/celery_beat.py
-
-# Comando para executar a aplicação
+# Comando para executar a aplicação (FastAPI)
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

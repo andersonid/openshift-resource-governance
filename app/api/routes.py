@@ -1939,3 +1939,209 @@ async def get_cache_statistics():
     except Exception as e:
         logger.error(f"Error getting cache statistics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# CELERY BACKGROUND TASKS API
+# ============================================================================
+
+@api_router.post("/tasks/cluster/analyze")
+async def start_cluster_analysis():
+    """Start background cluster analysis task"""
+    try:
+        from app.tasks.cluster_analysis import analyze_cluster
+        
+        # Start background task
+        task = analyze_cluster.delay()
+        
+        return {
+            "task_id": task.id,
+            "status": "started",
+            "message": "Cluster analysis started in background",
+            "check_status_url": f"/api/v1/tasks/{task.id}/status"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error starting cluster analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/tasks/namespace/{namespace}/analyze")
+async def start_namespace_analysis(namespace: str):
+    """Start background namespace analysis task"""
+    try:
+        from app.tasks.cluster_analysis import analyze_namespace
+        
+        # Start background task
+        task = analyze_namespace.delay(namespace)
+        
+        return {
+            "task_id": task.id,
+            "namespace": namespace,
+            "status": "started",
+            "message": f"Namespace {namespace} analysis started in background",
+            "check_status_url": f"/api/v1/tasks/{task.id}/status"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error starting namespace analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/tasks/historical/{namespace}/{workload}")
+async def start_historical_analysis(namespace: str, workload: str, time_range: str = "24h"):
+    """Start background historical analysis task"""
+    try:
+        from app.tasks.prometheus_queries import query_historical_data
+        
+        # Start background task
+        task = query_historical_data.delay(namespace, workload, time_range)
+        
+        return {
+            "task_id": task.id,
+            "namespace": namespace,
+            "workload": workload,
+            "time_range": time_range,
+            "status": "started",
+            "message": f"Historical analysis for {namespace}/{workload} started in background",
+            "check_status_url": f"/api/v1/tasks/{task.id}/status"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error starting historical analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/tasks/recommendations/generate")
+async def start_recommendations_generation(cluster_data: dict):
+    """Start background smart recommendations generation task"""
+    try:
+        from app.tasks.recommendations import generate_smart_recommendations
+        
+        # Start background task
+        task = generate_smart_recommendations.delay(cluster_data)
+        
+        return {
+            "task_id": task.id,
+            "status": "started",
+            "message": "Smart recommendations generation started in background",
+            "check_status_url": f"/api/v1/tasks/{task.id}/status"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error starting recommendations generation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/tasks/{task_id}/status")
+async def get_task_status(task_id: str):
+    """Get task status and results"""
+    try:
+        from app.celery_app import celery_app
+        
+        # Get task result
+        result = celery_app.AsyncResult(task_id)
+        
+        if result.state == 'PENDING':
+            response = {
+                'task_id': task_id,
+                'state': result.state,
+                'status': 'Task is waiting to be processed...'
+            }
+        elif result.state == 'PROGRESS':
+            response = {
+                'task_id': task_id,
+                'state': result.state,
+                'current': result.info.get('current', 0),
+                'total': result.info.get('total', 1),
+                'status': result.info.get('status', ''),
+                'progress': f"{result.info.get('current', 0)}/{result.info.get('total', 1)}"
+            }
+        elif result.state == 'SUCCESS':
+            response = {
+                'task_id': task_id,
+                'state': result.state,
+                'result': result.result,
+                'status': 'Task completed successfully'
+            }
+        else:  # FAILURE
+            response = {
+                'task_id': task_id,
+                'state': result.state,
+                'error': str(result.info),
+                'status': 'Task failed'
+            }
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error getting task status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/tasks/{task_id}/result")
+async def get_task_result(task_id: str):
+    """Get task result (only if completed)"""
+    try:
+        from app.celery_app import celery_app
+        
+        # Get task result
+        result = celery_app.AsyncResult(task_id)
+        
+        if result.state == 'SUCCESS':
+            return {
+                'task_id': task_id,
+                'state': result.state,
+                'result': result.result
+            }
+        else:
+            return {
+                'task_id': task_id,
+                'state': result.state,
+                'message': 'Task not completed yet',
+                'check_status_url': f"/api/v1/tasks/{task_id}/status"
+            }
+        
+    except Exception as e:
+        logger.error(f"Error getting task result: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/tasks/{task_id}")
+async def cancel_task(task_id: str):
+    """Cancel a running task"""
+    try:
+        from app.celery_app import celery_app
+        
+        # Revoke task
+        celery_app.control.revoke(task_id, terminate=True)
+        
+        return {
+            'task_id': task_id,
+            'status': 'cancelled',
+            'message': 'Task cancelled successfully'
+        }
+        
+    except Exception as e:
+        logger.error(f"Error cancelling task: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/tasks/health")
+async def get_celery_health():
+    """Get Celery workers health status"""
+    try:
+        from app.celery_app import celery_app
+        
+        # Get active workers
+        inspect = celery_app.control.inspect()
+        active_workers = inspect.active()
+        stats = inspect.stats()
+        
+        return {
+            'celery_status': 'running',
+            'active_workers': len(active_workers) if active_workers else 0,
+            'workers': active_workers,
+            'stats': stats,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting Celery health: {e}")
+        return {
+            'celery_status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }

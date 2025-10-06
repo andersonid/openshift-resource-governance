@@ -26,6 +26,14 @@ oc apply -f k8s/rbac.yaml
 echo -e "${YELLOW}Applying ConfigMap...${NC}"
 oc apply -f k8s/configmap.yaml
 
+# Apply Redis ConfigMap
+echo -e "${YELLOW}Applying Redis ConfigMap...${NC}"
+oc apply -f k8s/redis-configmap.yaml
+
+# Apply Redis Deployment
+echo -e "${YELLOW}Applying Redis Deployment...${NC}"
+oc apply -f k8s/redis-deployment.yaml
+
 # Create ServiceAccount token secret
 echo -e "${YELLOW}Creating ServiceAccount token...${NC}"
 

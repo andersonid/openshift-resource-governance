@@ -113,6 +113,21 @@ spec:
             configMapKeyRef:
               name: resource-governance-config
               key: SERVICE_ACCOUNT_NAME
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: REDIS_URL
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_BACKEND
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: CELERY_RESULT_BACKEND
         resources:
           requests:
             cpu: 100m
