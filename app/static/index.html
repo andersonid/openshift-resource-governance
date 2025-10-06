@@ -4366,33 +4366,20 @@
         function showError(containerId, message) {
             const container = document.getElementById(containerId);
             
-            // If it's metrics-grid, show error above the cards, not replace them
+            // Skip metrics-grid completely - don't show any error for it
             if (containerId === 'metrics-grid') {
-                // Find the parent container to add error above
-                const parentContainer = container.parentElement;
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'pf-c-alert pf-m-danger';
-                errorDiv.style.marginBottom = '16px';
-                errorDiv.innerHTML = `
-                    <div class="pf-c-alert__icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="pf-c-alert__title">Error</div>
-                    <div class="pf-c-alert__description">${message}</div>
-                `;
-                
-                // Insert error before the metrics grid
-                parentContainer.insertBefore(errorDiv, container);
-            } else {
-                // For other containers, replace content as before
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--pf-global--danger-color--100);">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 16px;"></i>
-                        <h3 style="margin: 0 0 8px 0; color: var(--pf-global--Color--100);">Error</h3>
-                        <p style="margin: 0;">${message}</p>
-                    </div>
-                `;
+                console.error('Error for metrics-grid (ignored):', message);
+                return;
             }
+            
+            // For other containers, replace content as before
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--pf-global--danger-color--100);">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 16px;"></i>
+                    <h3 style="margin: 0 0 8px 0; color: var(--pf-global--Color--100);">Error</h3>
+                    <p style="margin: 0;">${message}</p>
+                </div>
+            `;
         }
     </script>
     
