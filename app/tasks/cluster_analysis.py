@@ -99,7 +99,7 @@ def analyze_cluster(self, cluster_config=None):
         logger.error(f"Cluster analysis failed: {str(exc)}")
         self.update_state(
             state='FAILURE',
-            meta={'error': str(exc), 'status': 'Analysis failed'}
+            meta={'error': str(exc), 'status': 'Analysis failed', 'exception_type': type(exc).__name__}
         )
         raise exc
 
@@ -184,6 +184,6 @@ def analyze_namespace(self, namespace):
         logger.error(f"Namespace {namespace} analysis failed: {str(exc)}")
         self.update_state(
             state='FAILURE',
-            meta={'error': str(exc), 'status': f'Namespace {namespace} analysis failed'}
+            meta={'error': str(exc), 'status': f'Namespace {namespace} analysis failed', 'exception_type': type(exc).__name__}
         )
         raise exc
