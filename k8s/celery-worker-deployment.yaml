@@ -81,6 +81,8 @@ spec:
             configMapKeyRef:
               name: resource-governance-config
               key: INCLUDE_SYSTEM_NAMESPACES
+        - name: API_BASE_URL
+          value: "http://resource-governance-service:8080"
         - name: SYSTEM_NAMESPACE_PREFIXES
           valueFrom:
             configMapKeyRef:
