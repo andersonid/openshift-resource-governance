@@ -17,6 +17,7 @@ from app.services.report_service import ReportService
 from app.services.historical_analysis import HistoricalAnalysisService
 from app.services.smart_recommendations import SmartRecommendationsService
 from app.core.prometheus_client import PrometheusClient
+from app.core.thanos_client import ThanosClient
 
 logger = logging.getLogger(__name__)
 
@@ -2151,3 +2152,125 @@ async def get_celery_health():
             'error': str(e),
             'timestamp': datetime.now().isoformat()
         }
+
+# ============================================================================
+# HYBRID APIs (Prometheus + Thanos)
+# ============================================================================
+
+@api_router.get("/hybrid/resource-trends")
+async def get_resource_trends(days: int = 7):
+    """
+    Get resource utilization trends using Thanos for historical data.
+    Combines real-time Prometheus data with historical Thanos data.
+    """
+    try:
+        thanos_client = ThanosClient()
+        
+        # Get historical trends from Thanos
+        trends = thanos_client.get_resource_utilization_trend(days)
+        
+        return {
+            "data_source": "thanos",
+            "period_days": days,
+            "trends": trends,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting resource trends: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/hybrid/namespace-trends/{namespace}")
+async def get_namespace_trends(namespace: str, days: int = 7):
+    """
+    Get namespace resource trends using Thanos for historical data.
+    """
+    try:
+        thanos_client = ThanosClient()
+        
+        # Get namespace trends from Thanos
+        trends = thanos_client.get_namespace_resource_trends(namespace, days)
+        
+        return {
+            "data_source": "thanos",
+            "namespace": namespace,
+            "period_days": days,
+            "trends": trends,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting namespace trends: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/hybrid/overcommit-trends")
+async def get_overcommit_trends(days: int = 7):
+    """
+    Get overcommit trends using Thanos for historical data.
+    """
+    try:
+        thanos_client = ThanosClient()
+        
+        # Get overcommit trends from Thanos
+        trends = thanos_client.get_overcommit_historical(days)
+        
+        return {
+            "data_source": "thanos",
+            "period_days": days,
+            "trends": trends,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting overcommit trends: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/hybrid/top-workloads")
+async def get_top_workloads_historical(days: int = 7, limit: int = 10):
+    """
+    Get historical top workloads using Thanos.
+    """
+    try:
+        thanos_client = ThanosClient()
+        
+        # Get top workloads from Thanos
+        workloads = thanos_client.get_top_workloads_historical(days, limit)
+        
+        return {
+            "data_source": "thanos",
+            "period_days": days,
+            "limit": limit,
+            "workloads": workloads,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting top workloads: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/hybrid/health")
+async def get_hybrid_health():
+    """
+    Get health status of both Prometheus and Thanos.
+    """
+    try:
+        prometheus_client = PrometheusClient()
+        thanos_client = ThanosClient()
+        
+        # Check both services
+        prometheus_health = prometheus_client.health_check()
+        thanos_health = thanos_client.health_check()
+        
+        return {
+            "prometheus": prometheus_health,
+            "thanos": thanos_health,
+            "overall_status": "healthy" if (
+                prometheus_health.get("status") == "healthy" and 
+                thanos_health.get("status") == "healthy"
+            ) else "degraded",
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error checking hybrid health: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

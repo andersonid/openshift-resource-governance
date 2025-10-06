@@ -91,6 +91,11 @@ spec:
             configMapKeyRef:
               name: resource-governance-config
               key: PROMETHEUS_URL
+        - name: THANOS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: THANOS_URL
         - name: REPORT_EXPORT_PATH
           valueFrom:
             configMapKeyRef:

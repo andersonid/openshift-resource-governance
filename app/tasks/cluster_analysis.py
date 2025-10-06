@@ -5,6 +5,7 @@ from celery import current_task
 from app.celery_app import celery_app
 from app.core.kubernetes_client import K8sClient
 from app.core.prometheus_client import PrometheusClient
+from app.core.thanos_client import ThanosClient
 from app.services.validation_service import ValidationService
 import logging
 
