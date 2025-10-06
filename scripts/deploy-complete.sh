@@ -103,7 +103,11 @@ oc apply -f k8s/service.yaml
 
 # Create Route (let OpenShift generate host automatically)
 echo -e "${YELLOW}Creating Route...${NC}"
-oc expose service resource-governance-service -n $NAMESPACE --name=resource-governance-route --path=/
+if oc get route resource-governance-route -n $NAMESPACE > /dev/null 2>&1; then
+    echo -e "${YELLOW}Route already exists, skipping creation${NC}"
+else
+    oc expose service resource-governance-service -n $NAMESPACE --name=resource-governance-route --path=/
+fi
 
 # Configure TLS for the route
 echo -e "${YELLOW}Configuring TLS for Route...${NC}"
