@@ -346,7 +346,8 @@ class ThanosClient:
             Health status
         """
         try:
-            response = self.session.get(f"{self.thanos_url}/api/v1/status/config")
+            # Use a simple query endpoint instead of status/config
+            response = self.session.get(f"{self.thanos_url}/api/v1/query", params={'query': 'up'})
             response.raise_for_status()
             
             return {
