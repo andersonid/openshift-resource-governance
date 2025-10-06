@@ -219,12 +219,15 @@ class HistoricalAnalysisService:
             '''
             
             # Execute queries
-            cpu_usage_data = await self._query_prometheus(cpu_query, time_range)
-            memory_usage_data = await self._query_prometheus(memory_query, time_range)
-            cpu_requests_data = await self._query_prometheus(cpu_requests_query, time_range)
-            memory_requests_data = await self._query_prometheus(memory_requests_query, time_range)
-            cpu_limits_data = await self._query_prometheus(cpu_limits_query, time_range)
-            memory_limits_data = await self._query_prometheus(memory_limits_query, time_range)
+            end_time = datetime.now()
+            start_time = end_time - timedelta(seconds=self.time_ranges[time_range])
+            
+            cpu_usage_data = await self._query_prometheus(cpu_query, start_time, end_time, time_range)
+            memory_usage_data = await self._query_prometheus(memory_query, start_time, end_time, time_range)
+            cpu_requests_data = await self._query_prometheus(cpu_requests_query, start_time, end_time, time_range)
+            memory_requests_data = await self._query_prometheus(memory_requests_query, start_time, end_time, time_range)
+            cpu_limits_data = await self._query_prometheus(cpu_limits_query, start_time, end_time, time_range)
+            memory_limits_data = await self._query_prometheus(memory_limits_query, start_time, end_time, time_range)
             
             # Check if we have sufficient data for both CPU and Memory before doing historical analysis
             cpu_has_data = cpu_usage_data and len([p for p in cpu_usage_data if p[1] != 'NaN']) >= 3
