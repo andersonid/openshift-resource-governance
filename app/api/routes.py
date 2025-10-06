@@ -106,6 +106,9 @@ async def get_cluster_status(
         total_errors = sum(1 for v in all_validations if v.severity == 'error')
         total_warnings = sum(1 for v in all_validations if v.severity == 'warning')
         
+        # Get namespace list for basic info
+        namespaces_list = list(set(pod.namespace for pod in pods))
+        
         # Process overcommit information
         cpu_overcommit_percent = 0
         memory_overcommit_percent = 0
