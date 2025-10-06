@@ -262,7 +262,7 @@ class PrometheusClient:
             if not self.initialized or not self.session:
                 return {
                     'status': 'unhealthy',
-                    'prometheus_url': self.prometheus_url,
+                    'prometheus_url': self.base_url,
                     'error': 'Prometheus not initialized'
                 }
             
@@ -272,17 +272,17 @@ class PrometheusClient:
             asyncio.set_event_loop(loop)
             
             async def _health_check():
-                async with self.session.get(f"{self.prometheus_url}/api/v1/status/config") as response:
+                async with self.session.get(f"{self.base_url}/api/v1/status/config") as response:
                     if response.status == 200:
                         return {
                             'status': 'healthy',
-                            'prometheus_url': self.prometheus_url,
+                            'prometheus_url': self.base_url,
                             'response_time': 0.1  # Placeholder
                         }
                     else:
                         return {
                             'status': 'unhealthy',
-                            'prometheus_url': self.prometheus_url,
+                            'prometheus_url': self.base_url,
                             'error': f'HTTP {response.status}'
                         }
             
@@ -294,7 +294,7 @@ class PrometheusClient:
             logger.error(f"Prometheus health check failed: {e}")
             return {
                 'status': 'unhealthy',
-                'prometheus_url': self.prometheus_url,
+                'prometheus_url': self.base_url,
                 'error': str(e)
             }
     
