@@ -2060,10 +2060,16 @@ async def get_task_status(task_id: str):
                 'status': 'Task completed successfully'
             }
         else:  # FAILURE
+            error_info = result.info
+            if isinstance(error_info, dict):
+                error_message = error_info.get('error', str(error_info))
+            else:
+                error_message = str(error_info)
+            
             response = {
                 'task_id': task_id,
                 'state': result.state,
-                'error': str(result.info),
+                'error': error_message,
                 'status': 'Task failed'
             }
         
