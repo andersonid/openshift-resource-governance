@@ -124,12 +124,7 @@ class ThanosClient:
         start_time = end_time - timedelta(days=days)
         
         # Query for cluster capacity over time
-        query = """
-        max(
-            kube_node_status_capacity{resource="cpu"} * on(node) group_left()
-            kube_node_status_allocatable{resource="cpu"}
-        ) by (cluster)
-        """
+        query = "max(kube_node_status_capacity{resource=\"cpu\"} * on(node) group_left() kube_node_status_allocatable{resource=\"cpu\"}) by (cluster)"
         
         return self.query_range(
             query=query,
@@ -152,18 +147,10 @@ class ThanosClient:
         start_time = end_time - timedelta(days=days)
         
         # CPU utilization trend
-        cpu_query = """
-        avg(
-            rate(container_cpu_usage_seconds_total{container!="POD",container!=""}[5m])
-        ) by (cluster)
-        """
+        cpu_query = "avg(rate(container_cpu_usage_seconds_total{container!=\"POD\",container!=\"\"}[5m])) by (cluster)"
         
         # Memory utilization trend
-        memory_query = """
-        avg(
-            container_memory_working_set_bytes{container!="POD",container!=""}
-        ) by (cluster)
-        """
+        memory_query = "avg(container_memory_working_set_bytes{container!=\"POD\",container!=\"\"}) by (cluster)"
         
         cpu_data = self.query_range(
             query=cpu_query,
@@ -202,18 +189,10 @@ class ThanosClient:
         start_time = end_time - timedelta(days=days)
         
         # CPU requests trend
-        cpu_requests_query = f"""
-        sum(
-            kube_pod_container_resource_requests{{namespace="{namespace}", resource="cpu"}}
-        ) by (namespace)
-        """
+        cpu_requests_query = f"sum(kube_pod_container_resource_requests{{namespace=\"{namespace}\", resource=\"cpu\"}}) by (namespace)"
         
         # Memory requests trend
-        memory_requests_query = f"""
-        sum(
-            kube_pod_container_resource_requests{{namespace="{namespace}", resource="memory"}}
-        ) by (namespace)
-        """
+        memory_requests_query = f"sum(kube_pod_container_resource_requests{{namespace=\"{namespace}\", resource=\"memory\"}}) by (namespace)"
         
         cpu_requests = self.query_range(
             query=cpu_requests_query,
@@ -250,20 +229,10 @@ class ThanosClient:
         start_time = end_time - timedelta(days=days)
         
         # CPU overcommit trend
-        cpu_overcommit_query = """
-        (
-            sum(kube_pod_container_resource_requests{resource="cpu"}) /
-            sum(kube_node_status_allocatable{resource="cpu"})
-        ) * 100
-        """
+        cpu_overcommit_query = "(sum(kube_pod_container_resource_requests{resource=\"cpu\"}) / sum(kube_node_status_allocatable{resource=\"cpu\"})) * 100"
         
         # Memory overcommit trend
-        memory_overcommit_query = """
-        (
-            sum(kube_pod_container_resource_requests{resource="memory"}) /
-            sum(kube_node_status_allocatable{resource="memory"})
-        ) * 100
-        """
+        memory_overcommit_query = "(sum(kube_pod_container_resource_requests{resource=\"memory\"}) / sum(kube_node_status_allocatable{resource=\"memory\"})) * 100"
         
         cpu_overcommit = self.query_range(
             query=cpu_overcommit_query,
@@ -300,22 +269,10 @@ class ThanosClient:
         start_time = end_time - timedelta(days=days)
         
         # Top CPU consuming workloads
-        cpu_query = f"""
-        topk({limit},
-            avg_over_time(
-                rate(container_cpu_usage_seconds_total{{container!="POD",container!=""}}[5m])[1h:1h]
-            )
-        ) by (namespace, pod, container)
-        """
+        cpu_query = f"topk({limit}, avg_over_time(rate(container_cpu_usage_seconds_total{{container!=\"POD\",container!=\"\"}}[5m])[1h:1h])) by (namespace, pod, container)"
         
         # Top Memory consuming workloads
-        memory_query = f"""
-        topk({limit},
-            avg_over_time(
-                container_memory_working_set_bytes{{container!="POD",container!=""}}[1h:1h]
-            )
-        ) by (namespace, pod, container)
-        """
+        memory_query = f"topk({limit}, avg_over_time(container_memory_working_set_bytes{{container!=\"POD\",container!=\"\"}}[1h:1h])) by (namespace, pod, container)"
         
         cpu_workloads = self.query_range(
             query=cpu_query,
