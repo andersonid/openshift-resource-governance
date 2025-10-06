@@ -243,7 +243,7 @@ async def get_validations(
     severity: Optional[str] = None,
     page: int = 1,
     page_size: int = 50,
-    include_system_namespaces: bool = True,
+    include_system_namespaces: bool = False,
     k8s_client=Depends(get_k8s_client)
 ):
     """List resource validations with pagination"""
