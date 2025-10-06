@@ -24,7 +24,7 @@ data:
   PROMETHEUS_URL: "https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091"
   
   # URL do Thanos
-  THANOS_URL: "https://thanos-query.openshift-monitoring.svc.cluster.local:9091"
+  THANOS_URL: "https://thanos-querier.openshift-monitoring.svc.cluster.local:9091"
   
   # Configurações de relatório
   REPORT_EXPORT_PATH: "/tmp/reports"

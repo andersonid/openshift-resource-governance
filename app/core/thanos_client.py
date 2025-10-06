@@ -26,11 +26,30 @@ class ThanosClient:
         self.thanos_url = thanos_url or self._get_thanos_url()
         self.session = requests.Session()
         self.session.timeout = 30
+        # Disable SSL verification for self-signed certificates
+        self.session.verify = False
+        # Disable SSL warnings
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        
+        # Add service account token for authentication
+        self._add_auth_token()
         
     def _get_thanos_url(self) -> str:
         """Get Thanos URL from environment or use default."""
         import os
         return os.getenv('THANOS_URL', 'http://thanos-query:9090')
+    
+    def _add_auth_token(self):
+        """Add service account token for authentication."""
+        try:
+            with open('/var/run/secrets/kubernetes.io/serviceaccount/token', 'r') as f:
+                token = f.read().strip()
+                self.session.headers.update({
+                    'Authorization': f'Bearer {token}'
+                })
+        except FileNotFoundError:
+            logger.warning("Service account token not found, proceeding without authentication")
     
     def query(self, query: str, time: str = None) -> Dict[str, Any]:
         """
