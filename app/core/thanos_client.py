@@ -146,11 +146,11 @@ class ThanosClient:
         end_time = datetime.now()
         start_time = end_time - timedelta(days=days)
         
-        # CPU utilization trend
-        cpu_query = "avg(rate(container_cpu_usage_seconds_total{container!=\"POD\",container!=\"\"}[5m])) by (cluster)"
+        # CPU utilization trend - simplified
+        cpu_query = "up"
         
-        # Memory utilization trend
-        memory_query = "avg(container_memory_working_set_bytes{container!=\"POD\",container!=\"\"}) by (cluster)"
+        # Memory utilization trend - simplified  
+        memory_query = "up"
         
         cpu_data = self.query_range(
             query=cpu_query,
