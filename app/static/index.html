@@ -1874,7 +1874,7 @@
                 if (loadingProgress.isActive) {
                     console.log('Loading timeout - no activity for 30 seconds');
                     hideFullscreenLoading();
-                    showError('metrics-grid', 'Request timeout - API stopped responding');
+                    console.error('Request timeout - API stopped responding');
                 }
             }, 30000);
         }
@@ -2071,9 +2071,9 @@
                 hideFullscreenLoading();
                 
                 if (error.name === 'AbortError') {
-                    showError('metrics-grid', 'Request timeout - API stopped responding');
+                    console.error('Request timeout - API stopped responding');
                 } else {
-                    showError('metrics-grid', 'Failed to load cluster data: ' + error.message);
+                    console.error('Failed to load cluster data: ' + error.message);
                 }
             }
         }
