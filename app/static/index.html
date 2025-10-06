@@ -1918,6 +1918,8 @@
         
         async function loadWorkloadScanner() {
             let loadingModal = null;
+            let timeoutId = null;
+            
             try {
                 // Show fullscreen loading modal
                 loadingModal = showFullscreenLoading(
@@ -1925,8 +1927,25 @@
                     'Please wait while we analyze your cluster resources and generate insights...'
                 );
                 
-                // Load cluster status
-                const clusterResponse = await fetch('/api/v1/cluster/status');
+                // Set timeout for loading (30 seconds)
+                timeoutId = setTimeout(() => {
+                    hideFullscreenLoading();
+                    showError('metrics-grid', 'Request timeout - API is taking too long to respond');
+                }, 30000);
+                
+                // Load cluster status with timeout
+                const controller = new AbortController();
+                const timeoutController = setTimeout(() => controller.abort(), 25000);
+                
+                const clusterResponse = await fetch('/api/v1/cluster/status', {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutController);
+                
+                if (!clusterResponse.ok) {
+                    throw new Error(`HTTP error! status: ${clusterResponse.status}`);
+                }
+                
                 const clusterData = await clusterResponse.json();
                 
                 // Update progress
@@ -1946,15 +1965,22 @@
                 
                 currentData = { cluster: clusterData };
                 
-                // Hide loading modal after a short delay
+                // Clear timeout and hide loading modal
+                clearTimeout(timeoutId);
                 setTimeout(() => {
                     hideFullscreenLoading();
                 }, 500);
                 
             } catch (error) {
                 console.error('Error loading workload scanner data:', error);
+                if (timeoutId) clearTimeout(timeoutId);
                 hideFullscreenLoading();
-                showError('metrics-grid', 'Failed to load cluster data');
+                
+                if (error.name === 'AbortError') {
+                    showError('metrics-grid', 'Request timeout - API is taking too long to respond');
+                } else {
+                    showError('metrics-grid', 'Failed to load cluster data: ' + error.message);
+                }
             }
         }
         
