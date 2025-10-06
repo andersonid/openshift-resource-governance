@@ -2082,8 +2082,8 @@
             try {
                 showLoading('workloads-table-container');
                 
-                // Load validations
-                const validationsResponse = await fetch('/api/v1/validations');
+                // Load validations (load all pages to ensure we get all namespaces)
+                const validationsResponse = await fetch('/api/v1/validations?page=1&page_size=10000');
                 const validationsData = await validationsResponse.json();
                 
                 currentData = { validations: validationsData };
