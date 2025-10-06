@@ -45,9 +45,8 @@ def analyze_cluster(self, cluster_config=None):
         )
         
         # Get real cluster data
-        namespaces = k8s_client.list_namespaces()
-        pods = k8s_client.list_pods()
-        nodes = k8s_client.list_nodes()
+        await k8s_client.initialize()
+        pods = await k8s_client.get_all_pods()
         
         # Step 3: Analyze workloads
         self.update_state(
@@ -55,11 +54,17 @@ def analyze_cluster(self, cluster_config=None):
             meta={'current': 3, 'total': 5, 'status': 'Analyzing workloads...'}
         )
         
-        # Count workloads by type
+        # Count workloads by type and namespaces
         workload_counts = {}
+        namespace_counts = {}
         for pod in pods:
-            workload_type = pod.metadata.labels.get('app.kubernetes.io/name', 'unknown')
+            # Count by workload type
+            workload_type = pod.labels.get('app.kubernetes.io/name', 'unknown')
             workload_counts[workload_type] = workload_counts.get(workload_type, 0) + 1
+            
+            # Count by namespace
+            namespace = pod.namespace
+            namespace_counts[namespace] = namespace_counts.get(namespace, 0) + 1
         
         # Step 4: Get resource utilization
         self.update_state(
@@ -96,9 +101,9 @@ def analyze_cluster(self, cluster_config=None):
         # Real analysis results
         results = {
             'cluster_info': {
-                'total_namespaces': len(namespaces),
+                'total_namespaces': len(namespace_counts),
                 'total_pods': len(pods),
-                'total_nodes': len(nodes),
+                'total_nodes': 0,  # Will be added later
                 'workload_types': len(workload_counts)
             },
             'resource_summary': {
@@ -108,6 +113,7 @@ def analyze_cluster(self, cluster_config=None):
                 'memory_limits': total_memory_limits
             },
             'workload_breakdown': workload_counts,
+            'namespace_breakdown': namespace_counts,
             'summary': {
                 'total_errors': 0,  # Will be calculated by validation service
                 'total_warnings': 0,  # Will be calculated by validation service
@@ -116,7 +122,7 @@ def analyze_cluster(self, cluster_config=None):
             'status': 'completed'
         }
         
-        logger.info(f"Real cluster analysis completed successfully. Found {len(namespaces)} namespaces, {len(pods)} pods, {len(nodes)} nodes")
+        logger.info(f"Real cluster analysis completed successfully. Found {len(namespace_counts)} namespaces, {len(pods)} pods")
         
         return results
         
