@@ -2006,161 +2006,81 @@
         
         async function loadWorkloadScanner() {
             try {
-                // Show fullscreen loading modal with batch processing info
+                // Show fullscreen loading modal
                 showFullscreenLoading(
                     'Analyzing Cluster Resources',
-                    'Starting intelligent batch processing pipeline... Processing pods in batches of 100 for optimal performance.'
+                    'Starting background analysis pipeline... This may take up to 2 minutes for large clusters.'
                 );
                 
                 // Start smart loading system
                 startSmartLoading();
                 
-                // Step 1: Get batch statistics first
-                updateSmartProgress(0, 'Analyzing cluster size and calculating batch requirements...');
+                // Step 1: Start background cluster analysis
+                updateSmartProgress(0, 'Starting background cluster analysis...');
                 
-                const statsResponse = await fetch('/api/v1/batch/statistics', {
-                    method: 'GET',
+                const analysisResponse = await fetch('/api/v1/tasks/cluster/analyze', {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
                 
-                if (!statsResponse.ok) {
-                    throw new Error(`HTTP error! status: ${statsResponse.status}`);
+                if (!analysisResponse.ok) {
+                    throw new Error(`HTTP error! status: ${analysisResponse.status}`);
                 }
                 
-                const statsData = await statsResponse.json();
-                const statsTaskId = statsData.task_id;
+                const analysisData = await analysisResponse.json();
+                const taskId = analysisData.task_id;
                 
-                // Wait for statistics to complete
-                let statsCompleted = false;
-                let statsAttempts = 0;
-                const maxStatsAttempts = 30; // 30 seconds max for stats
+                updateSmartProgress(1, 'Background analysis started, monitoring progress...');
                 
-                while (!statsCompleted && statsAttempts < maxStatsAttempts) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    statsAttempts++;
+                // Step 2: Monitor task progress
+                let taskCompleted = false;
+                let attempts = 0;
+                const maxAttempts = 120; // 2 minutes max
+                
+                while (!taskCompleted && attempts < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+                    attempts++;
                     
                     try {
-                        const statsStatusResponse = await fetch(`/api/v1/batch/statistics/${statsTaskId}`);
-                        if (!statsStatusResponse.ok) {
-                            throw new Error(`HTTP error! status: ${statsStatusResponse.status}`);
+                        const statusResponse = await fetch(`/api/v1/tasks/${taskId}/status`);
+                        if (!statusResponse.ok) {
+                            throw new Error(`HTTP error! status: ${statusResponse.status}`);
                         }
                         
-                        const statsStatusData = await statsStatusResponse.json();
+                        const statusData = await statusResponse.json();
                         
-                        if (statsStatusData.status === 'success') {
-                            statsCompleted = true;
-                            const batchStats = statsStatusData.result.statistics;
+                        if (statusData.state === 'PROGRESS') {
+                            const progress = Math.round((statusData.current / statusData.total) * 100);
+                            updateSmartProgress(progress, statusData.status);
+                        } else if (statusData.state === 'SUCCESS') {
+                            updateSmartProgress(100, 'Analysis completed successfully!');
                             
-                            updateSmartProgress(1, `Cluster analysis: ${batchStats.total_pods} pods in ${batchStats.total_batches} batches (${batchStats.batch_size} pods/batch)`);
+                            // Update metrics cards with results
+                            updateMetricsCards(statusData.result);
                             
-                            // Step 2: Start batch processing
-                            updateSmartProgress(2, 'Starting intelligent batch processing...');
+                            // Load dashboard charts
+                            updateSmartProgress(100, 'Loading dashboard charts...');
+                            await loadDashboardCharts();
                             
-                            const batchResponse = await fetch('/api/v1/batch/process', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    batch_size: batchStats.recommended_batch_size || 100,
-                                    include_system_namespaces: false
-                                })
-                            });
+                            currentData = { cluster: statusData.result };
+                            taskCompleted = true;
                             
-                            if (!batchResponse.ok) {
-                                throw new Error(`HTTP error! status: ${batchResponse.status}`);
-                            }
-                            
-                            const batchData = await batchResponse.json();
-                            const batchTaskId = batchData.task_id;
-                            
-                            updateSmartProgress(3, 'Batch processing started, monitoring progress...');
-                            
-                            // Step 3: Monitor batch processing progress
-                            let batchCompleted = false;
-                            let batchAttempts = 0;
-                            const maxBatchAttempts = 300; // 5 minutes max for large clusters
-                            
-                            while (!batchCompleted && batchAttempts < maxBatchAttempts) {
-                                await new Promise(resolve => setTimeout(resolve, 2000)); // Check every 2 seconds
-                                batchAttempts++;
-                                
-                                try {
-                                    const batchStatusResponse = await fetch(`/api/v1/batch/process/${batchTaskId}`);
-                                    if (!batchStatusResponse.ok) {
-                                        throw new Error(`HTTP error! status: ${batchStatusResponse.status}`);
-                                    }
-                                    
-                                    const batchStatusData = await batchStatusResponse.json();
-                                    
-                                    if (batchStatusData.status === 'progress') {
-                                        const meta = batchStatusData.meta;
-                                        const progress = Math.round((meta.current / meta.total_batches) * 100);
-                                        const batchProgress = `Batch ${meta.batch_number}/${meta.total_batches} - ${meta.pods_processed}/${meta.total_pods} pods processed`;
-                                        const validationsFound = meta.validations_found || 0;
-                                        const recommendationsGenerated = meta.recommendations_generated || 0;
-                                        
-                                        updateSmartProgress(progress, `${batchProgress} | ${validationsFound} validations found | ${recommendationsGenerated} recommendations generated`);
-                                    } else if (batchStatusData.status === 'success') {
-                                        batchCompleted = true;
-                                        const result = batchStatusData.result;
-                                        
-                                        updateSmartProgress(100, `Batch processing completed! ${result.total_validations} validations found, ${result.total_recommendations} recommendations generated`);
-                                        
-                                        // Update metrics cards with batch results
-                                        updateMetricsCards({
-                                            total_pods: result.total_pods,
-                                            total_namespaces: result.statistics.total_namespaces,
-                                            total_nodes: 0, // Not provided in batch result
-                                            total_errors: result.total_errors,
-                                            total_warnings: result.total_validations,
-                                            overcommit: {
-                                                cpu_overcommit_percent: 0,
-                                                memory_overcommit_percent: 0,
-                                                namespaces_in_overcommit: 0,
-                                                resource_utilization: 0,
-                                                cpu_capacity: 0,
-                                                cpu_requests: 0,
-                                                memory_capacity: 0,
-                                                memory_requests: 0
-                                            }
-                                        });
-                                        
-                                        // Load validations using batch processing
-                                        await loadBatchValidations();
-                                        
-                                        // Load charts with batch data
-                                        await loadCharts();
-                                        
-                                        // Set current data for other functions
-                                        currentData = result;
-                                        
-                                        console.log('Batch processing completed successfully:', result);
-                                    } else if (batchStatusData.status === 'error') {
-                                        throw new Error(`Batch processing failed: ${batchStatusData.error}`);
-                                    }
-                                } catch (error) {
-                                    console.error('Error checking batch status:', error);
-                                    // Continue trying
-                                }
-                            }
-                            
-                            if (!batchCompleted) {
-                                throw new Error('Batch processing timeout - process took too long');
-                            }
-                        } else if (statsStatusData.status === 'error') {
-                            throw new Error(`Statistics calculation failed: ${statsStatusData.error}`);
+                        } else if (statusData.state === 'FAILURE') {
+                            throw new Error(`Analysis failed: ${statusData.error}`);
                         }
+                        
                     } catch (error) {
-                        console.error('Error checking statistics status:', error);
-                        // Continue trying
+                        console.warn('Error checking task status:', error);
+                        if (attempts >= maxAttempts) {
+                            throw new Error('Analysis timeout - please try again');
+                        }
                     }
                 }
                 
-                if (!statsCompleted) {
-                    throw new Error('Statistics calculation timeout');
+                if (!taskCompleted) {
+                    throw new Error('Analysis timeout - please try again');
                 }
                 
                 // Hide loading modal
@@ -2184,24 +2104,16 @@
             try {
                 showLoading('workloads-table-container');
                 
-                // Use batch validations for better performance
-                const response = await fetch('/api/v1/batch/validations?page=1&page_size=100');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log(`Loaded ${data.validations.length} validations using batch processing`);
-                
-                // Update the table with batch data
-                updateValidationsTable(data.validations);
+                // Load validations (load all pages to ensure we get all namespaces)
+                const validationsResponse = await fetch('/api/v1/validations?page=1&page_size=10000');
+                const validationsData = await validationsResponse.json();
                 
                 hideLoading('workloads-table-container');
                 
-                currentData = { validations: data.validations };
+                currentData = { validations: validationsData };
                 
                 // Update workloads accordion
-                updateWorkloadsTable(data.validations);
+                updateWorkloadsTable(validationsData);
                 
                 // Pre-load all workload details
                 await preloadAllWorkloadDetails();

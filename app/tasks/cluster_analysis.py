@@ -58,7 +58,7 @@ def analyze_cluster(self, cluster_config=None):
         import os
         
         # Get the API base URL from environment
-        api_base_url = os.getenv('API_BASE_URL', 'http://localhost:8080')
+        api_base_url = os.getenv('API_BASE_URL', 'http://resource-governance-service:8080')
         
         try:
             # Call the real cluster status API
