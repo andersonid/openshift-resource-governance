@@ -1739,6 +1739,199 @@ async def health_check():
     }
 
 # ============================================================================
+# BATCH PROCESSING ENDPOINTS - For Large Clusters (10,000+ pods)
+# ============================================================================
+
+@api_router.get("/batch/statistics")
+async def get_batch_statistics(
+    k8s_client=Depends(get_k8s_client)
+):
+    """Get batch processing statistics for the cluster"""
+    try:
+        from app.tasks.batch_analysis import get_batch_statistics
+        
+        # Start the task
+        task = get_batch_statistics.delay()
+        
+        return {
+            "task_id": task.id,
+            "status": "started",
+            "message": "Batch statistics calculation started",
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error starting batch statistics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/batch/statistics/{task_id}")
+async def get_batch_statistics_result(task_id: str):
+    """Get batch statistics result"""
+    try:
+        from app.tasks.batch_analysis import get_batch_statistics
+        
+        # Get task result
+        task = get_batch_statistics.AsyncResult(task_id)
+        
+        if task.state == 'PENDING':
+            return {
+                "task_id": task_id,
+                "status": "pending",
+                "message": "Task is still processing..."
+            }
+        elif task.state == 'PROGRESS':
+            return {
+                "task_id": task_id,
+                "status": "progress",
+                "message": "Task is in progress...",
+                "meta": task.info
+            }
+        elif task.state == 'SUCCESS':
+            return {
+                "task_id": task_id,
+                "status": "success",
+                "result": task.result
+            }
+        else:
+            return {
+                "task_id": task_id,
+                "status": "error",
+                "error": str(task.info)
+            }
+            
+    except Exception as e:
+        logger.error(f"Error getting batch statistics result: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/batch/process")
+async def start_batch_processing(
+    namespace: Optional[str] = None,
+    include_system_namespaces: bool = False,
+    batch_size: int = 100
+):
+    """Start batch processing for large clusters"""
+    try:
+        from app.tasks.batch_analysis import process_cluster_batch
+        
+        # Validate batch size
+        if batch_size < 10 or batch_size > 500:
+            raise HTTPException(
+                status_code=400, 
+                detail="Batch size must be between 10 and 500"
+            )
+        
+        # Start the task
+        task = process_cluster_batch.delay({
+            'namespace': namespace,
+            'include_system_namespaces': include_system_namespaces,
+            'batch_size': batch_size
+        })
+        
+        return {
+            "task_id": task.id,
+            "status": "started",
+            "message": f"Batch processing started with batch size {batch_size}",
+            "namespace": namespace,
+            "include_system_namespaces": include_system_namespaces,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error starting batch processing: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/batch/process/{task_id}")
+async def get_batch_processing_result(task_id: str):
+    """Get batch processing result"""
+    try:
+        from app.tasks.batch_analysis import process_cluster_batch
+        
+        # Get task result
+        task = process_cluster_batch.AsyncResult(task_id)
+        
+        if task.state == 'PENDING':
+            return {
+                "task_id": task_id,
+                "status": "pending",
+                "message": "Task is still processing..."
+            }
+        elif task.state == 'PROGRESS':
+            return {
+                "task_id": task_id,
+                "status": "progress",
+                "message": "Task is in progress...",
+                "meta": task.info
+            }
+        elif task.state == 'SUCCESS':
+            return {
+                "task_id": task_id,
+                "status": "success",
+                "result": task.result
+            }
+        else:
+            return {
+                "task_id": task_id,
+                "status": "error",
+                "error": str(task.info)
+            }
+            
+    except Exception as e:
+        logger.error(f"Error getting batch processing result: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/batch/validations")
+async def get_batch_validations(
+    namespace: Optional[str] = None,
+    severity: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 50,
+    include_system_namespaces: bool = False,
+    k8s_client=Depends(get_k8s_client)
+):
+    """Get validations using batch processing for large clusters"""
+    try:
+        from app.services.batch_processing import batch_processing_service
+        
+        # Get all validations using batch processing
+        all_validations = []
+        
+        async for batch_result in batch_processing_service.process_cluster_in_batches(
+            k8s_client,
+            namespace=namespace,
+            include_system_namespaces=include_system_namespaces
+        ):
+            all_validations.extend(batch_result.validations)
+        
+        # Filter by severity if specified
+        if severity:
+            all_validations = [
+                v for v in all_validations if v.get('severity') == severity
+            ]
+        
+        # Pagination
+        total = len(all_validations)
+        start = (page - 1) * page_size
+        end = start + page_size
+        paginated_validations = all_validations[start:end]
+        
+        return {
+            "validations": paginated_validations,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total": total,
+                "total_pages": (total + page_size - 1) // page_size
+            },
+            "processing_method": "batch",
+            "batch_size": batch_processing_service.batch_size,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting batch validations: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
 # OPTIMIZED ENDPOINTS - 10x Performance Improvement
 # ============================================================================
 

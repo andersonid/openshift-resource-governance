@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     enable_rbac: bool = True
     service_account_name: str = "resource-governance-sa"
     
+    # Batch processing settings
+    batch_size: int = Field(default=100, alias="BATCH_SIZE")
+    max_batch_size: int = Field(default=500, alias="MAX_BATCH_SIZE")
+    min_batch_size: int = Field(default=10, alias="MIN_BATCH_SIZE")
+    
     class Config:
         env_file = ".env"
         case_sensitive = False

@@ -20,6 +20,11 @@ data:
   INCLUDE_SYSTEM_NAMESPACES: "false"
   SYSTEM_NAMESPACE_PREFIXES: '["kube-", "openshift-", "knative-", "default", "kube-system", "kube-public", "kube-node-lease"]'
   
+  # Configurações de batch processing
+  BATCH_SIZE: "100"
+  MAX_BATCH_SIZE: "500"
+  MIN_BATCH_SIZE: "10"
+  
   # URL do Prometheus
   PROMETHEUS_URL: "https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091"
   
