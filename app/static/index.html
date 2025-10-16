@@ -987,6 +987,35 @@
         .pod-stats {
             color: var(--pf-global--Color--200);
             font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        
+        .issues-breakdown {
+            font-size: 12px;
+            color: var(--pf-global--Color--300);
+        }
+        
+        .critical-count {
+            color: var(--pf-global--danger-color--200);
+            font-weight: 600;
+        }
+        
+        .error-count {
+            color: var(--pf-global--danger-color--100);
+            font-weight: 600;
+        }
+        
+        .warning-count {
+            color: var(--pf-global--warning-color--100);
+            font-weight: 600;
+        }
+        
+        .info-count {
+            color: var(--pf-global--info-color--100);
+            font-weight: 600;
         }
         
         .pod-card-body {
@@ -1074,16 +1103,21 @@
             margin-top: 8px;
         }
         
-        .issue-recommendation.cpu {
-            border-left-color: var(--pf-global--info-color--100);
+        /* CORES BASEADAS EM SEVERIDADE, NÃO TIPO DE RECURSO */
+        .issue-recommendation.error {
+            border-left-color: var(--pf-global--danger-color--100); /* VERMELHO para ERROR */
         }
         
-        .issue-recommendation.memory {
-            border-left-color: var(--pf-global--warning-color--100);
+        .issue-recommendation.warning {
+            border-left-color: var(--pf-global--warning-color--100); /* AMARELO para WARNING */
         }
         
-        .issue-recommendation.other {
-            border-left-color: var(--pf-global--Color--400);
+        .issue-recommendation.info {
+            border-left-color: var(--pf-global--info-color--100); /* AZUL para INFO */
+        }
+        
+        .issue-recommendation.critical {
+            border-left-color: var(--pf-global--danger-color--200); /* VERMELHO ESCURO para CRITICAL */
         }
         
         .other-issues-section {
@@ -2692,10 +2726,10 @@
                 }
                 groups[podName].validations.push(validation);
                 
-                // Categorize issues
-                if (validation.message && validation.message.includes('CPU')) {
+                // Categorize issues by validation type and message content
+                if (validation.validation_type === 'invalid_ratio' && validation.message && validation.message.includes('CPU')) {
                     groups[podName].cpuIssues.push(validation);
-                } else if (validation.message && validation.message.includes('Memory')) {
+                } else if (validation.validation_type === 'invalid_ratio' && validation.message && validation.message.includes('Memory')) {
                     groups[podName].memoryIssues.push(validation);
                 } else {
                     groups[podName].otherIssues.push(validation);
@@ -2710,6 +2744,23 @@
             return groups;
         }
         
+        function getIssuesBreakdown(validations) {
+            const counts = { error: 0, warning: 0, info: 0, critical: 0 };
+            validations.forEach(v => {
+                if (counts[v.severity] !== undefined) {
+                    counts[v.severity]++;
+                }
+            });
+            
+            const parts = [];
+            if (counts.critical > 0) parts.push(`<span class="critical-count">${counts.critical} critical</span>`);
+            if (counts.error > 0) parts.push(`<span class="error-count">${counts.error} errors</span>`);
+            if (counts.warning > 0) parts.push(`<span class="warning-count">${counts.warning} warnings</span>`);
+            if (counts.info > 0) parts.push(`<span class="info-count">${counts.info} info</span>`);
+            
+            return parts.join(' • ');
+        }
+        
         function createPodCard(pod) {
             return `
                 <div class="pod-card">
@@ -2722,6 +2773,9 @@
                         </div>
                         <div class="pod-stats">
                             <span class="pod-issues-count">${pod.validations.length} issues</span>
+                            <div class="issues-breakdown">
+                                ${getIssuesBreakdown(pod.validations)}
+                            </div>
                         </div>
                     </div>
                     <div class="pod-card-body">
@@ -2761,7 +2815,7 @@
                                     <span class="issue-ratio">${extractRatio(issue.message)}</span>
                                     <span class="issue-values">${extractValues(issue.message)}</span>
                                 </div>
-                                <div class="issue-recommendation ${resourceType.toLowerCase()}">
+                                <div class="issue-recommendation ${issue.severity}">
                                     ${generateSpecificRecommendation(issue, resourceType)}
                                 </div>
                             </div>
