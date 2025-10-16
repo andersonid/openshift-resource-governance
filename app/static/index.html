@@ -929,6 +929,231 @@
             50% { opacity: 0.7; }
         }
         
+        /* New Pod Card Styles */
+        .pod-card {
+            background-color: var(--pf-global--BackgroundColor--200);
+            border: 1px solid var(--pf-global--BorderColor--200);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pod-card-header {
+            background: linear-gradient(135deg, var(--pf-global--BackgroundColor--300) 0%, var(--pf-global--BackgroundColor--200) 100%);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--pf-global--BorderColor--200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .pod-name-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .pod-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--pf-global--Color--100);
+            margin: 0;
+        }
+        
+        .pod-severity-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .pod-severity-badge.warning {
+            background-color: var(--pf-global--warning-color--100);
+            color: var(--pf-global--Color--100);
+        }
+        
+        .pod-severity-badge.error {
+            background-color: var(--pf-global--danger-color--100);
+            color: var(--pf-global--Color--100);
+        }
+        
+        .pod-severity-badge.info {
+            background-color: var(--pf-global--info-color--100);
+            color: var(--pf-global--Color--100);
+        }
+        
+        .pod-stats {
+            color: var(--pf-global--Color--200);
+            font-size: 14px;
+        }
+        
+        .pod-card-body {
+            padding: 20px;
+        }
+        
+        .resource-section {
+            margin-bottom: 24px;
+        }
+        
+        .resource-section:last-of-type {
+            margin-bottom: 0;
+        }
+        
+        .resource-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--pf-global--BorderColor--300);
+        }
+        
+        .resource-type-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--pf-global--Color--100);
+            margin: 0;
+        }
+        
+        .resource-count {
+            background-color: var(--pf-global--BackgroundColor--300);
+            color: var(--pf-global--Color--200);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .resource-issues {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .resource-issue-item {
+            background-color: var(--pf-global--BackgroundColor--100);
+            border: 1px solid var(--pf-global--BorderColor--200);
+            border-radius: 6px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .issue-details {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .issue-ratio {
+            background-color: var(--pf-global--warning-color--100);
+            color: var(--pf-global--Color--100);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .issue-values {
+            color: var(--pf-global--Color--200);
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .issue-recommendation {
+            background-color: var(--pf-global--success-color--100);
+            color: var(--pf-global--Color--100);
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .issue-recommendation::before {
+            content: "💡";
+            font-size: 16px;
+        }
+        
+        .other-issues-section {
+            margin-bottom: 24px;
+        }
+        
+        .other-issues {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .other-issue-item {
+            background-color: var(--pf-global--BackgroundColor--100);
+            border: 1px solid var(--pf-global--BorderColor--200);
+            border-radius: 6px;
+            padding: 12px;
+        }
+        
+        .issue-type {
+            font-weight: 600;
+            color: var(--pf-global--Color--100);
+            font-size: 14px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .issue-message {
+            color: var(--pf-global--Color--200);
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .pod-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--pf-global--BorderColor--200);
+        }
+        
+        .action-btn {
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .apply-fix-btn {
+            background-color: var(--pf-global--primary-color--100);
+            color: var(--pf-global--Color--100);
+        }
+        
+        .apply-fix-btn:hover {
+            background-color: var(--pf-global--primary-color--200);
+            transform: translateY(-1px);
+        }
+        
+        .view-yaml-btn {
+            background-color: transparent;
+            color: var(--pf-global--Color--200);
+            border: 1px solid var(--pf-global--BorderColor--200);
+        }
+        
+        .view-yaml-btn:hover {
+            background-color: var(--pf-global--BackgroundColor--300);
+            color: var(--pf-global--Color--100);
+            border-color: var(--pf-global--BorderColor--100);
+        }
+        
         .workload-issues-list {
             display: flex;
             flex-direction: column;
@@ -2432,31 +2657,180 @@
                 return;
             }
             
+            // Group validations by pod for better organization
+            const podGroups = groupValidationsByPod(data.validations);
+            
             const issuesHTML = `
                 <div class="workload-issues-list">
-                    ${data.validations.map(validation => `
-                        <div class="workload-issue-item">
-                            <div class="workload-issue-header">
-                                <span class="severity-badge ${validation.severity}">
-                                    ${validation.severity.toUpperCase()}
-                                </span>
-                                <span class="workload-issue-title">${validation.validation_type || validation.title || 'Resource Issue'}</span>
-                                <span class="workload-issue-pod">${validation.pod_name}</span>
-                            </div>
-                            <div class="workload-issue-content">
-                                <p class="workload-issue-message">${validation.message || validation.description || 'No description available'}</p>
-                                ${validation.recommendation || validation.action_required ? `
-                                    <div class="workload-issue-recommendation">
-                                        <strong>Recommendation:</strong> ${validation.recommendation || validation.action_required}
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `).join('')}
+                    ${Object.values(podGroups).map(pod => createPodCard(pod)).join('')}
                 </div>
             `;
             
             container.innerHTML = issuesHTML;
+        }
+        
+        function groupValidationsByPod(validations) {
+            const groups = {};
+            validations.forEach(validation => {
+                const podName = validation.pod_name;
+                if (!groups[podName]) {
+                    groups[podName] = {
+                        pod_name: podName,
+                        validations: [],
+                        severity: 'info',
+                        cpuIssues: [],
+                        memoryIssues: [],
+                        otherIssues: []
+                    };
+                }
+                groups[podName].validations.push(validation);
+                
+                // Categorize issues
+                if (validation.message && validation.message.includes('CPU')) {
+                    groups[podName].cpuIssues.push(validation);
+                } else if (validation.message && validation.message.includes('Memory')) {
+                    groups[podName].memoryIssues.push(validation);
+                } else {
+                    groups[podName].otherIssues.push(validation);
+                }
+                
+                // Set highest severity
+                if (validation.severity === 'error' || 
+                    (validation.severity === 'warning' && groups[podName].severity !== 'error')) {
+                    groups[podName].severity = validation.severity;
+                }
+            });
+            return groups;
+        }
+        
+        function createPodCard(pod) {
+            return `
+                <div class="pod-card">
+                    <div class="pod-card-header">
+                        <div class="pod-name-section">
+                            <h3 class="pod-name">${pod.pod_name}</h3>
+                            <span class="pod-severity-badge ${pod.severity}">
+                                ${pod.severity.toUpperCase()}
+                            </span>
+                        </div>
+                        <div class="pod-stats">
+                            <span class="pod-issues-count">${pod.validations.length} issues</span>
+                        </div>
+                    </div>
+                    <div class="pod-card-body">
+                        ${createResourceSection('CPU', pod.cpuIssues)}
+                        ${createResourceSection('Memory', pod.memoryIssues)}
+                        ${createOtherIssuesSection(pod.otherIssues)}
+                        <div class="pod-actions">
+                            <button class="action-btn apply-fix-btn" onclick="applyResourceFix('${pod.pod_name}')">
+                                <i class="fas fa-wrench"></i>
+                                Apply Fix
+                            </button>
+                            <button class="action-btn view-yaml-btn" onclick="viewYamlPatch('${pod.pod_name}')">
+                                <i class="fas fa-code"></i>
+                                View YAML
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function createResourceSection(resourceType, issues) {
+            if (!issues || issues.length === 0) return '';
+            
+            const recommendations = issues.map(issue => generateSpecificRecommendation(issue, resourceType)).join('');
+            
+            return `
+                <div class="resource-section">
+                    <div class="resource-section-header">
+                        <h4 class="resource-type-title">${resourceType} Issues</h4>
+                        <span class="resource-count">${issues.length} issue${issues.length > 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="resource-issues">
+                        ${issues.map(issue => `
+                            <div class="resource-issue-item">
+                                <div class="issue-details">
+                                    <span class="issue-ratio">${extractRatio(issue.message)}</span>
+                                    <span class="issue-values">${extractValues(issue.message)}</span>
+                                </div>
+                                <div class="issue-recommendation">
+                                    ${generateSpecificRecommendation(issue, resourceType)}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function createOtherIssuesSection(issues) {
+            if (!issues || issues.length === 0) return '';
+            
+            return `
+                <div class="other-issues-section">
+                    <div class="resource-section-header">
+                        <h4 class="resource-type-title">Other Issues</h4>
+                        <span class="resource-count">${issues.length} issue${issues.length > 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="other-issues">
+                        ${issues.map(issue => `
+                            <div class="other-issue-item">
+                                <span class="issue-type">${issue.validation_type || 'Issue'}</span>
+                                <p class="issue-message">${issue.message || 'No description available'}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function extractRatio(message) {
+            const ratioMatch = message.match(/(\d+\.?\d*):1/);
+            return ratioMatch ? `${ratioMatch[1]}:1` : 'N/A';
+        }
+        
+        function extractValues(message) {
+            const requestMatch = message.match(/Request: ([\d\.]+[mMi]?)/);
+            const limitMatch = message.match(/Limit: ([\d\.]+[mMi]?)/);
+            const request = requestMatch ? requestMatch[1] : 'N/A';
+            const limit = limitMatch ? limitMatch[1] : 'N/A';
+            return `${request} → ${limit}`;
+        }
+        
+        function generateSpecificRecommendation(issue, resourceType) {
+            const message = issue.message || '';
+            const ratioMatch = message.match(/(\d+\.?\d*):1/);
+            const requestMatch = message.match(/Request: ([\d\.]+[mMi]?)/);
+            
+            if (!ratioMatch || !requestMatch) {
+                return `Set ${resourceType} limit to 3x the request value`;
+            }
+            
+            const currentRatio = parseFloat(ratioMatch[1]);
+            const requestValue = parseFloat(requestMatch[1]);
+            const unit = requestMatch[1].replace(/[\d\.]/g, '');
+            
+            if (currentRatio > 3.0) {
+                const recommendedLimit = Math.round(requestValue * 3.0);
+                const recommendedLimitStr = recommendedLimit + unit;
+                return `Set ${resourceType} limit to ${recommendedLimitStr} (3:1 ratio)`;
+            } else {
+                return `${resourceType} ratio is acceptable (${ratioMatch[1]}:1)`;
+            }
+        }
+        
+        // Action button functions
+        function applyResourceFix(podName) {
+            console.log(`Applying resource fix for pod: ${podName}`);
+            // TODO: Implement actual fix application
+            alert(`Resource fix for ${podName} would be applied here.\n\nThis feature will:\n- Generate YAML patch\n- Apply to cluster\n- Verify changes\n\nImplementation coming in next phase.`);
+        }
+        
+        function viewYamlPatch(podName) {
+            console.log(`Viewing YAML patch for pod: ${podName}`);
+            // TODO: Implement YAML patch generation
+            alert(`YAML patch for ${podName} would be shown here.\n\nThis feature will:\n- Generate strategic merge patch\n- Show before/after comparison\n- Allow copy to clipboard\n\nImplementation coming in next phase.`);
         }
 
         // Dashboard Charts Functions
