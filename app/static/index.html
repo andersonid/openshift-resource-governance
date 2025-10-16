@@ -1064,19 +1064,26 @@
         }
         
         .issue-recommendation {
-            background-color: var(--pf-global--success-color--100);
-            color: var(--pf-global--Color--100);
-            padding: 12px;
-            border-radius: 4px;
+            background-color: transparent;
+            color: var(--pf-global--Color--200);
+            padding: 12px 16px;
+            border-left: 4px solid var(--pf-global--success-color--100);
+            border-radius: 0;
             font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: block;
+            margin-top: 8px;
         }
         
-        .issue-recommendation::before {
-            content: "💡";
-            font-size: 16px;
+        .issue-recommendation.cpu {
+            border-left-color: var(--pf-global--info-color--100);
+        }
+        
+        .issue-recommendation.memory {
+            border-left-color: var(--pf-global--warning-color--100);
+        }
+        
+        .issue-recommendation.other {
+            border-left-color: var(--pf-global--Color--400);
         }
         
         .other-issues-section {
@@ -2754,7 +2761,7 @@
                                     <span class="issue-ratio">${extractRatio(issue.message)}</span>
                                     <span class="issue-values">${extractValues(issue.message)}</span>
                                 </div>
-                                <div class="issue-recommendation">
+                                <div class="issue-recommendation ${resourceType.toLowerCase()}">
                                     ${generateSpecificRecommendation(issue, resourceType)}
                                 </div>
                             </div>
