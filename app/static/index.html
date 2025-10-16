@@ -2648,6 +2648,57 @@
             
             // If data not available, show enhanced loading with progress
             showEnhancedLoading(container, namespace);
+            
+            // Load data asynchronously and update UI when ready
+            loadNamespaceDetails(namespace.namespace, index);
+        }
+        
+        async function loadNamespaceDetails(namespaceName, index) {
+            try {
+                console.log(`Loading details for namespace: ${namespaceName}`);
+                
+                // Fetch validations for this namespace
+                const response = await fetch(`/api/v1/validations?namespace=${namespaceName}&page=1&page_size=100`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Store the data
+                if (!window.workloadDetails) {
+                    window.workloadDetails = {};
+                }
+                window.workloadDetails[namespaceName] = data;
+                
+                // Update the UI
+                const container = document.getElementById(`workload-issues-${index}`);
+                const namespace = window.workloadsData[index];
+                
+                if (container && namespace) {
+                    displayWorkloadIssues(container, data, namespace);
+                }
+                
+                console.log(`Details loaded for namespace: ${namespaceName}`);
+            } catch (error) {
+                console.error(`Error loading details for ${namespaceName}:`, error);
+                
+                // Store error and update UI
+                if (!window.workloadDetails) {
+                    window.workloadDetails = {};
+                }
+                window.workloadDetails[namespaceName] = { error: error.message };
+                
+                const container = document.getElementById(`workload-issues-${index}`);
+                if (container) {
+                    container.innerHTML = `
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            ${error.message}
+                        </div>
+                    `;
+                }
+            }
         }
         
         function showEnhancedLoading(container, namespace) {
