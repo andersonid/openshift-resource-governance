@@ -1135,6 +1135,24 @@
             border: 1px solid var(--pf-global--BorderColor--200);
             border-radius: 6px;
             padding: 12px;
+            border-left: 4px solid var(--pf-global--Color--400); /* Default gray */
+        }
+        
+        /* CORES BASEADAS EM SEVERIDADE PARA OTHER ISSUES */
+        .other-issue-item.error {
+            border-left-color: var(--pf-global--danger-color--100); /* VERMELHO para ERROR */
+        }
+        
+        .other-issue-item.warning {
+            border-left-color: var(--pf-global--warning-color--100); /* AMARELO para WARNING */
+        }
+        
+        .other-issue-item.info {
+            border-left-color: var(--pf-global--info-color--100); /* AZUL para INFO */
+        }
+        
+        .other-issue-item.critical {
+            border-left-color: var(--pf-global--danger-color--200); /* VERMELHO ESCURO para CRITICAL */
         }
         
         .issue-type {
@@ -2887,7 +2905,7 @@
                     </div>
                     <div class="other-issues">
                         ${issues.map(issue => `
-                            <div class="other-issue-item">
+                            <div class="other-issue-item ${issue.severity}">
                                 <span class="issue-type">${issue.validation_type || 'Issue'}</span>
                                 <p class="issue-message">${issue.message || 'No description available'}</p>
                             </div>
