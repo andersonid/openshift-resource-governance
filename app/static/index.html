@@ -2379,7 +2379,7 @@
                     dependentAxis: true,
                     style: {
                         axis: { stroke: '#666' },
-                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                        tickLabels: { fill: '#ccc', fontSize: 16, angle: -45, textAnchor: 'end' }
                     },
                     tickFormat: (t) => `${t}%`
                 }),
@@ -2389,7 +2389,7 @@
                     tickCount: 8,
                     style: {
                         axis: { stroke: '#666' },
-                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                        tickLabels: { fill: '#ccc', fontSize: 16, angle: -45, textAnchor: 'end' }
                     },
                     tickFormat: (t) => new Date(t).toLocaleTimeString('pt-BR', { 
                         hour: '2-digit', 
@@ -2468,56 +2468,51 @@
             // Calculate total CPU for percentages
             const totalCpu = data.reduce((sum, item) => sum + item.cpu_requests, 0);
             
-            // Create pie chart with labels directly on slices
-            let pieChartHtml = '<div style="display: flex; align-items: center; justify-content: center; height: 100%;">';
+            // Sort by CPU usage and take top 10
+            const sortedData = data
+                .sort((a, b) => b.cpu_requests - a.cpu_requests)
+                .slice(0, 10);
+
+            // Create horizontal bar chart for better readability
+            let chartHtml = '<div style="padding: 20px; height: 100%; overflow-y: auto;">';
             
-            // Create pie chart using CSS with labels on slices
-            pieChartHtml += '<div style="position: relative; width: 300px; height: 300px;">';
-            
-            let currentAngle = 0;
-            data.forEach((item, index) => {
-                const percentage = totalCpu > 0 ? (item.cpu_requests / totalCpu) * 100 : 0;
-                const angle = (percentage / 100) * 360;
-                const color = colors[index % colors.length];
+            sortedData.forEach((item, index) => {
+                const percentage = data.reduce((sum, d) => sum + d.cpu_requests, 0) > 0 ? 
+                    (item.cpu_requests / data.reduce((sum, d) => sum + d.cpu_requests, 0)) * 100 : 0;
                 
-                if (angle > 0) {
-                    // Calculate label position
-                    const midAngle = currentAngle + (angle / 2);
-                    const labelRadius = 120;
-                    const labelX = 150 + Math.cos((midAngle - 90) * Math.PI / 180) * labelRadius;
-                    const labelY = 150 + Math.sin((midAngle - 90) * Math.PI / 180) * labelRadius;
-                    
-                    pieChartHtml += `
+                chartHtml += `
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="color: var(--pf-global--Color--100); font-size: 14px; font-weight: 500;">
+                                ${item.namespace}
+                            </span>
+                            <span style="color: var(--pf-global--Color--200); font-size: 12px;">
+                                ${percentage.toFixed(1)}%
+                            </span>
+                        </div>
                         <div style="
-                            position: absolute;
-                            width: 300px;
-                            height: 300px;
-                            border-radius: 50%;
-                            background: conic-gradient(from ${currentAngle}deg, ${color} 0deg ${angle}deg, transparent ${angle}deg);
-                            transform: rotate(-90deg);
-                        "></div>
-                        <div style="
-                            position: absolute;
-                            left: ${labelX}px;
-                            top: ${labelY}px;
-                            transform: translate(-50%, -50%);
-                            color: white;
-                            font-size: 12px;
-                            font-weight: bold;
-                            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-                            pointer-events: none;
-                            white-space: nowrap;
-                        ">${item.namespace}</div>
-                    `;
-                    currentAngle += angle;
-                }
+                            width: 100%;
+                            height: 8px;
+                            background: var(--pf-global--BackgroundColor--200);
+                            border-radius: 4px;
+                            overflow: hidden;
+                        ">
+                            <div style="
+                                width: ${percentage}%;
+                                height: 100%;
+                                background: linear-gradient(90deg, #0066CC, #4ECDC4);
+                                border-radius: 4px;
+                                transition: width 0.3s ease;
+                            "></div>
+                        </div>
+                    </div>
+                `;
             });
             
-            pieChartHtml += '</div>';
-            pieChartHtml += '</div>';
+            chartHtml += '</div>';
             
             // Clear container and render chart
-            container.innerHTML = pieChartHtml;
+            container.innerHTML = chartHtml;
         }
 
         // 3. Issues by Severity Timeline
@@ -2605,7 +2600,7 @@
                     dependentAxis: true,
                     style: {
                         axis: { stroke: '#666' },
-                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                        tickLabels: { fill: '#ccc', fontSize: 16, angle: -45, textAnchor: 'end' }
                     }
                 }),
                 React.createElement(Victory.VictoryAxis, {
@@ -2614,7 +2609,7 @@
                     tickCount: 7,
                     style: {
                         axis: { stroke: '#666' },
-                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                        tickLabels: { fill: '#ccc', fontSize: 16, angle: -45, textAnchor: 'end' }
                     },
                     tickFormat: (t) => new Date(t).toLocaleDateString('pt-BR', { 
                         day: '2-digit',
@@ -2703,7 +2698,7 @@
                     dependentAxis: true,
                     style: {
                         axis: { stroke: '#666' },
-                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                        tickLabels: { fill: '#ccc', fontSize: 16, angle: -45, textAnchor: 'end' }
                     },
                     tickFormat: (t) => `${t}m`
                 }),
@@ -2711,7 +2706,7 @@
                     key: 'x-axis',
                     style: {
                         axis: { stroke: '#666' },
-                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                        tickLabels: { fill: '#ccc', fontSize: 16, angle: -45, textAnchor: 'end' }
                     }
                 }),
                 React.createElement(Victory.VictoryBar, {
@@ -2792,7 +2787,7 @@
                     dependentAxis: true,
                     style: {
                         axis: { stroke: '#666' },
-                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                        tickLabels: { fill: '#ccc', fontSize: 16, angle: -45, textAnchor: 'end' }
                     },
                     tickFormat: (t) => `${t}%`
                 }),
@@ -2800,7 +2795,7 @@
                     key: 'x-axis',
                     style: {
                         axis: { stroke: '#666' },
-                        tickLabels: { fill: '#ccc', fontSize: 12 }
+                        tickLabels: { fill: '#ccc', fontSize: 16, angle: -45, textAnchor: 'end' }
                     }
                 }),
                 React.createElement(Victory.VictoryGroup, {
