@@ -76,6 +76,48 @@
             gap: 16px;
         }
         
+        .refresh-button {
+            background: transparent;
+            border: 1px solid var(--pf-global--Color--400);
+            color: var(--pf-global--Color--200);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .refresh-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--pf-global--Color--100);
+            color: var(--pf-global--Color--100);
+        }
+        
+        .refresh-button:active {
+            transform: scale(0.98);
+        }
+        
+        .refresh-button i {
+            font-size: 12px;
+        }
+        
+        .refresh-button.loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        .refresh-button.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
         .hamburger-menu {
             color: var(--pf-global--Color--100);
             font-size: 18px;
@@ -1252,6 +1294,10 @@
             <a href="#" class="openshift-logo">ORU Analyzer</a>
         </div>
         <div class="openshift-header-right">
+            <button class="refresh-button" id="refreshButton" title="Refresh cluster analysis">
+                <i class="fas fa-sync-alt"></i>
+                <span>Refresh</span>
+            </button>
             <div class="header-icon">
                 <i class="fas fa-question-circle"></i>
             </div>
@@ -1720,6 +1766,52 @@
         // Global variables
         let currentData = null;
         let currentSection = 'workload-scanner';
+        
+        // Cache system
+        let clusterCache = {
+            data: null,
+            timestamp: null,
+            ttl: 5 * 60 * 1000, // 5 minutes TTL
+            isAnalyzing: false
+        };
+        
+        // Cache utility functions
+        function isCacheValid() {
+            if (!clusterCache.data || !clusterCache.timestamp) {
+                return false;
+            }
+            const now = Date.now();
+            return (now - clusterCache.timestamp) < clusterCache.ttl;
+        }
+        
+        function setCacheData(data) {
+            clusterCache.data = data;
+            clusterCache.timestamp = Date.now();
+            clusterCache.isAnalyzing = false;
+        }
+        
+        function clearCache() {
+            clusterCache.data = null;
+            clusterCache.timestamp = null;
+            clusterCache.isAnalyzing = false;
+        }
+        
+        function getCachedData() {
+            return clusterCache.data;
+        }
+        
+        function setRefreshButtonLoading(loading) {
+            const refreshButton = document.getElementById('refreshButton');
+            if (refreshButton) {
+                if (loading) {
+                    refreshButton.classList.add('loading');
+                    refreshButton.disabled = true;
+                } else {
+                    refreshButton.classList.remove('loading');
+                    refreshButton.disabled = false;
+                }
+            }
+        }
         let loadingState = {
             dashboard: false,
             charts: {
@@ -1749,8 +1841,23 @@
             // Setup navigation
             setupNavigation();
             
+            // Setup refresh button
+            setupRefreshButton();
+            
             // Load initial data
             loadWorkloadScanner();
+        }
+        
+        function setupRefreshButton() {
+            const refreshButton = document.getElementById('refreshButton');
+            if (refreshButton) {
+                refreshButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Manual refresh triggered');
+                    clearCache();
+                    loadWorkloadScanner(true);
+                });
+            }
         }
 
         // Loading Functions
@@ -1968,7 +2075,7 @@
 
             // Load section data
             if (section === 'workload-scanner') {
-                loadWorkloadScanner();
+                loadWorkloadScanner(false); // Use cache if available
             } else if (section === 'requests-limits') {
                 loadRequestsLimits();
             } else if (section === 'vpa-management') {
@@ -2004,8 +2111,28 @@
             }
         }
         
-        async function loadWorkloadScanner() {
+        async function loadWorkloadScanner(forceRefresh = false) {
             try {
+                // Check cache first (unless force refresh)
+                if (!forceRefresh && isCacheValid() && !clusterCache.isAnalyzing) {
+                    console.log('Using cached cluster data');
+                    const cachedData = getCachedData();
+                    updateMetricsCards(cachedData);
+                    currentData = { cluster: cachedData };
+                    await loadDashboardCharts();
+                    return;
+                }
+                
+                // If already analyzing, don't start another analysis
+                if (clusterCache.isAnalyzing) {
+                    console.log('Analysis already in progress, waiting...');
+                    return;
+                }
+                
+                // Mark as analyzing
+                clusterCache.isAnalyzing = true;
+                setRefreshButtonLoading(true);
+                
                 // Show fullscreen loading modal
                 showFullscreenLoading(
                     'Analyzing Cluster Resources',
@@ -2057,6 +2184,9 @@
                         } else if (statusData.state === 'SUCCESS') {
                             updateSmartProgress(100, 'Analysis completed successfully!');
                             
+                            // Save to cache
+                            setCacheData(statusData.result);
+                            
                             // Update metrics cards with results
                             updateMetricsCards(statusData.result);
                             
@@ -2086,11 +2216,16 @@
                 // Hide loading modal
                 hideFullscreenLoading();
                 stopSmartLoading();
+                setRefreshButtonLoading(false);
                 
             } catch (error) {
                 console.error('Error in batch processing workflow:', error);
                 hideFullscreenLoading();
                 stopSmartLoading();
+                
+                // Clear analyzing flag on error
+                clusterCache.isAnalyzing = false;
+                setRefreshButtonLoading(false);
                 
                 if (error.name === 'AbortError') {
                     console.error('Request timeout - API stopped responding');
