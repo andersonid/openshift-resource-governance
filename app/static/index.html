@@ -868,6 +868,32 @@
             color: var(--pf-global--Color--400);
         }
         
+        .severity-breakdown {
+            font-size: 12px;
+            color: var(--pf-global--Color--300);
+            margin-top: 2px;
+        }
+        
+        .critical-count {
+            color: var(--pf-global--danger-color--200);
+            font-weight: 600;
+        }
+        
+        .error-count {
+            color: var(--pf-global--danger-color--100);
+            font-weight: 600;
+        }
+        
+        .warning-count {
+            color: var(--pf-global--warning-color--100);
+            font-weight: 600;
+        }
+        
+        .info-count {
+            color: var(--pf-global--info-color--100);
+            font-weight: 600;
+        }
+        
         .workload-accordion-content {
             background-color: var(--pf-global--BackgroundColor--100);
             border-top: 1px solid var(--pf-global--BorderColor--200);
@@ -4362,19 +4388,21 @@
                             namespace: namespace,
                             validations: [],
                             pods: new Set(),
-                            severity_breakdown: { error: 0, warning: 0, info: 0 }
+                            severity_breakdown: { error: 0, warning: 0, info: 0, critical: 0 }
                         };
                     }
                     namespaceGroups[namespace].validations.push(validation);
                     namespaceGroups[namespace].pods.add(validation.pod_name);
                     
-                    // Count severity
+                    // Count severity - CORRIGIDO para incluir critical
                     if (validation.severity === 'error') {
                         namespaceGroups[namespace].severity_breakdown.error++;
                     } else if (validation.severity === 'warning') {
                         namespaceGroups[namespace].severity_breakdown.warning++;
                     } else if (validation.severity === 'info') {
                         namespaceGroups[namespace].severity_breakdown.info++;
+                    } else if (validation.severity === 'critical') {
+                        namespaceGroups[namespace].severity_breakdown.critical++;
                     }
                 });
             }
@@ -4410,6 +4438,9 @@
                                     <span class="workload-stat">
                                         <i class="fas fa-exclamation-triangle"></i>
                                         ${namespace.validations.length} issues
+                                        <div class="severity-breakdown">
+                                            ${getSeverityBreakdown(namespace)}
+                                        </div>
                                     </span>
                                     <span class="status-indicator ${getSeverityClass(namespace)}">
                                         ${getSeverityText(namespace)}
@@ -5081,6 +5112,7 @@
         
         function getSeverityClass(namespace) {
             const breakdown = namespace.severity_breakdown || {};
+            if (breakdown.critical > 0) return 'danger';
             if (breakdown.error > 0) return 'danger';
             if (breakdown.warning > 0) return 'warning';
             if (breakdown.info > 0) return 'info';
@@ -5089,10 +5121,21 @@
         
         function getSeverityText(namespace) {
             const breakdown = namespace.severity_breakdown || {};
+            if (breakdown.critical > 0) return 'Critical';
             if (breakdown.error > 0) return 'Error';
             if (breakdown.warning > 0) return 'Warning';
             if (breakdown.info > 0) return 'Info';
             return 'Healthy';
+        }
+        
+        function getSeverityBreakdown(namespace) {
+            const breakdown = namespace.severity_breakdown || {};
+            const parts = [];
+            if (breakdown.critical > 0) parts.push(`<span class="critical-count">${breakdown.critical} critical</span>`);
+            if (breakdown.error > 0) parts.push(`<span class="error-count">${breakdown.error} errors</span>`);
+            if (breakdown.warning > 0) parts.push(`<span class="warning-count">${breakdown.warning} warnings</span>`);
+            if (breakdown.info > 0) parts.push(`<span class="info-count">${breakdown.info} info</span>`);
+            return parts.join(' • ');
         }
         
         function showLoading(containerId) {
