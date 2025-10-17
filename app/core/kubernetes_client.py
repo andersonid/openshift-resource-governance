@@ -551,8 +551,9 @@ class K8sClient:
             raise RuntimeError("Kubernetes client not initialized")
         
         try:
-            # List all storage classes
-            storage_classes = self.v1.list_storage_class(watch=False)
+            # List all storage classes using the storage API
+            storage_api = client.StorageV1Api()
+            storage_classes = storage_api.list_storage_class(watch=False)
             return storage_classes.items
             
         except ApiException as e:
