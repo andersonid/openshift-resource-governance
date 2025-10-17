@@ -1699,6 +1699,12 @@
                         <span>Requests & Limits</span>
                     </a>
                 </li>
+                <li class="sidebar-nav-item">
+                    <a href="#" class="sidebar-nav-link" data-section="storage-analysis">
+                        <i class="fas fa-hdd sidebar-nav-icon"></i>
+                        <span>Storage Analysis</span>
+                    </a>
+                </li>
             </ul>
         </div>
         
@@ -2027,7 +2033,139 @@
             </div>
         </section>
 
-            <!-- Historical Analysis Section -->
+        <!-- Storage Analysis Section -->
+        <section id="storage-analysis-section" class="section-hidden">
+            <div class="page-header">
+                <h1 class="page-title">Storage Analysis</h1>
+                <p class="page-description">Analyze storage usage, consumption patterns, and available capacity across workloads</p>
+            </div>
+
+            <!-- Storage Overview Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-hdd"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value" id="total-pvcs">-</div>
+                        <div class="metric-label">Total PVCs</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value" id="total-storage-used">-</div>
+                        <div class="metric-label">Storage Used</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value" id="storage-utilization">-</div>
+                        <div class="metric-label">Utilization</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value" id="storage-warnings">-</div>
+                        <div class="metric-label">Storage Warnings</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Storage Analytics Charts -->
+            <div class="openshift-card">
+                <div class="card-header">
+                    <h2 class="card-title">Storage Analytics</h2>
+                    <button class="openshift-button" id="refresh-storage">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+                <div class="card-content">
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h3 class="chart-title">
+                                <i class="fas fa-chart-line"></i>
+                                Storage Usage Trend (24h)
+                            </h3>
+                            <div id="storage-trend-chart" class="chart-placeholder">
+                                <div class="loading-spinner">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Loading storage trend...
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="chart-title">
+                                <i class="fas fa-chart-pie"></i>
+                                Storage by Namespace
+                            </h3>
+                            <div id="storage-namespace-chart" class="chart-placeholder">
+                                <div class="loading-spinner">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Loading namespace distribution...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h3 class="chart-title">
+                                <i class="fas fa-list"></i>
+                                Top 10 Workloads by Storage Usage
+                            </h3>
+                            <div id="top-storage-workloads-chart" class="chart-placeholder">
+                                <div class="loading-spinner">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Loading top workloads...
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="chart-title">
+                                <i class="fas fa-chart-bar"></i>
+                                Storage Classes Distribution
+                            </h3>
+                            <div id="storage-classes-chart" class="chart-placeholder">
+                                <div class="loading-spinner">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Loading storage classes...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Storage Details Table -->
+            <div class="openshift-card">
+                <div class="card-header">
+                    <h2 class="card-title">Storage Details by Namespace</h2>
+                    <div class="card-actions">
+                        <div class="search-box">
+                            <input type="text" id="storage-search" placeholder="Search namespaces..." class="search-input">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-content" id="storage-details-container">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Loading storage details...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Historical Analysis Section -->
         <section id="historical-analysis-section" class="section-hidden">
             <div class="page-header">
                 <h1 class="page-title">Historical Analysis</h1>
@@ -2199,6 +2337,395 @@
             progressSteps: 0,
             totalSteps: 3
         };
+
+        // Storage Analysis Functions
+        async function loadStorageAnalysis() {
+            try {
+                console.log('Loading storage analysis...');
+                showLoading('storage-details-container');
+                
+                // Load storage data from API
+                const response = await fetch('/api/v1/storage/analysis');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Update storage metrics cards
+                updateStorageMetrics(data);
+                
+                // Load storage charts
+                await loadStorageCharts(data);
+                
+                // Update storage details table
+                updateStorageDetails(data);
+                
+                console.log('Storage analysis loaded successfully');
+                
+            } catch (error) {
+                console.error('Error loading storage analysis:', error);
+                showError('storage-details-container', `Error loading storage analysis: ${error.message}`);
+            }
+        }
+        
+        function updateStorageMetrics(data) {
+            // Update storage overview cards
+            document.getElementById('total-pvcs').textContent = data.total_pvcs || '0';
+            document.getElementById('total-storage-used').textContent = formatBytes(data.total_storage_used || 0);
+            document.getElementById('storage-utilization').textContent = `${data.storage_utilization_percent || 0}%`;
+            document.getElementById('storage-warnings').textContent = data.storage_warnings || '0';
+        }
+        
+        async function loadStorageCharts(data) {
+            try {
+                // Storage Usage Trend Chart
+                await loadStorageTrendChart(data);
+                
+                // Storage by Namespace Chart
+                await loadStorageNamespaceChart(data);
+                
+                // Top Storage Workloads Chart
+                await loadTopStorageWorkloadsChart(data);
+                
+                // Storage Classes Chart
+                await loadStorageClassesChart(data);
+                
+            } catch (error) {
+                console.error('Error loading storage charts:', error);
+            }
+        }
+        
+        async function loadStorageTrendChart(data) {
+            const container = document.getElementById('storage-trend-chart');
+            
+            // Simulate trend data (in real implementation, this would come from Prometheus)
+            const trendData = generateStorageTrendData();
+            
+            container.innerHTML = `
+                <div style="width: 100%; height: 300px;">
+                    <canvas id="storage-trend-canvas"></canvas>
+                </div>
+            `;
+            
+            // Create line chart using Chart.js (if available) or Victory.js
+            setTimeout(() => {
+                if (typeof Victory !== 'undefined') {
+                    const chart = new Victory.Line({
+                        data: trendData,
+                        width: 400,
+                        height: 300,
+                        style: {
+                            data: { stroke: "#0066cc" }
+                        }
+                    });
+                    chart.render(container.querySelector('#storage-trend-canvas'));
+                } else {
+                    // Fallback to simple visualization
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--pf-global--Color--300);">
+                            <i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 16px;"></i>
+                            <p>Storage trend visualization</p>
+                            <p style="font-size: 14px; color: var(--pf-global--Color--400);">
+                                Chart library not available
+                            </p>
+                        </div>
+                    `;
+                }
+            }, 100);
+        }
+        
+        async function loadStorageNamespaceChart(data) {
+            const container = document.getElementById('storage-namespace-chart');
+            
+            // Create horizontal bar chart for namespace storage distribution
+            const namespaceData = data.namespace_storage || [];
+            const totalStorage = namespaceData.reduce((sum, ns) => sum + (ns.storage_used || 0), 0);
+            
+            if (namespaceData.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--pf-global--Color--300);">
+                        <i class="fas fa-database" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No storage data available</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort by storage usage and take top 10
+            const sortedData = namespaceData
+                .sort((a, b) => (b.storage_used || 0) - (a.storage_used || 0))
+                .slice(0, 10);
+            
+            const chartHTML = sortedData.map((ns, index) => {
+                const percentage = totalStorage > 0 ? ((ns.storage_used || 0) / totalStorage * 100) : 0;
+                const width = Math.max(percentage * 3, 2); // Minimum 2px width
+                
+                return `
+                    <div class="namespace-storage-item" style="margin-bottom: 12px;">
+                        <div class="namespace-name" style="font-size: 14px; margin-bottom: 4px; color: var(--pf-global--Color--100);">
+                            ${ns.namespace}
+                        </div>
+                        <div class="storage-bar-container" style="background-color: var(--pf-global--BackgroundColor--300); height: 20px; border-radius: 10px; overflow: hidden; position: relative;">
+                            <div class="storage-bar" style="
+                                background: linear-gradient(90deg, var(--pf-global--primary-color--100), var(--pf-global--info-color--100));
+                                height: 100%;
+                                width: ${width}px;
+                                border-radius: 10px;
+                                transition: width 0.3s ease;
+                            "></div>
+                            <div class="storage-percentage" style="
+                                position: absolute;
+                                right: 8px;
+                                top: 50%;
+                                transform: translateY(-50%);
+                                font-size: 12px;
+                                color: var(--pf-global--Color--100);
+                                font-weight: 600;
+                            ">${percentage.toFixed(1)}%</div>
+                        </div>
+                        <div class="storage-details" style="font-size: 12px; color: var(--pf-global--Color--300); margin-top: 2px;">
+                            ${formatBytes(ns.storage_used || 0)} used
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = `
+                <div style="padding: 20px;">
+                    ${chartHTML}
+                </div>
+            `;
+        }
+        
+        async function loadTopStorageWorkloadsChart(data) {
+            const container = document.getElementById('top-storage-workloads-chart');
+            
+            const workloadData = data.top_storage_workloads || [];
+            
+            if (workloadData.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--pf-global--Color--300);">
+                        <i class="fas fa-list" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No workload storage data available</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const chartHTML = workloadData.map((workload, index) => {
+                const percentage = data.max_storage > 0 ? (workload.storage_used / data.max_storage * 100) : 0;
+                const width = Math.max(percentage * 2, 2);
+                
+                return `
+                    <div class="workload-storage-item" style="margin-bottom: 16px; padding: 12px; background-color: var(--pf-global--BackgroundColor--200); border-radius: 6px;">
+                        <div class="workload-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div class="workload-name" style="font-weight: 600; color: var(--pf-global--Color--100);">
+                                ${workload.name}
+                            </div>
+                            <div class="workload-storage" style="font-size: 14px; color: var(--pf-global--Color--200);">
+                                ${formatBytes(workload.storage_used)}
+                            </div>
+                        </div>
+                        <div class="storage-bar-container" style="background-color: var(--pf-global--BackgroundColor--300); height: 16px; border-radius: 8px; overflow: hidden; position: relative;">
+                            <div class="storage-bar" style="
+                                background: linear-gradient(90deg, var(--pf-global--success-color--100), var(--pf-global--warning-color--100));
+                                height: 100%;
+                                width: ${width}px;
+                                border-radius: 8px;
+                                transition: width 0.3s ease;
+                            "></div>
+                        </div>
+                        <div class="workload-details" style="font-size: 12px; color: var(--pf-global--Color--300); margin-top: 4px;">
+                            Namespace: ${workload.namespace} • PVCs: ${workload.pvc_count}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = `
+                <div style="padding: 20px; max-height: 400px; overflow-y: auto;">
+                    ${chartHTML}
+                </div>
+            `;
+        }
+        
+        async function loadStorageClassesChart(data) {
+            const container = document.getElementById('storage-classes-chart');
+            
+            const storageClassData = data.storage_classes || [];
+            
+            if (storageClassData.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--pf-global--Color--300);">
+                        <i class="fas fa-chart-bar" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No storage class data available</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const chartHTML = storageClassData.map((sc, index) => {
+                const percentage = data.total_pvcs > 0 ? (sc.pvc_count / data.total_pvcs * 100) : 0;
+                const width = Math.max(percentage * 2, 2);
+                
+                return `
+                    <div class="storage-class-item" style="margin-bottom: 12px;">
+                        <div class="storage-class-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <div class="storage-class-name" style="font-weight: 600; color: var(--pf-global--Color--100);">
+                                ${sc.name}
+                            </div>
+                            <div class="storage-class-count" style="font-size: 14px; color: var(--pf-global--Color--200);">
+                                ${sc.pvc_count} PVCs
+                            </div>
+                        </div>
+                        <div class="storage-bar-container" style="background-color: var(--pf-global--BackgroundColor--300); height: 18px; border-radius: 9px; overflow: hidden; position: relative;">
+                            <div class="storage-bar" style="
+                                background: linear-gradient(90deg, var(--pf-global--info-color--100), var(--pf-global--primary-color--100));
+                                height: 100%;
+                                width: ${width}px;
+                                border-radius: 9px;
+                                transition: width 0.3s ease;
+                            "></div>
+                            <div class="storage-percentage" style="
+                                position: absolute;
+                                right: 8px;
+                                top: 50%;
+                                transform: translateY(-50%);
+                                font-size: 12px;
+                                color: var(--pf-global--Color--100);
+                                font-weight: 600;
+                            ">${percentage.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = `
+                <div style="padding: 20px;">
+                    ${chartHTML}
+                </div>
+            `;
+        }
+        
+        function updateStorageDetails(data) {
+            const container = document.getElementById('storage-details-container');
+            
+            const namespaceData = data.namespace_storage || [];
+            
+            if (namespaceData.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--pf-global--Color--300);">
+                        <i class="fas fa-database" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>No storage data available</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort by storage usage
+            const sortedData = namespaceData.sort((a, b) => (b.storage_used || 0) - (a.storage_used || 0));
+            
+            const tableHTML = `
+                <div class="openshift-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Namespace</th>
+                                <th>Storage Used</th>
+                                <th>PVCs</th>
+                                <th>Storage Classes</th>
+                                <th>Utilization</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sortedData.map(ns => `
+                                <tr>
+                                    <td>
+                                        <div class="namespace-info">
+                                            <strong>${ns.namespace}</strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="storage-info">
+                                            ${formatBytes(ns.storage_used || 0)}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="pvc-count">${ns.pvc_count || 0}</span>
+                                    </td>
+                                    <td>
+                                        <div class="storage-classes">
+                                            ${(ns.storage_classes || []).map(sc => 
+                                                `<span class="storage-class-tag">${sc}</span>`
+                                            ).join(' ')}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="utilization-bar">
+                                            <div class="utilization-fill" style="width: ${ns.utilization_percent || 0}%"></div>
+                                            <span class="utilization-text">${ns.utilization_percent || 0}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge ${getStorageStatusClass(ns)}">
+                                            ${getStorageStatusText(ns)}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            container.innerHTML = tableHTML;
+        }
+        
+        function generateStorageTrendData() {
+            // Generate mock trend data for 24 hours
+            const data = [];
+            const now = new Date();
+            
+            for (let i = 23; i >= 0; i--) {
+                const time = new Date(now.getTime() - (i * 60 * 60 * 1000));
+                const usage = 100 + Math.random() * 50; // Mock usage between 100-150GB
+                
+                data.push({
+                    x: time.toISOString(),
+                    y: usage
+                });
+            }
+            
+            return data;
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function getStorageStatusClass(ns) {
+            const utilization = ns.utilization_percent || 0;
+            if (utilization >= 90) return 'danger';
+            if (utilization >= 75) return 'warning';
+            if (utilization >= 50) return 'info';
+            return 'success';
+        }
+        
+        function getStorageStatusText(ns) {
+            const utilization = ns.utilization_percent || 0;
+            if (utilization >= 90) return 'Critical';
+            if (utilization >= 75) return 'Warning';
+            if (utilization >= 50) return 'Info';
+            return 'Healthy';
+        }
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
@@ -2408,6 +2935,7 @@
             
             // Refresh buttons
             document.getElementById('refresh-workloads').addEventListener('click', loadRequestsLimits);
+            document.getElementById('refresh-storage').addEventListener('click', loadStorageAnalysis);
             document.getElementById('refresh-historical').addEventListener('click', loadHistoricalAnalysis);
             
             // Close dropdown when clicking outside
@@ -2446,10 +2974,12 @@
                 loadWorkloadScanner(false); // Use cache if available
             } else if (section === 'requests-limits') {
                 loadRequestsLimits();
+            } else if (section === 'storage-analysis') {
+                loadStorageAnalysis();
             } else if (section === 'vpa-management') {
-                    loadVPAManagement();
+                loadVPAManagement();
             } else if (section === 'historical-analysis') {
-                    loadHistoricalAnalysis();
+                loadHistoricalAnalysis();
             } else if (section === 'settings') {
                 loadSettings();
             }

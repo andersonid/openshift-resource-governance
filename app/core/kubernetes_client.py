@@ -530,3 +530,31 @@ class K8sClient:
         except ApiException as e:
             logger.error(f"Error collecting node information: {e}")
             raise
+
+    async def get_all_pvcs(self) -> List[Any]:
+        """Get all PersistentVolumeClaims in the cluster"""
+        if not self.initialized:
+            raise RuntimeError("Kubernetes client not initialized")
+        
+        try:
+            # List all PVCs in all namespaces
+            pvcs = self.v1.list_persistent_volume_claim_for_all_namespaces(watch=False)
+            return pvcs.items
+            
+        except ApiException as e:
+            logger.error(f"Error getting PVCs: {e}")
+            raise
+
+    async def get_storage_classes(self) -> List[Any]:
+        """Get all StorageClasses in the cluster"""
+        if not self.initialized:
+            raise RuntimeError("Kubernetes client not initialized")
+        
+        try:
+            # List all storage classes
+            storage_classes = self.v1.list_storage_class(watch=False)
+            return storage_classes.items
+            
+        except ApiException as e:
+            logger.error(f"Error getting storage classes: {e}")
+            raise

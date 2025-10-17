@@ -2404,3 +2404,148 @@ async def get_hybrid_health():
     except Exception as e:
         logger.error(f"Error checking hybrid health: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/storage/analysis")
+async def get_storage_analysis(k8s_client=Depends(get_k8s_client)):
+    """
+    Get comprehensive storage analysis including PVCs, storage classes, and usage patterns.
+    """
+    try:
+        logger.info("Starting storage analysis...")
+        
+        # Get all PVCs
+        pvcs = await k8s_client.get_all_pvcs()
+        logger.info(f"Found {len(pvcs)} PVCs")
+        
+        # Get storage classes
+        storage_classes = await k8s_client.get_storage_classes()
+        logger.info(f"Found {len(storage_classes)} storage classes")
+        
+        # Analyze storage usage by namespace
+        namespace_storage = {}
+        total_storage_used = 0
+        storage_warnings = 0
+        
+        for pvc in pvcs:
+            namespace = pvc.metadata.namespace
+            if namespace not in namespace_storage:
+                namespace_storage[namespace] = {
+                    'namespace': namespace,
+                    'storage_used': 0,
+                    'pvc_count': 0,
+                    'storage_classes': set(),
+                    'utilization_percent': 0
+                }
+            
+            # Calculate storage used (convert to bytes)
+            storage_size = pvc.spec.resources.requests.get('storage', '0')
+            storage_bytes = _parse_storage_size(storage_size)
+            
+            namespace_storage[namespace]['storage_used'] += storage_bytes
+            namespace_storage[namespace]['pvc_count'] += 1
+            namespace_storage[namespace]['storage_classes'].add(pvc.spec.storage_class_name or 'default')
+            
+            total_storage_used += storage_bytes
+            
+            # Check for storage warnings (PVCs with no storage class, etc.)
+            if not pvc.spec.storage_class_name:
+                storage_warnings += 1
+        
+        # Calculate utilization percentages (mock for now)
+        for ns_data in namespace_storage.values():
+            # Mock utilization calculation - in real implementation, this would come from Prometheus
+            ns_data['utilization_percent'] = min(100, (ns_data['storage_used'] / (1024**4)) * 10)  # Mock calculation
+            ns_data['storage_classes'] = list(ns_data['storage_classes'])
+        
+        # Get top storage workloads
+        top_storage_workloads = []
+        for ns_data in namespace_storage.values():
+            if ns_data['storage_used'] > 0:
+                top_storage_workloads.append({
+                    'name': ns_data['namespace'],
+                    'namespace': ns_data['namespace'],
+                    'storage_used': ns_data['storage_used'],
+                    'pvc_count': ns_data['pvc_count']
+                })
+        
+        # Sort by storage usage and take top 10
+        top_storage_workloads.sort(key=lambda x: x['storage_used'], reverse=True)
+        top_storage_workloads = top_storage_workloads[:10]
+        
+        # Calculate max storage for percentage calculations
+        max_storage = max([w['storage_used'] for w in top_storage_workloads], default=1)
+        
+        # Analyze storage classes
+        storage_class_analysis = {}
+        for pvc in pvcs:
+            sc_name = pvc.spec.storage_class_name or 'default'
+            if sc_name not in storage_class_analysis:
+                storage_class_analysis[sc_name] = {
+                    'name': sc_name,
+                    'pvc_count': 0,
+                    'total_storage': 0
+                }
+            
+            storage_class_analysis[sc_name]['pvc_count'] += 1
+            storage_size = pvc.spec.resources.requests.get('storage', '0')
+            storage_bytes = _parse_storage_size(storage_size)
+            storage_class_analysis[sc_name]['total_storage'] += storage_bytes
+        
+        # Convert to list and sort by PVC count
+        storage_classes_list = list(storage_class_analysis.values())
+        storage_classes_list.sort(key=lambda x: x['pvc_count'], reverse=True)
+        
+        # Calculate overall storage utilization
+        storage_utilization_percent = min(100, (total_storage_used / (1024**4)) * 5)  # Mock calculation
+        
+        return {
+            "total_pvcs": len(pvcs),
+            "total_storage_used": total_storage_used,
+            "storage_utilization_percent": round(storage_utilization_percent, 1),
+            "storage_warnings": storage_warnings,
+            "namespace_storage": list(namespace_storage.values()),
+            "top_storage_workloads": top_storage_workloads,
+            "storage_classes": storage_classes_list,
+            "max_storage": max_storage,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in storage analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+def _parse_storage_size(size_str: str) -> int:
+    """
+    Parse storage size string (e.g., '10Gi', '100Mi') to bytes.
+    """
+    if not size_str or size_str == '0':
+        return 0
+    
+    size_str = size_str.upper()
+    
+    # Extract number and unit
+    import re
+    match = re.match(r'^(\d+(?:\.\d+)?)\s*([A-Z]+)$', size_str)
+    if not match:
+        return 0
+    
+    number = float(match.group(1))
+    unit = match.group(2)
+    
+    # Convert to bytes
+    multipliers = {
+        'B': 1,
+        'KB': 1024,
+        'MB': 1024**2,
+        'GB': 1024**3,
+        'TB': 1024**4,
+        'PB': 1024**5,
+        'KIB': 1024,
+        'MIB': 1024**2,
+        'GIB': 1024**3,
+        'TIB': 1024**4,
+        'PIB': 1024**5
+    }
+    
+    multiplier = multipliers.get(unit, 1)
+    return int(number * multiplier)
