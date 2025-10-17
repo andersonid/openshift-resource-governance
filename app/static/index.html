@@ -2625,19 +2625,32 @@
             if (!window.workloadsData) return;
             
             try {
-                // Load all validations by namespace
-                const response = await fetch('/api/v1/validations/by-namespace');
+                // Use the same data source as updateWorkloadsTable to ensure consistency
+                const response = await fetch('/api/v1/validations?page=1&page_size=10000');
                 const data = await response.json();
+                
+                // Group validations by namespace (same logic as updateWorkloadsTable)
+                const namespaceGroups = {};
+                if (data.validations && data.validations.length > 0) {
+                    data.validations.forEach(validation => {
+                        const namespace = validation.namespace;
+                        if (!namespaceGroups[namespace]) {
+                            namespaceGroups[namespace] = {
+                                namespace: namespace,
+                                validations: []
+                            };
+                        }
+                        namespaceGroups[namespace].validations.push(validation);
+                    });
+                }
                 
                 // Store the data for each namespace
                 window.workloadDetails = {};
-                if (data.namespaces) {
-                    data.namespaces.forEach(namespace => {
-                        window.workloadDetails[namespace.namespace] = {
-                            validations: namespace.pods ? Object.values(namespace.pods).flatMap(pod => pod.validations) : []
-                        };
-                    });
-                }
+                Object.values(namespaceGroups).forEach(namespace => {
+                    window.workloadDetails[namespace.namespace] = {
+                        validations: namespace.validations
+                    };
+                });
                 
             } catch (error) {
                 console.error('Error loading namespace details:', error);
