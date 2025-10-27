@@ -103,13 +103,13 @@ spec:
             configMapKeyRef:
               name: resource-governance-config
               key: PROMETHEUS_URL
-            - name: THANOS_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: resource-governance-config
-                  key: THANOS_URL
-            - name: API_BASE_URL
-              value: "http://localhost:8080"
+        - name: THANOS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: resource-governance-config
+              key: THANOS_URL
+        - name: API_BASE_URL
+          value: "http://localhost:8080"
         - name: REPORT_EXPORT_PATH
           valueFrom:
             configMapKeyRef:
