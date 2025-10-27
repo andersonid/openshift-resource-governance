@@ -2793,78 +2793,59 @@
                                  utilizationPercentage >= 75 ? '#f59e0b' : 
                                  utilizationPercentage >= 50 ? '#3b82f6' : '#22c55e';
                 
-                // Create SVG donut chart
-                const width = 250;
-                const height = 250;
-                const radius = Math.min(width, height) / 2 - 10;
-                const innerRadius = radius * 0.6;
-                const cx = width / 2;
-                const cy = height / 2;
+                // Check if Victory is available
+                if (typeof Victory === 'undefined' || typeof React === 'undefined') {
+                    throw new Error('Victory.js or React not available');
+                }
                 
-                // Calculate angles for the donut
-                const usedAngle = (utilizationPercentage / 100) * 360;
-                const unusedAngle = 360 - usedAngle;
+                // Victory.js data format
+                const chartData = [
+                    { x: 'Used', y: utilizationPercentage },
+                    { x: 'Unused', y: unusedPercentage }
+                ];
                 
-                // Convert angle to radians and create arc paths
-                const getPath = (angle) => {
-                    const startAngle = -90; // Start from top
-                    const endAngle = startAngle + angle;
-                    const startAngleRad = (startAngle * Math.PI) / 180;
-                    const endAngleRad = (endAngle * Math.PI) / 180;
-                    
-                    const x1 = cx + radius * Math.cos(startAngleRad);
-                    const y1 = cy + radius * Math.sin(startAngleRad);
-                    const x2 = cx + radius * Math.cos(endAngleRad);
-                    const y2 = cy + radius * Math.sin(endAngleRad);
-                    
-                    const x3 = cx + innerRadius * Math.cos(endAngleRad);
-                    const y3 = cy + innerRadius * Math.sin(endAngleRad);
-                    const x4 = cx + innerRadius * Math.cos(startAngleRad);
-                    const y4 = cy + innerRadius * Math.sin(startAngleRad);
-                    
-                    const largeArcFlag = angle > 180 ? 1 : 0;
-                    
-                    return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} L ${x3} ${y3} A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${x4} ${y4} Z`;
-                };
+                // Clear container
+                container.innerHTML = '<div style="height: 250px; width: 250px; margin: 0 auto;"></div>';
+                const chartDiv = container.firstChild;
                 
-                const usedPath = getPath(usedAngle);
-                const unusedPath = getPath(unusedAngle);
+                // Create VictoryPie component
+                const donutChart = React.createElement(Victory.VictoryPie, {
+                    data: chartData,
+                    width: 230,
+                    height: 230,
+                    innerRadius: 85,
+                    colorScale: [usedColor, '#374151'],
+                    style: {
+                        data: {
+                            stroke: 'none',
+                            strokeWidth: 0
+                        }
+                    },
+                    labels: () => null,
+                    animate: {
+                        duration: 500,
+                        onLoad: { duration: 500 }
+                    },
+                    startAngle: -90,
+                    endAngle: 270
+                });
                 
-                container.innerHTML = `
-                    <svg width="${width}" height="${height}" style="display: block; margin: 0 auto;">
-                        <!-- Used arc -->
-                        <path d="${usedPath}" 
-                              fill="${usedColor}" 
-                              stroke="#1f2937" 
-                              stroke-width="2">
-                            <animate attributeName="opacity" values="0;1" dur="0.8s" fill="freeze" />
-                        </path>
-                        
-                        <!-- Unused arc -->
-                        <path d="${unusedPath}" 
-                              fill="#374151" 
-                              stroke="#1f2937" 
-                              stroke-width="2">
-                            <animate attributeName="opacity" values="0;1" dur="0.8s" fill="freeze" />
-                        </path>
-                        
-                        <!-- Center text with percentage -->
-                        <text x="${cx}" y="${cy - 5}" 
-                              text-anchor="middle" 
-                              dominant-baseline="middle"
-                              style="font-size: 36px; font-weight: bold; fill: #f9fafb; font-family: system-ui;">
-                            ${utilizationPercentage.toFixed(1)}%
-                        </text>
-                        
-                        <!-- Subtitle -->
-                        <text x="${cx}" y="${cy + 25}" 
-                              text-anchor="middle" 
-                              dominant-baseline="middle"
-                              style="font-size: 14px; fill: #9ca3af; font-family: system-ui;">
-                            ${formatBytes(totalStorageUsed)}
-                        </text>
-                    </svg>
+                // Render the chart
+                ReactDOM.render(donutChart, chartDiv);
+                
+                // Add center text overlay
+                const centerText = document.createElement('div');
+                centerText.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;';
+                centerText.innerHTML = `
+                    <div style="font-size: 48px; font-weight: bold; color: #ffffff; font-family: system-ui, sans-serif;">
+                        ${Math.round(utilizationPercentage)}%
+                    </div>
+                    <div style="font-size: 14px; color: #9ca3af; margin-top: 8px; font-family: system-ui, sans-serif;">
+                        ${formatBytes(totalStorageUsed)}
+                    </div>
                 `;
+                chartDiv.style.position = 'relative';
+                chartDiv.appendChild(centerText);
                 
             } catch (error) {
                 console.error('Error updating storage donut chart:', error);
