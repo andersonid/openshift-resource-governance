@@ -3823,11 +3823,21 @@
             const cpuData = data.filter(d => d.type === 'CPU');
             const memoryData = data.filter(d => d.type === 'Memory');
 
+            // Calculate domain for last 24 hours
+            const now = new Date();
+            const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            const xDomain = [yesterday.getTime(), now.getTime()];
+            
+            // Calculate Y domain based on data (CPU and Memory should be on different scales)
+            const allYValues = data.map(d => d.y).filter(v => !isNaN(v) && isFinite(v));
+            const maxY = Math.max(...allYValues, 10) * 1.1; // Add 10% padding
+            
             const chart = React.createElement(Victory.VictoryChart, {
                 width: container.offsetWidth || 500,
                 height: 300,
                 theme: Victory.VictoryTheme.material,
                 scale: { x: 'time' },
+                domain: { x: xDomain, y: [0, maxY] },
                 padding: { top: 20, bottom: 60, left: 80, right: 40 },
                 domainPadding: { x: 0, y: 0 },
                 style: {
@@ -3845,7 +3855,8 @@
                         axis: { stroke: '#666' },
                         tickLabels: { fill: '#ccc', fontSize: 16, angle: -45, textAnchor: 'end' }
                     },
-                    tickFormat: (t) => `${t}%`
+                    tickCount: 8,
+                    tickFormat: (t) => Number(t).toFixed(1)
                 }),
                 React.createElement(Victory.VictoryAxis, {
                     key: 'x-axis',
@@ -3857,8 +3868,7 @@
                     },
                     tickFormat: (t) => new Date(t).toLocaleTimeString('pt-BR', { 
                         hour: '2-digit', 
-                        minute: '2-digit',
-                        timeZone: 'UTC'
+                        minute: '2-digit'
                     })
                 }),
                 React.createElement(Victory.VictoryLine, {
