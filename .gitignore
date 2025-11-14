@@ -153,6 +153,7 @@ reports/
 logs/
 temp/
 tmp/
+.temp/
 
 # Kubernetes
 kubeconfig
